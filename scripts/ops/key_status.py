@@ -52,6 +52,28 @@ def git(*args: str) -> subprocess.CompletedProcess:
                           encoding="utf-8", errors="ignore")
 
 
+def appears_in_history(key: str) -> tuple[bool, str]:
+    """在所有提交里查私钥（逐提交用 git grep -f，避免明文进进程参数）。"""
+    if not key:
+        return False, ""
+    commits = [c for c in git("rev-list", "--all").stdout.splitlines() if c.strip()]
+    fd, path = tempfile.mkstemp(prefix="key-", suffix=".txt")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(key + "\n")
+        for commit in commits:
+            proc = git("grep", "-l", "-F", "-f", path, commit, "--", ".")
+            hits = [h for h in (proc.stdout or "").splitlines() if h.strip()]
+            if hits:
+                return True, f"{commit[:8]}: {', '.join(hits[:3])}"
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    return False, ""
+
+
 def appears_in_repo(key: str) -> tuple[bool, str]:
     """在**已跟踪文件**里查私钥（用临时文件传给 git grep -f，避免明文进进程列表）。"""
     if not key:
@@ -110,9 +132,12 @@ def main(argv: list[str] | None = None) -> int:
     if not ignored:
         issues.append(".env 未被 .gitignore 忽略")
 
-    history = git("log", "--all", "--oneline", "--", ".env").stdout.strip()
-    if history:
+    env_history = git("log", "--all", "--oneline", "--", ".env").stdout.strip()
+    if env_history:
         issues.append(".env 曾进入 git 历史，需要清理历史后再开源")
+    key_history, where_history = appears_in_history(key)
+    if key_history:
+        issues.append(f"私钥出现在 git 历史中（{where_history}），发布前必须重写历史")
 
     if key_file:
         p = Path(key_file)
@@ -147,7 +172,8 @@ def main(argv: list[str] | None = None) -> int:
         "env_age_days": age_days,
         "backups": len(backups),
         "git_ignored": ignored,
-        "in_history": bool(history),
+        "in_history": key_history,
+        "env_in_history": bool(env_history),
         "leaked_in_tracked_files": leaked,
         "issues": issues,
         "notes": notes,
@@ -165,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  .env 修改于 {age_days if age_days is not None else '--'} 天前")
         print(f"  备份份数    {len(backups)}")
         print(f"  仓库泄露    {'是' if leaked else '否'}")
-        print(f"  历史提交    {'有' if history else '无'}")
+        print(f"  历史提交    {'有：' + where_history if key_history else '无'}")
         for n in notes:
             print(f"  提示        {n.strip()}")
         print("-" * 58)
