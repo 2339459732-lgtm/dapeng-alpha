@@ -116,6 +116,8 @@
     var raw = new URLSearchParams(location.search).get('next') || '';
     if (raw.charAt(0) !== '/' || raw.charAt(1) === '/' || raw.charAt(1) === '\\') return '/dashboard.html';
     if (raw.indexOf('/login') === 0) return '/dashboard.html';
+    // 分享链接通常带 next=/：登录后直接进决策台，而不是营销首页
+    if (raw === '/' || raw === '') return '/dashboard.html';
     return raw;
   }
 
