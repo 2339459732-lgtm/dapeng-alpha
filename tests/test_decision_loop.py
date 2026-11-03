@@ -224,8 +224,13 @@ def test_session_volume_progress_curve():
     assert _session_volume_progress(datetime(2026, 11, 1, 10, 0)) == 1.0
 
 
-def test_volume_dimension_uses_volume_backfill():
-    """成交额样本不足时用成交量回填，并标记为预估。"""
+def test_volume_dimension_uses_volume_backfill(monkeypatch):
+    """成交额样本不足时用成交量回填，并标记为预估。
+
+    固定"交易时段进度=1.0"：该用例验证的是回填口径，不应随运行时刻变化——
+    凌晨运行时 session_progress=0，产品会正确判定量能不可用，测试却会误报。
+    """
+    monkeypatch.setattr("server.decision_snapshot._session_volume_progress", lambda *a, **k: 1.0)
     packet = _packet()
     packet["market"]["turnover"] = {
         "amount": 1.1e12,

@@ -36,8 +36,9 @@
   // ---------- 样式（自包含，注入一次）----------
   var CSS = ''
     + '#trade-desk-root{}'
-    + '.td-fab{position:fixed;right:22px;bottom:80px;z-index:9998;background:#c0392b;color:#fff;border:0;'
+    + '.td-fab{position:fixed;right:18px;bottom:18px;z-index:9998;background:#c0392b;color:#fff;border:0;'
     + 'border-radius:22px;padding:10px 16px;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}'
+    + '@media (max-width:700px){.td-fab{right:12px;bottom:16px;width:46px;height:46px;padding:0;font-size:11px;border-radius:50%;opacity:.9}}'
     + '.td-overlay{position:fixed;inset:0;background:rgba(8,10,16,.72);z-index:9999;display:none}'
     + '.td-overlay.on{display:flex;align-items:center;justify-content:center}'
     + '.td-panel{width:min(940px,94vw);max-height:88vh;overflow:auto;background:#12161f;color:#dfe6f0;'

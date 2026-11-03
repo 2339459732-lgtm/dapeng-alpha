@@ -41,6 +41,7 @@
     strategyAt: 0,
     pipelineLoading: false,
     pipelineAt: 0,
+    pipelineSnapshot: null,
     mode: 'auto',
     stream: null,
     streamStatus: 'off',
@@ -121,6 +122,9 @@
     var hasData = Object.keys(state.data).length > 0;
     if (!hasData) renderLoading();
     else render();
+    /* 链路与候选池较慢，页面一进来就并行拉，不排在 18 个接口之后；有缓存/去重保护。 */
+    loadStrategyOnce();
+    loadPipelineOnce();
 
     var keys = Object.keys(ENDPOINTS);
     keys.forEach(function (key) {
@@ -151,10 +155,6 @@
     render();
     /* 龙虎榜复盘不进轮询：只拉一次，之后靠独立页面看完整内容。 */
     loadLhbOnce();
-    /* 候选池要拉 30+ 只票的日线，放进主批次会被浏览器同域并发限制堵在队尾；
-     * 主批次落定后再单独拉，慢也不拖累其他卡片。 */
-    loadStrategyOnce();
-    loadPipelineOnce();
   }
 
   /* ---------------- 构建骨架 ---------------- */
@@ -394,7 +394,10 @@
     state.pipelineLoading = true;
     var url = '/api/decision/pipeline' + (force ? '?refresh=true' : '');
     jget(url, 90000)
-      .then(function (payload) { state.data.pipeline = payload; })
+      .then(function (payload) {
+        state.data.pipeline = payload;
+        if (payload && payload.ok && payload.stages) state.pipelineSnapshot = payload;
+      })
       .catch(function (e) {
         state.data.pipeline = { ok: false, reason: '研判链路异常：' + (e && e.message ? e.message : e) };
       })
@@ -492,6 +495,14 @@
       refresh.innerHTML = '<span class="dd-refresh-icon">↻</span> ' + (state.loading ? '同步中' : '同步数据');
     }
     renderPulse();
+    if (/\.app\.workbuddy\.host$/.test(location.hostname) && !document.getElementById('dd-demo-badge')) {
+      var badge = document.createElement('div');
+      badge.id = 'dd-demo-badge';
+      badge.className = 'dd-demo-badge';
+      badge.textContent = '公网演示 · 数据不持久';
+      badge.title = '这是部署在云端的演示实例，重启/重新发布会重置运行数据；持仓与交易库不参与部署。';
+      document.body.appendChild(badge);
+    }
 
     /* 按「事实 → 判断 → 决策 → 执行 → 溯源」分组：17 张卡平铺时读者要自己在
      * 脑海里排序，分组标题把这条链显式写出来，结论与依据不再混在一屏。 */
@@ -499,6 +510,7 @@
     html += renderVerdict(v, mode);
     html += group('决策结论', 'CONCLUSION', '先看结论，再向下核对依据');
     html += renderPlan(v, mode);
+    html += renderStrategy();
 
     html += group('事实层', 'FACT', '行情、资金与广度：这一天的市场底座');
     html += renderHeat(md, v);
@@ -516,9 +528,8 @@
     html += renderWorld();
     html += renderIntel(d);
 
-    html += group('决策层', 'DECISION', '候选与计划：可执行的那一部分');
+    html += group('决策层', 'DECISION', '链路与持仓：从筛选到执行');
     html += renderPipeline();
-    html += renderStrategy();
     html += renderHoldings(d);
     html += renderLhb(d);
     html += renderReview(d);
@@ -541,6 +552,28 @@
     }
   }
 
+  function candidateCount() {
+    var p = state.pipelineSnapshot || state.data.pipeline;
+    var n = p && p.post_close && p.post_close.screening && p.post_close.screening.funnel
+      ? num(p.post_close.screening.funnel.passed) : null;
+    return n == null ? 0 : n;
+  }
+
+  /** 首屏漏斗条：数据源 → 广度 → 板块 → 个股 → 研判，样本数直接写出来。 */
+  function renderFunnelStrip() {
+    var p = state.pipelineSnapshot
+      || (state.data.pipeline && state.data.pipeline.ok ? state.data.pipeline : null);
+    if (!p || !p.stages) return '';
+    var items = p.stages.map(function (s) {
+      var cls = s.degraded ? ' is-degraded' : '';
+      var count = (s.sample == null ? '--' : s.sample)
+        + (s.output != null && s.output !== s.sample ? ' → ' + s.output : '');
+      return '<div class="dd-funnel-item' + cls + '" title="' + esc(s.reason || s.scope || '') + '">'
+        + '<b>' + esc(s.name) + '</b><span>' + esc(count) + '</span></div>';
+    }).join('');
+    return '<div class="dd-funnel">' + items + '</div>';
+  }
+
   function renderVerdict(v, mode) {
     var ringColor = v.riskIndex == null ? 'var(--muted)' : v.riskIndex >= 62 ? 'var(--red)' : v.riskIndex <= 38 ? 'var(--green)' : 'var(--gold)';
     var pct = v.riskIndex == null ? 0 : v.riskIndex;
@@ -554,9 +587,10 @@
       '<div class="dd-stat-grid" style="flex:1;min-width:220px">' +
         stat('建议仓位上限', v.cap == null ? '--' : '≤ ' + v.cap + '%', 'cap') +
         stat(v.sentiment ? '统一情绪 v1' : '情绪评分', v.score == null ? '--' : v.score + '/100', '') +
-        stat('专家共识', (v.panel && v.panel.consensus && v.panel.consensus.label) ? v.panel.consensus.label : '--', '') +
+        stat('候选标的', candidateCount(), candidateCount() === 0 ? 'warn' : 'good') +
         stat('上涨占比', v.upRatio == null ? '--' : v.upRatio.toFixed(1) + '%', v.upRatio != null && v.upRatio < 30 ? 'bad' : '') +
       '</div></div>' +
+      renderFunnelStrip() +
       '<div class="dd-note">结论由市场评分、市场宽度、全球联动、涨跌停结构与风控体检加权得出；风险指数越高越应收缩仓位。仅供参考，不构成投资建议。</div>';
     return card('今日决策结论', 'VERDICT', body, 'span12');
   }
@@ -1385,7 +1419,7 @@
       + ' · 止损 ' + (sp.runtime ? (sp.runtime.stop_loss_pct * 100).toFixed(0) : '--') + '%'
       + ' · 目标 ' + (sp.runtime ? (sp.runtime.target_pct_min * 100).toFixed(0) : '--') + '%'
       + ' · 纸面档案（不接券商）</div>';
-    return card('8 分制候选池', 'STRATEGY PROFILE', body, 'span4',
+    return card('8 分制候选池', 'STRATEGY PROFILE', body, 'span6',
       { href: '/project-docs.html', text: '评分口径' });
   }
 
@@ -1410,7 +1444,7 @@
       '</div>' +
       '<div class="dd-history" id="dd-history"></div>' +
       '</div>';
-    return card(isPost ? '盘后复盘 / 执行偏差' : '决策卡 / 交易计划', 'PLAN', body, 'span12');
+    return card(isPost ? '盘后复盘 / 执行偏差' : '决策卡 / 交易计划', 'PLAN', body, 'span6');
   }
 
   function buildChecklist(v) {

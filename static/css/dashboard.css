@@ -5911,3 +5911,10 @@ body.light-theme .stage-chip{background:rgba(255,255,255,.68);border-color:rgba(
 }
 .ix-strip-source { color: #8b9ec2; }
 .ix-strip-time { color: #6b7a99; margin-left: auto; }
+
+/* 移动端：指数条两列、内容截断，避免右侧被裁切 */
+@media (max-width: 640px) {
+  .index-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .index-strip > * { min-width: 0; overflow: hidden; }
+  .index-strip .idx-name, .index-strip .idx-val { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

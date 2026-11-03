@@ -376,6 +376,7 @@
 #decision-mount .dd-pulse-loading { padding: 18px; color: var(--text2); font-size: 11px; }
 
 #decision-mount .dd-grid { gap: 12px; }
+#decision-mount { padding-bottom: 56px; }
 #decision-mount .dd-card {
   padding: 15px 16px;
   gap: 11px;
@@ -930,3 +931,30 @@ body.light-theme #decision-mount .dd-plan textarea { background: rgba(241, 245, 
 .dd-action.ok { color: var(--green); border-color: rgba(0, 233, 106, .45); background: rgba(0, 233, 106, .08); }
 .dd-action.warn { color: var(--gold); border-color: rgba(245, 158, 11, .45); background: rgba(245, 158, 11, .08); }
 .dd-action.bad { color: var(--red); border-color: rgba(255, 61, 106, .45); background: rgba(255, 61, 106, .08); }
+
+/* ---------- 首屏漏斗条 ---------- */
+.dd-funnel { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.dd-funnel-item {
+  flex: 1 1 118px; min-width: 0; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(255, 255, 255, .02);
+}
+.dd-funnel-item b {
+  display: block; font-size: 10px; color: var(--text2); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dd-funnel-item span { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dd-funnel-item.is-degraded { border-color: rgba(255, 61, 106, .4); background: rgba(255, 61, 106, .06); }
+
+/* ---------- 公网演示标识 ---------- */
+.dd-demo-badge {
+  position: fixed; top: 8px; right: 8px; z-index: 9997; pointer-events: none;
+  font-size: 10px; color: var(--gold); padding: 2px 8px; border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, .4); background: rgba(245, 158, 11, .08);
+}
+
+@media (max-width: 640px) {
+  /* 给悬浮按钮留出安全区，避免遮挡结论正文 */
+  #decision-mount { padding-bottom: 84px; }
+  .dd-funnel-item { flex: 1 1 46%; }
+  .dd-demo-badge { top: auto; bottom: 84px; right: 10px; }
+}
