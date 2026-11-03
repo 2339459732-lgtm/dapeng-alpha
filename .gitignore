@@ -67,3 +67,6 @@ start_autorun.vbs
 # 开源导出包（由 scripts/ops/export_opensource.py 生成）
 dist/
 *.tar.gz
+
+# 云端部署副本（含运行时 .env，绝不入库）
+deploy/
