@@ -871,3 +871,38 @@ body.light-theme #decision-mount .dd-plan textarea { background: rgba(241, 245, 
   font: inherit; font-size: 10px; cursor: pointer; padding: 2px 4px;
 }
 .dd-cc-link:hover { text-decoration: underline; }
+
+/* ---------- 分层分组标题（事实 → 判断 → 决策 → 溯源） ---------- */
+.dd-group-head {
+  grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px;
+  margin: 8px 0 -2px; padding: 8px 2px 0;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+}
+.dd-group-head b { font-size: 12px; letter-spacing: .6px; color: var(--text); }
+.dd-group-head span {
+  font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+}
+.dd-group-head em { font-style: normal; margin-left: auto; font-size: 10.5px; color: var(--text2); }
+
+/* ---------- 8 分制候选池 ---------- */
+.dd-strat-wrap { overflow-x: auto; margin: 0 -2px; }
+.dd-strat-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 460px; }
+.dd-strat-table th {
+  text-align: left; color: var(--muted); font-weight: 500;
+  padding: 4px 6px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.dd-strat-table td { padding: 5px 6px; border-bottom: 1px solid rgba(255, 255, 255, .04); }
+.dd-strat-table tr:last-child td { border-bottom: none; }
+.dd-strat-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.dd-strat-name { font-weight: 600; color: var(--text); }
+.dd-strat-code { color: var(--muted); font-size: 10px; margin-left: 4px; }
+.dd-strat-score { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.dd-strat-dim { display: inline-flex; gap: 3px; }
+.dd-strat-dim i {
+  font-style: normal; width: 13px; height: 13px; border-radius: 3px;
+  display: grid; place-items: center; font-size: 8.5px; font-weight: 700;
+  background: rgba(255, 255, 255, .06); color: var(--muted);
+}
+.dd-strat-dim i.on { background: rgba(245, 158, 11, .18); color: var(--gold); }
+.dd-strat-empty { padding: 14px 4px; text-align: center; color: var(--muted); font-size: 11.5px; line-height: 1.8; }

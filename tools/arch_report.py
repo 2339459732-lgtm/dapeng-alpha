@@ -52,6 +52,7 @@ LAYER_OF = {
     # 龙虎榜复盘：盘后离线归因，只读上游 + 落盘，不进入实时决策链路 → 与 engine 同层
     "lhb_review": "engine", "lhb_fetch": "engine", "lhb_insight": "engine",
     "lhb_factors": "engine",
+    "strategy_profile": "engine",
     "main": "api", "routers": "api", "payment": "api", "agents": "engine",
     "trading": "engine", "strategies": "engine", "infra": "infra", "providers": "providers",
     "stable_market_provider": "data", "api_tracking": "infra", "quote_hub": "data",

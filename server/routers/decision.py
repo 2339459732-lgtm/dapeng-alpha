@@ -107,6 +107,17 @@ async def decision_scan(refresh: bool = Query(False)):
     return await get_market_scan(force=refresh)
 
 
+@router.get("/strategy-profile")
+async def decision_strategy_profile(refresh: bool = Query(False)):
+    """8 分制候选池（strategy-profile.v1）：独立纸面档案，不参与现有六专家结论。
+
+    默认读 180 秒缓存；`refresh=true` 立即重算（会对入围股拉日线，约 3–12 秒）。
+    """
+    from server.strategy_profile import build
+
+    return await build(force=refresh)
+
+
 @router.get("/lhb-review")
 async def lhb_review_latest(
     refresh: bool = Query(False, description="强制重跑（会重新打上游，约 5-10 秒）"),

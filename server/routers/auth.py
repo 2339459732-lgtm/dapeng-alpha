@@ -45,6 +45,14 @@ _GLOBAL_FAIL_LIMIT = 60
 _GLOBAL_FAIL_WINDOW = 600.0
 _FAILS: Deque[float] = deque()
 
+#: 单 IP 渐进锁定：15 分钟内错 5 次 → 锁 15 分钟。
+#: 与 10 次/分钟的频率限制互补：频率限制挡「快打」，锁定挡「慢试」——
+#: 6 位数字口令只有 100 万种组合，不限总次数的话，慢速试一年也能穷举。
+_IP_FAIL_LIMIT = 5
+_IP_FAIL_WINDOW = 900.0
+_IP_LOCK_SECONDS = 900.0
+_IP_FAILS: Dict[str, Deque[float]] = {}
+
 _STATIC_AFTER_LOGIN = "/dashboard.html"
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _STATIC_DIR = os.path.join(_ROOT, "static")
@@ -84,6 +92,29 @@ def _record_failure(now: float | None = None) -> None:
     _FAILS.append(now if now is not None else time.time())
 
 
+def _ip_locked(ip: str, now: float | None = None) -> int:
+    """单 IP 锁定剩余秒数（0 = 未锁）。"""
+    now = now if now is not None else time.time()
+    q = _IP_FAILS.get(ip)
+    if not q:
+        return 0
+    while q and q[0] < now - _IP_FAIL_WINDOW:
+        q.popleft()
+    if not q:
+        _IP_FAILS.pop(ip, None)
+        return 0
+    if len(q) < _IP_FAIL_LIMIT:
+        return 0
+    return max(1, int(q[-1] + _IP_LOCK_SECONDS - now))
+
+
+def _record_ip_failure(ip: str, now: float | None = None) -> None:
+    _IP_FAILS.setdefault(ip, deque()).append(now if now is not None else time.time())
+    if len(_IP_FAILS) > 4096:  # 防字典无限增长
+        for key in [k for k, v in _IP_FAILS.items() if not v][:1024]:
+            _IP_FAILS.pop(key, None)
+
+
 @router.get("/status")
 async def status(request: Request) -> Dict[str, Any]:
     """公开状态：前端据此决定「直接进」还是「去登录」。"""
@@ -105,6 +136,16 @@ async def login(payload: LoginRequest, request: Request):
         # 未启用时不该有人走到这里；前端会先看 status
         return JSONResponse(status_code=400, content={
             "ok": False, "message": "未启用访问密钥（服务端未配置 ACCESS_KEY）"})
+
+    ip_locked = _ip_locked(ip)
+    if ip_locked:
+        _audit(ip, "ip_locked", f"retry={ip_locked}s")
+        return JSONResponse(
+            status_code=429,
+            content={"ok": False, "message": f"该 IP 连续出错过多，已暂停登录 {ip_locked} 秒",
+                     "retry_after": ip_locked},
+            headers={"Retry-After": str(ip_locked)},
+        )
 
     locked = _global_locked()
     if locked:
@@ -130,10 +171,12 @@ async def login(payload: LoginRequest, request: Request):
 
     if not auth.check_key(payload.key):
         _record_failure()
+        _record_ip_failure(ip)
         logger.warning("auth login failed ip=%s", ip)
         _audit(ip, "login_failed")
         return JSONResponse(status_code=401, content={"ok": False, "message": "密钥不正确"})
 
+    _IP_FAILS.pop(ip, None)  # 成功即清零该 IP 的失败计数
     value, ttl = auth.issue_session()
     resp = JSONResponse(content={"ok": True, "message": "ok", "expires_in": ttl})
     auth.set_session_cookie(resp, value, ttl, auth.cookie_secure(request))

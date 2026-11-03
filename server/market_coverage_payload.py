@@ -364,12 +364,62 @@ async def get_market_coverage(force: bool = False) -> Dict[str, Any]:
     return payload
 
 
+def _load_snapshot_from_disk(max_age: int = 900) -> Optional[Dict[str, Any]]:
+    """从 `data/market_coverage_latest.json` 读回落盘快照（进程重启后的兜底）。
+
+    为什么必须有这一层：`get_cached_coverage` 原来只读进程内 `_CACHE`。服务一重启，
+    全市场覆盖虽然在磁盘上（几分钟前刚生成），内存里却是空的，决策快照就会**静默退回**
+    447 只核心样本——涨停家数从 61 变成 3，宽度从 38% 变 57%，方向都反了。
+    这类退化不报错、不告警，只在面板上给出一个看起来合理的错数字。
+
+    落盘结构比内存载荷少几个字段（无 `ok` / `scope` / `ashare.quality`），
+    这里补齐成调用方期望的形状，并标注 `cached: true` 便于追溯。
+    """
+    try:
+        mtime = os.path.getmtime(LATEST_PATH)
+    except OSError:
+        return None
+    if max_age > 0 and time.time() - mtime > max_age:
+        return None
+    try:
+        with open(LATEST_PATH, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    ashare = payload.get("ashare") or {}
+    quotes = ashare.get("quotes") or {}
+    if not quotes:
+        return None
+    quality = payload.get("quality") or {}
+    return {
+        "ok": True,
+        "version": payload.get("version"),
+        "as_of": payload.get("as_of"),
+        "generated_at": payload.get("generated_at"),
+        "quality": quality,
+        "ashare": {
+            **ashare,
+            "scope": ashare.get("scope") or "沪深京 A 股（全市场）",
+            "quality": ashare.get("quality") or quality,
+            "industries": ashare.get("industries") or [],
+        },
+        "global": payload.get("global") or {},
+        "macro": payload.get("macro") or {},
+        "sources": payload.get("sources") or {},
+        "cached": True,
+    }
+
+
 def get_cached_coverage(max_age: int = 900) -> Optional[Dict[str, Any]]:
-    """只读最近一次成功覆盖，供 survey/快照在不等上游的情况下复用。"""
+    """只读最近一次成功覆盖，供 survey/快照在不等上游的情况下复用。
+
+    先查进程内缓存，未命中再回落磁盘快照——两者都受 `max_age` 约束，
+    过期一律返回 None，绝不用旧数据冒充实时。
+    """
     cached = _CACHE.get("coverage") or {}
     data = cached.get("data")
-    if not data:
-        return None
-    if max_age > 0 and time.time() - (cached.get("ts") or 0) > max_age:
-        return None
-    return data
+    if data:
+        if max_age > 0 and time.time() - (cached.get("ts") or 0) > max_age:
+            return None
+        return data
+    return _load_snapshot_from_disk(max_age)

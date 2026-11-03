@@ -37,6 +37,8 @@
     built: false,
     loading: false,
     loadedAt: 0,
+    strategyLoading: false,
+    strategyAt: 0,
     mode: 'auto',
     stream: null,
     streamStatus: 'off',
@@ -147,6 +149,9 @@
     render();
     /* 龙虎榜复盘不进轮询：只拉一次，之后靠独立页面看完整内容。 */
     loadLhbOnce();
+    /* 候选池要拉 30+ 只票的日线，放进主批次会被浏览器同域并发限制堵在队尾；
+     * 主批次落定后再单独拉，慢也不拖累其他卡片。 */
+    loadStrategyOnce();
   }
 
   /* ---------------- 构建骨架 ---------------- */
@@ -360,6 +365,25 @@
     return 'skewed';
   }
 
+  /** 候选池单独加载：缓存 120 秒；失败也要给出可读原因，不能一直显示「计算中」。 */
+  function loadStrategyOnce(force) {
+    if (state.strategyLoading) return;
+    if (!force && state.strategyAt && Date.now() - state.strategyAt < 120000) return;
+    state.strategyLoading = true;
+    var url = '/api/decision/strategy-profile' + (force ? '?refresh=true' : '');
+    jget(url, 60000)
+      .then(function (payload) { state.data.strategy = payload; })
+      .catch(function (e) {
+        state.data.strategy = { ok: false, available: false,
+          reason: '候选池接口异常：' + (e && e.message ? e.message : e) };
+      })
+      .finally(function () {
+        state.strategyLoading = false;
+        state.strategyAt = Date.now();
+        render();
+      });
+  }
+
   function renderPulse() {
     var host = $('dd-pulse');
     if (!host) return;
@@ -448,10 +472,14 @@
     }
     renderPulse();
 
+    /* 按「事实 → 判断 → 决策 → 执行 → 溯源」分组：17 张卡平铺时读者要自己在
+     * 脑海里排序，分组标题把这条链显式写出来，结论与依据不再混在一屏。 */
     var html = '';
     html += renderVerdict(v, mode);
-    html += renderExperts();
-    html += renderWorld();
+    html += group('决策结论', 'CONCLUSION', '先看结论，再向下核对依据');
+    html += renderPlan(v, mode);
+
+    html += group('事实层', 'FACT', '行情、资金与广度：这一天的市场底座');
     html += renderHeat(md, v);
     html += renderCapital(md, d);
     html += renderCoverage();
@@ -460,12 +488,20 @@
     html += renderMoneyFlow();
     html += renderSentiment();
     html += renderSectorTrends();
+
+    html += group('判断层', 'JUDGEMENT', '专家与情报：分歧在哪里');
+    html += renderExperts();
     html += renderCharRadar();
-    html += renderHoldings(d);
+    html += renderWorld();
     html += renderIntel(d);
+
+    html += group('决策层', 'DECISION', '候选与计划：可执行的那一部分');
+    html += renderStrategy();
+    html += renderHoldings(d);
     html += renderLhb(d);
     html += renderReview(d);
-    html += renderPlan(v, mode);
+
+    html += group('数据与溯源', 'PROVENANCE', '每个数字都要能追溯');
     html += renderDataSources();
     grid.innerHTML = html;
 
@@ -1183,6 +1219,72 @@
     return card('数据源健康', 'DATA SOURCES', body, 'span12', { act: 'refresh', text: '刷新' });
   }
 
+  /** 分组标题：grid 整行，用来把 17 张卡切成「事实 / 判断 / 决策 / 溯源」。 */
+  function group(title, en, note) {
+    return '<div class="dd-group-head"><b>' + esc(title) + '</b><span>' + esc(en) + '</span>'
+      + (note ? '<em>' + esc(note) + '</em>' : '') + '</div>';
+  }
+
+  /** 8 分制候选池：独立纸面档案，不参与六专家结论。 */
+  function renderStrategy() {
+    var sp = state.data.strategy;
+    if (!sp) {
+      return card('8 分制候选池', 'STRATEGY PROFILE',
+        '<div class="dd-empty">候选池计算中（需对入围股拉日线，约 3–12 秒）…</div>', 'span4');
+    }
+    if (!sp.ok || sp.available === false) {
+      return card('8 分制候选池', 'STRATEGY PROFILE',
+        '<div class="dd-empty">' + esc(sp.reason || '暂不可用')
+        + '<br><span class="muted-text" style="font-size:10px">全市场覆盖任务完成后自动可用</span></div>', 'span4');
+    }
+    var m = sp.market || {}, f = sp.funnel || {}, list = sp.candidates || [];
+    var dims = ['market', 'sector', 'stock', 'volume', 'risk'];
+    var dimNames = { market: '市', sector: '板', stock: '股', volume: '量', risk: '险' };
+
+    var body = '<div class="dd-stat-grid">'
+      + stat('市场分', (m.score == null ? '--' : m.score + '/2'), m.score >= 2 ? 'good' : m.score >= 1 ? 'warn' : 'bad')
+      + stat('涨停 / 跌停', (m.limit_up == null ? '--' : m.limit_up) + ' / ' + (m.limit_down == null ? '--' : m.limit_down), (m.limit_up || 0) > (m.limit_down || 0) ? 'up' : 'down')
+      + stat('入围 / 通过', (f.scored == null ? '--' : f.scored) + ' / ' + list.length, list.length ? 'good' : '')
+      + stat('指数 MA20', m.above_ma20 == null ? '--' : (m.above_ma20 ? '在上方' : '在下方'), m.above_ma20 ? 'good' : 'bad')
+      + '</div>';
+
+    if (!list.length) {
+      body += '<div class="dd-strat-empty">今日无 8 分以上候选 → <b>空仓不做</b>'
+        + '<br><span style="font-size:10.5px">评分门槛 ' + (sp.profile || '8 分制')
+        + '，宁缺毋滥；不为了出手而降标准。</span></div>';
+    } else {
+      var rows = list.map(function (c) {
+        var sd = c.score_detail || {};
+        var dimHtml = dims.map(function (k) {
+          var v = num(sd[k]) || 0;
+          return '<i class="' + (v >= 2 ? 'on' : '') + '" title="' + dimNames[k] + ' ' + v + '/2">' + dimNames[k] + '</i>';
+        }).join('');
+        return '<tr>'
+          + '<td><span class="dd-strat-name">' + esc(c.name) + '</span>'
+          + '<span class="dd-strat-code">' + esc(String(c.code || '').slice(2)) + '</span></td>'
+          + '<td class="num"><span class="dd-strat-score">' + esc(c.score) + '</span></td>'
+          + '<td><span class="dd-strat-dim">' + dimHtml + '</span></td>'
+          + '<td class="num">' + (c.volume_ratio == null ? '--' : c.volume_ratio.toFixed(1)) + '</td>'
+          + '<td class="num">' + (c.stop == null ? '--' : c.stop) + ' / ' + (c.target == null ? '--' : c.target) + '</td>'
+          + '<td class="num">' + (c.first_entry_amount == null ? '--' : '¥' + Math.round(c.first_entry_amount)) + '</td>'
+          + '</tr>';
+      }).join('');
+      body += '<div class="dd-strat-wrap"><table class="dd-strat-table"><thead><tr>'
+        + '<th>标的</th><th class="num">分</th><th>五维</th><th class="num">量比</th>'
+        + '<th class="num">止损/目标</th><th class="num">首笔</th>'
+        + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+      body += '<div class="dd-sub">触发：' + esc((list[0] || {}).trigger || '') + '</div>';
+    }
+    body += '<div class="dd-sub">'
+      + '资金 ' + (sp.runtime && sp.runtime.total_capital ? '¥' + sp.runtime.total_capital : '--')
+      + ' · 单笔最大亏损 ¥' + (sp.runtime ? sp.runtime.max_loss_per_trade : '--')
+      + ' · 止损 ' + (sp.runtime ? (sp.runtime.stop_loss_pct * 100).toFixed(0) : '--') + '%'
+      + ' · 目标 ' + (sp.runtime ? (sp.runtime.target_pct_min * 100).toFixed(0) : '--') + '%'
+      + ' · 纸面档案（不接券商）</div>';
+    return card('8 分制候选池', 'STRATEGY PROFILE', body, 'span4',
+      { href: '/project-docs.html', text: '评分口径' });
+  }
+
   function renderPlan(v, mode) {
     var isPost = mode === 'post';
     var checklist = buildChecklist(v);
@@ -1204,7 +1306,7 @@
       '</div>' +
       '<div class="dd-history" id="dd-history"></div>' +
       '</div>';
-    return card(isPost ? '盘后复盘 / 执行偏差' : '决策卡 / 交易计划', 'PLAN', body, 'span8');
+    return card(isPost ? '盘后复盘 / 执行偏差' : '决策卡 / 交易计划', 'PLAN', body, 'span12');
   }
 
   function buildChecklist(v) {

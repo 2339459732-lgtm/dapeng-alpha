@@ -66,11 +66,15 @@ HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
 
 | 层 | 机制 | 防什么 |
 |---|---|---|
-| 1 | `hmac.compare_digest` 常量时间比较 | 时序侧信道猜口令 |
-| 2 | 登录接口 10 次/分钟/IP | 单点爆破 |
-| 3 | 全局失败闸门 60 次/10 分钟 | 分布式爆破兜底（换 IP 也暂停） |
-| 4 | Origin 校验 + SameSite=Lax | CSRF（跨站表单与跨站 fetch） |
-| 5 | 非回环监听 + 无密钥 → 拒绝启动 | 「改了 HOST 忘了配 key」的致命误配 |
+| 1 | **IP 白名单** `ACCESS_IP_ALLOWLIST`（支持 CIDR） | 扫描器/陌生 IP——口令再短也进不来 |
+| 2 | `hmac.compare_digest` 常量时间比较 | 时序侧信道猜口令 |
+| 3 | 登录 10 次/分钟/IP + **单 IP 15 分钟错 5 次锁 15 分钟** | 快打 + 慢速穷举（6 位口令只有 100 万组合） |
+| 4 | 全局失败闸门 60 次/10 分钟 | 分布式爆破兜底（换 IP 也暂停） |
+| 5 | Origin 校验 + SameSite=Lax | CSRF（跨站表单与跨站 fetch） |
+| 6 | 非回环监听 + 无密钥 → 拒绝启动 | 「改了 HOST 忘了配 key」的致命误配 |
+
+弱口令（< 12 字符）自动把会话上限压到 **8 小时**：口令好记是刚需，
+但泄露后的暴露窗口不能是 72 小时。
 
 辅助措施：
 - `TRUST_PROXY` / `TRUSTED_PROXIES` 控制是否采信 `X-Forwarded-For`（默认不采信，防伪造限流键）；
@@ -88,6 +92,7 @@ HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
 | `TRUST_PROXY` | 0 | 反代后置 1 才采信 XFF |
 | `TRUSTED_PROXIES` | 空 | 逗号分隔；对端在此列表时采信 XFF |
 | `ALLOWED_ORIGINS` | 空 | 额外允许的写请求来源（如独立前端域名） |
+| `ACCESS_IP_ALLOWLIST` | 空 | IP 白名单，逗号分隔、支持 CIDR；配置后连登录页都不对外 |
 | `ALLOW_INSECURE_BIND` | 0 | 置 1 可跳过「非回环必须有密钥」的启动拦截（不建议） |
 
 ## 六、失败模式与排查
@@ -99,6 +104,8 @@ HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
 | 重启后全部掉线 | 未设 `SESSION_SECRET` 且 `ACCESS_KEY` 变了 | 属预期；固定 `SESSION_SECRET` 可避免 |
 | 启动直接报错退出 | `HOST` 非回环且无 `ACCESS_KEY` | 配密钥，或设 `ALLOW_INSECURE_BIND=1` |
 | 登录页 404 | `static/login.html` 缺失 | 检查部署包是否包含 static |
+| 突然全部 403「不在白名单」 | 配置了 `ACCESS_IP_ALLOWLIST` 但本机 IP 不在名单 | 把出口 IP 加进去，或临时清空该变量重启 |
+| 错 5 次后一直 429 | 单 IP 锁定 15 分钟 | 等待解锁，或重启服务清空计数 |
 
 ## 七、验收
 

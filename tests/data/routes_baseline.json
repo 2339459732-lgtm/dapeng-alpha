@@ -68,6 +68,7 @@
   "GET /api/decision/sentiment/flow/history",
   "GET /api/decision/sentiment/history",
   "GET /api/decision/snapshot",
+  "GET /api/decision/strategy-profile",
   "GET /api/decision/stream",
   "GET /api/decision/system",
   "GET /api/decision/universe",

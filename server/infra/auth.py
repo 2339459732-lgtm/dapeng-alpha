@@ -76,7 +76,49 @@ def ttl_seconds() -> int:
     except ValueError:
         hours = DEFAULT_TTL_HOURS
     # 下限 1 小时、上限 30 天：太短会频繁重登，太长等于永不掉线
-    return int(min(max(hours, 1.0), 720.0) * 3600)
+    ttl = int(min(max(hours, 1.0), 720.0) * 3600)
+    # 弱口令自动缩短会话：6 位数字这类口令一旦泄露，长会话等于长期后门。
+    # 不强改用户的 key（好记是刚需），但把暴露窗口从 72 小时压到 8 小时。
+    key = access_key() or ""
+    if key and len(key) < 12:
+        ttl = min(ttl, 8 * 3600)
+    return ttl
+
+
+def allowed_ips() -> list:
+    """IP 白名单（`ACCESS_IP_ALLOWLIST`，逗号分隔，支持 CIDR）。
+
+    为空表示不限制；一旦配置，**所有请求**（含登录页）都必须在名单内——
+    这是弱口令最有效的一道外包围墙：口令再短，扫描器也进不来。
+    """
+    raw = (os.getenv("ACCESS_IP_ALLOWLIST") or "").strip()
+    if not raw:
+        return []
+    import ipaddress
+
+    nets = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            nets.append(ipaddress.ip_network(part, strict=False))
+        except ValueError:
+            continue
+    return nets
+
+
+def ip_allowed(ip: str) -> bool:
+    nets = allowed_ips()
+    if not nets:
+        return True
+    import ipaddress
+
+    try:
+        addr = ipaddress.ip_address(str(ip))
+    except ValueError:
+        return False
+    return any(addr in net for net in nets)
 
 
 def _secret() -> bytes:
@@ -202,6 +244,11 @@ class AccessKeyMiddleware(BaseHTTPMiddleware):
     """未登录：API 回 401，页面 302 到 /login；写操作额外校验来源。"""
 
     async def dispatch(self, request: Request, call_next):
+        # 0) IP 白名单：配置后连登录页都不对名单外开放
+        if not ip_allowed(client_ip(request)):
+            return JSONResponse(status_code=403, content={
+                "ok": False, "message": "当前 IP 不在访问白名单内", "version": VERSION})
+
         if not origin_allowed(request):
             return JSONResponse(status_code=403, content={
                 "ok": False, "message": "来源校验失败（跨站写请求已被拒绝）",
@@ -244,4 +291,4 @@ __all__ = ["VERSION", "COOKIE_NAME", "auth_enabled", "access_key", "check_key",
            "issue_session", "verify_session", "sign_session", "ttl_seconds",
            "cookie_secure", "set_session_cookie", "clear_session_cookie",
            "client_ip", "origin_allowed", "key_strength_issue",
-           "AccessKeyMiddleware", "PUBLIC_PATHS"]
+           "allowed_ips", "ip_allowed", "AccessKeyMiddleware", "PUBLIC_PATHS"]

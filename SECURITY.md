@@ -41,6 +41,7 @@
 
 - [ ] `ACCESS_KEY` ≥ 32 位随机串：`python -c "import secrets;print(secrets.token_urlsafe(32))"`
 - [ ] `HOST=0.0.0.0` 时**必须**同时设 `ACCESS_KEY` 与 `MOAT_ADMIN_TOKEN`；未设密钥会**拒绝启动**
+- [ ] **配 `ACCESS_IP_ALLOWLIST`**（如 `127.0.0.1,192.168.1.0/24`）：弱口令最有效的外包围墙
 - [ ] 前面挂 HTTPS 反代（Caddy/Nginx），并设 `COOKIE_SECURE=1`
 - [ ] 反代后设 `TRUST_PROXY=1`（或 `TRUSTED_PROXIES=<代理IP>`），否则限流会把所有人算成一个 IP
 - [ ] 不要把 `.env`、`data/`、`logs/`、`backups/` 提交或打包分发
@@ -65,7 +66,7 @@ python -c "import secrets;print(secrets.token_urlsafe(32))"
 
 | 限制 | 影响 | 缓解 |
 |---|---|---|
-| 单口令 | 无法按人撤销 | 分发不同实例，或升级为多密钥方案 |
+| 单口令（当前 6 位数字） | 可被穷举 | 已加 IP 白名单 + 5 次锁定 + 8 小时会话；仍建议仅在可信网络使用 |
 | 会话无状态 | 无法查看在线设备、无法单点踢出 | 轮换 `ACCESS_KEY` |
 | 登录限流在进程内 | 多进程/多实例部署时限额不共享 | 单实例部署；或在反代层加限流 |
 | 审计日志无防篡改 | 有服务器权限者可改写 | 采集到外部日志系统 |

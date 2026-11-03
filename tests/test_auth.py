@@ -130,6 +130,7 @@ def client(monkeypatch):
     monkeypatch.setenv("ACCESS_KEY", KEY)
     auth_router._LOGIN_LIMITER._hits.clear()  # 每个用例从干净窗口开始
     auth_router._FAILS.clear()
+    auth_router._IP_FAILS.clear()
     return TestClient(_make_app(), follow_redirects=False)
 
 
@@ -200,9 +201,14 @@ def test_whoami_reports_expiry(client):
 
 
 def test_login_is_rate_limited(client):
-    """第 11 次尝试必须被限流（10/min/IP），否则等于给爆破开口子。"""
+    """连续失败必须被挡：前 5 次 401，之后进入 IP 锁定（429）。
+
+    两层防线叠加：频率限制 10 次/分钟挡快打，单 IP 锁定（5 次/15 分钟）
+    挡慢试——6 位口令只有 100 万组合，不限总次数就会被穷举。
+    """
     codes = [client.post("/api/auth/login", json={"key": "wrong"}).status_code for _ in range(10)]
-    assert set(codes) == {401}
+    assert codes[:5] == [401] * 5
+    assert set(codes[5:]) == {429}
     r = client.post("/api/auth/login", json={"key": "wrong"})
     assert r.status_code == 429
     assert r.headers.get("retry-after")
@@ -314,3 +320,66 @@ def test_audit_log_never_contains_key(client, monkeypatch, tmp_path):
     assert "super-secret-attempt" not in text
     assert KEY not in text
     assert "login_ok" in text and "login_failed" in text
+
+
+# ---------------------------------------------------------------------------
+# 口令边界：IP 白名单 / 单 IP 渐进锁定 / 弱口令会话缩短
+# ---------------------------------------------------------------------------
+def test_ip_allowlist_blocks_outsiders(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY", KEY)
+    monkeypatch.setenv("ACCESS_IP_ALLOWLIST", "127.0.0.1,10.0.0.0/8")
+    assert auth.ip_allowed("127.0.0.1") is True
+    assert auth.ip_allowed("10.2.3.4") is True
+    assert auth.ip_allowed("8.8.8.8") is False
+    c = TestClient(_make_app(), follow_redirects=False)  # 对端是 "testclient"
+    r = c.get("/api/protected")
+    assert r.status_code == 403
+    assert "白名单" in r.json()["message"]
+
+
+def test_ip_allowlist_empty_means_open(monkeypatch):
+    monkeypatch.delenv("ACCESS_IP_ALLOWLIST", raising=False)
+    assert auth.allowed_ips() == []
+    assert auth.ip_allowed("8.8.8.8") is True
+
+
+def test_weak_key_shortens_session(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY", "071215")
+    monkeypatch.setenv("SESSION_TTL_HOURS", "72")
+    assert auth.ttl_seconds() == 8 * 3600
+
+
+def test_strong_key_keeps_configured_ttl(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY", "x" * 40)
+    monkeypatch.setenv("SESSION_TTL_HOURS", "24")
+    assert auth.ttl_seconds() == 24 * 3600
+
+
+def test_ip_lockout_after_repeated_failures(monkeypatch):
+    """15 分钟内错 5 次锁 15 分钟：频率限制挡快打，锁定挡慢试。"""
+    monkeypatch.setenv("ACCESS_IP_ALLOWLIST", "")
+    auth_router._FAILS.clear()
+    auth_router._IP_FAILS.clear()
+    auth_router._LOGIN_LIMITER._hits.clear()
+    c = TestClient(_make_app(), follow_redirects=False)
+    now = time.time()
+    for _ in range(auth_router._IP_FAIL_LIMIT):
+        auth_router._record_ip_failure("1.2.3.4", now)
+    assert auth_router._ip_locked("1.2.3.4", now) > 0
+    # 其他 IP 不受影响
+    assert auth_router._ip_locked("5.6.7.8", now) == 0
+    # 窗口过期自动解锁
+    assert auth_router._ip_locked("1.2.3.4", now + auth_router._IP_FAIL_WINDOW + 1) == 0
+    auth_router._IP_FAILS.clear()
+
+
+def test_login_clears_ip_failures_on_success(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY", KEY)
+    auth_router._IP_FAILS.clear()
+    auth_router._LOGIN_LIMITER._hits.clear()
+    c = TestClient(_make_app(), follow_redirects=False)
+    c.post("/api/auth/login", json={"key": "wrong"})
+    assert auth_router._IP_FAILS
+    r = c.post("/api/auth/login", json={"key": KEY})
+    assert r.status_code == 200
+    assert not auth_router._IP_FAILS

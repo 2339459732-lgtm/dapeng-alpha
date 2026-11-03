@@ -25,6 +25,7 @@ data/*
 !data/brain_config.json
 !data/decision_config.json
 !data/decision_routing.json
+!data/strategy_profile.json
 
 # ---------- 日志 / 备份 / 产物 ----------
 logs/

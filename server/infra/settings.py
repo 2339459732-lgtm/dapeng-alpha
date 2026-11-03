@@ -82,7 +82,11 @@ class Settings:
     backup_dir: Path = BACKUP_DIR
     docs_graph: Path = DOCS_GRAPH
     csp: str = CSP
+    # issues = 会影响可用性的硬故障；warnings = 值得知道但不阻断的配置风险。
+    # 分开的原因：弱口令这类「能跑但不够安全」的项如果混进 issues，会让体检长期 FAIL，
+    # 值班很快就学会忽略红色，真正的故障反而被淹没。
     issues: tuple[str, ...] = field(default_factory=tuple)
+    warnings: tuple[str, ...] = field(default_factory=tuple)
 
     @property
     def bind_local_only(self) -> bool:
@@ -100,11 +104,13 @@ class Settings:
             "admin_token_configured": bool(self.admin_token),
             "bind_local_only": self.bind_local_only,
             "issues": list(self.issues),
+            "warnings": list(self.warnings),
         }
 
 
-def _validate(s: Settings) -> tuple[str, ...]:
+def _validate(s: Settings) -> tuple[tuple[str, ...], tuple[str, ...]]:
     issues: list[str] = []
+    warnings: list[str] = []
     if not s.static_dir.is_dir():
         issues.append(f"static 目录不存在：{s.static_dir}")
     if not s.docs_graph.is_file():
@@ -115,12 +121,12 @@ def _validate(s: Settings) -> tuple[str, ...]:
         issues.append("监听非回环地址但未设置 ACCESS_KEY，任何能访问该地址的人都可以直接使用本系统")
     _key = (os.getenv("ACCESS_KEY") or os.getenv("DAPENG_ACCESS_KEY") or "").strip()
     if _key and len(_key) < 16:
-        issues.append(f"ACCESS_KEY 仅 {len(_key)} 字符，建议 ≥32 位随机串")
+        warnings.append(f"ACCESS_KEY 仅 {len(_key)} 字符，抗爆破能力有限；仅在可信网络中使用，并建议尽快换成长随机串")
     if s.rate_limit_per_min < 60:
         issues.append("MOAT_RATE_LIMIT 低于 60，正常面板轮询会被限流")
     if s.backup_keep < 1:
         issues.append("MOAT_BACKUP_KEEP 必须 >= 1")
-    return tuple(issues)
+    return tuple(issues), tuple(warnings)
 
 
 @lru_cache(maxsize=1)
@@ -138,4 +144,5 @@ def get_settings() -> Settings:
         backup_keep=_env_int("MOAT_BACKUP_KEEP", 14),
         log_to_file=_env_bool("MOAT_LOG", True),
     )
-    return Settings(**{**s.__dict__, "issues": _validate(s)})
+    issues, warnings = _validate(s)
+    return Settings(**{**s.__dict__, "issues": issues, "warnings": warnings})
