@@ -165,6 +165,24 @@ dapeng-water/
 | SSE 推送 | 30s 一轮 | `/api/decision/stream` |
 | 龙虎榜复盘 | 收盘后 15:35–23:00 幂等生成 | `brain` 任务 |
 | 8 分制候选池 | 180s 缓存 | `strategy_profile` |
+| 研判链路 | 按需（约 3–8s），各段自带缓存 | `/api/decision/pipeline` |
+
+### 4.2.1 递进式研判链路
+
+`GET /api/decision/pipeline` 把五段串起来，每段都返回 `sample / output / scope / degraded / reason`：
+
+```text
+数据源接入 → 市场广度（全 A 股） → 板块筛选（行业 Top5） → 个股筛选（预筛/日线/8 分制） → 研判团与主脑
+                                                                        │
+                                              ┌─────────────────────────┴─────────────────────────┐
+                                              ▼                                                   ▼
+                                  intraday：盘中清单（可买/观察/放弃/待开盘）      post_close：盘后复盘（漏斗 + 表现 + 偏差）
+```
+
+- **降级可见**：任一段不可用时 `status=degraded`，并列进 `degraded_stages`，页面顶部红字提示原因；
+- **盘中判定**：开盘涨幅、现价与昨收、量比；VWAP 未接入时写进 `missing`，不假装满足；
+- **盘后复盘**：候选日快照落 `data/strategy_profile/YYYY-MM-DD.json`，用下一交易日日线评估
+  是否触及目标/止损、收盘收益与胜率；0 候选时解释「市场分 / 涨停跌停家数」，不只回空数组。
 
 ### 4.3 持久化清单
 
@@ -215,6 +233,25 @@ docker compose up -d --build
 也可改用 `ACCESS_KEY_FILE=/run/secrets/dapeng_key` + compose `secrets`。
 
 ---
+
+## 5.4 让其他电脑访问
+
+| 场景 | 做法 | 前置条件 |
+|---|---|---|
+| 同一局域网 | `.env` 设 `HOST=0.0.0.0` 与 `ALLOWED_HOSTS=<局域网IP>`，放行 TCP 8900 | **管理员权限**添加防火墙规则 |
+| 公网（推荐反代） | Caddy/Nginx HTTPS 反代到 `127.0.0.1:8900` | 域名 + 证书；`COOKIE_SECURE=1`、`TRUST_PROXY=1` |
+| 临时演示 | Cloudflare Tunnel / ngrok 等出站隧道 | 隧道客户端账号；等于把实例暴露到公网，务必先加固私钥 |
+
+Windows 放行端口（**以管理员身份**打开终端执行）：
+
+```text
+New-NetFirewallRule -DisplayName 'DAPENG Alpha 8900' -Direction Inbound -Protocol TCP -LocalPort 8900 -Action Allow -Profile Any
+```
+
+> 网络被识别为「公用」时入站默认拒绝；上面 `-Profile Any` 可同时覆盖公用/专用。
+> 验证：另一台电脑访问 `http://<主机局域网IP>:8900/`，应跳转 `/login`。
+> 若返回 400（Host 校验失败），把该 IP 加进 `.env` 的 `ALLOWED_HOSTS` 后重启。
+> 若返回 400（Host 校验失败），把该 IP 加进 `.env` 的 `ALLOWED_HOSTS` 后重启。
 
 ## 6. 访问控制：私钥登录
 

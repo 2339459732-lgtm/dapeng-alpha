@@ -504,6 +504,13 @@ async def build(force: bool = False, ttl: int = 180) -> Dict[str, Any]:
         ],
     }
     _STATE.update({"result": report, "result_ts": now})
+    # 留痕：盘后复盘需要「当时的候选」，不能事后重算（规则/数据都会变）。
+    try:
+        from server.strategy_review import save_snapshot
+
+        save_snapshot(report)
+    except Exception as exc:  # noqa: BLE001 - 留痕失败不影响本次输出
+        logger.warning("strategy snapshot save failed: %s", exc)
     return report
 
 

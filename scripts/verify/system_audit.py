@@ -31,7 +31,7 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
-from _auth import auth_headers
+from _auth import auth_headers, load_key
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BASE = "http://127.0.0.1:8900"
@@ -88,7 +88,30 @@ def check_services() -> None:
         addrs = {ip for ip, _ in items}
         exposed = addrs - {"127.0.0.1", "::1"}
         if exposed:
-            record("服务", f"{label} :{port}", "FAIL", f"监听了非本机地址 {sorted(exposed)}")
+            # 非回环监听本身不是缺陷：对外开放是部署选择。判级取决于**是否已加锁**：
+            # 有访问密钥 + IP 白名单 → WARN（可接受）；无密钥 → FAIL（谁都能进）。
+            # 这些值通常只在 .env 里，未注入进程环境；用 load_key + 读取 .env 兜底
+            key = (load_key() or "").strip()
+            allow = (os.getenv("ACCESS_IP_ALLOWLIST") or "").strip()
+            if not allow:
+                try:
+                    from pathlib import Path as _Path
+                    for _line in (_Path(__file__).resolve().parents[2] / ".env").read_text(
+                            encoding="utf-8", errors="ignore").splitlines():
+                        if _line.strip().startswith("ACCESS_IP_ALLOWLIST="):
+                            allow = _line.split("=", 1)[1].strip()
+                            break
+                except OSError:
+                    pass
+            if key and allow:
+                record("服务", f"{label} :{port}", "WARN",
+                       f"对外开放 {sorted(exposed)}，已有私钥 + IP 白名单 {allow}")
+            elif key:
+                record("服务", f"{label} :{port}", "WARN",
+                       f"对外开放 {sorted(exposed)}，有私钥但未设 IP 白名单")
+            else:
+                record("服务", f"{label} :{port}", "FAIL",
+                       f"对外开放 {sorted(exposed)} 且未配置访问密钥")
         else:
             record("服务", f"{label} :{port}", "PASS", f"监听 127.0.0.1，pid={items[0][1]}")
 

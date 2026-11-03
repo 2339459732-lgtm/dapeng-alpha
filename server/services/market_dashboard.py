@@ -13,7 +13,7 @@ import logging
 import urllib.parse
 from datetime import datetime
 from statistics import mean, median
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from server.cache import cache
 from server.config import SECTORS, get_all_stock_codes
@@ -148,6 +148,55 @@ async def _fetch_quotes_batched(codes: List[str], batch_size: int = 100, concurr
                 quote["code"] = raw_code if raw_code.startswith(("sh", "sz")) else code_map.get(raw_code, raw_code)
                 results.append(quote)
     return results
+
+
+_FULL_CACHE: Dict[str, Any] = {"ts": 0.0, "data": None}
+
+
+def _full_market_breadth(max_age: int = 600) -> Optional[Dict[str, Any]]:
+    """读取全 A 股覆盖快照里的广度；不可用时返回 None（由调用方显式标注降级）。
+
+    为什么直接读磁盘而不 import `server.market_coverage`：那会形成
+    `dashboard → coverage → worker → payload → dashboard` 的循环依赖（架构守卫会拦）。
+    快照每 120s 落盘一次，读一个 40KB JSON 的成本远低于打破分层。
+
+    本函数原先只统计 SECTORS 配置里的 448 只「核心样本」，涨停家数会从全市场的
+    60 家变成 3 家，宽度方向都可能相反；现在优先全市场，核心样本仅作兜底并标注。
+    """
+    import json
+    import os
+    import time
+
+    now = time.time()
+    if _FULL_CACHE["data"] is not None and now - float(_FULL_CACHE["ts"] or 0) < 60:
+        return _FULL_CACHE["data"]
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))), "data", "market_coverage_latest.json")
+    try:
+        mtime = os.path.getmtime(path)
+        if max_age > 0 and now - mtime > max_age:
+            return None
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+        ashare = payload.get("ashare") or {}
+        q = ashare.get("quotes") or {}
+        if (q.get("valid") or 0) < 3000:
+            return None
+        result = {
+            "scope": ashare.get("scope") or "沪深京 A 股（全市场）",
+            "sample": q.get("valid"),
+            "total": q.get("total") or ashare.get("total_universe"),
+            "as_of": payload.get("as_of"),
+            "up": q.get("up"), "down": q.get("down"), "flat": q.get("flat"),
+            "up_ratio": q.get("up_ratio"), "limit_up": q.get("limit_up"),
+            "limit_down": q.get("limit_down"), "median_chg": q.get("median_chg"),
+            "amount": q.get("amount"), "source": "market-coverage.v1",
+        }
+        _FULL_CACHE.update({"ts": now, "data": result})
+        return result
+    except (OSError, ValueError) as exc:  # noqa: BLE001 - 覆盖不可用不影响面板其他部分
+        logger.warning("full market breadth unavailable: %s", exc)
+        return None
 
 
 async def build_dashboard() -> Dict[str, Any]:
@@ -321,13 +370,53 @@ async def build_dashboard() -> Dict[str, Any]:
         "definition": "上证指数与深证成指资金流接口原始分类值合计；因上游字段定义未能核实，不标注主力/大单类别。", 
     }
 
+    full = _full_market_breadth()
+    core_sample = {
+        "scope": "系统覆盖的沪深A股样本（不含ETF/港股）",
+        "sample": len(valid_quotes), "configured": len(a_codes),
+        "up": up_count, "down": down_count, "flat": flat_count,
+        "limit_up": limit_up, "limit_down": limit_down,
+    }
+    # 有全市场快照就用全市场；没有才退回核心样本，并显式标注 degraded，绝不静默。
+    if full:
+        breadth_scope = full["scope"]
+        breadth_sample = full.get("sample") or 0
+        breadth_source = full.get("source")
+        breadth_degraded = False
+        breadth_reason = None
+        up_count = full.get("up") if full.get("up") is not None else up_count
+        down_count = full.get("down") if full.get("down") is not None else down_count
+        flat_count = full.get("flat") if full.get("flat") is not None else flat_count
+        up_ratio = full.get("up_ratio") if full.get("up_ratio") is not None else up_ratio
+        limit_up = full.get("limit_up") if full.get("limit_up") is not None else limit_up
+        limit_down = full.get("limit_down") if full.get("limit_down") is not None else limit_down
+        total_amount = full.get("amount") or total_amount
+        median_chg = full.get("median_chg") if full.get("median_chg") is not None else median_chg
+        coverage_ratio = (breadth_sample / (full.get("total") or breadth_sample)) if breadth_sample else coverage_ratio
+    else:
+        breadth_scope = core_sample["scope"]
+        breadth_sample = len(valid_quotes)
+        breadth_source = "tencent_quotes(core_sample)"
+        breadth_degraded = True
+        breadth_reason = "全市场覆盖快照不可用（后台任务未就绪或超过 max_age），已退回 448 只核心样本"
+        median_chg = median_chg
+
     return {
         "as_of": datetime.now().astimezone().isoformat(timespec="seconds"),
         "refresh_interval_seconds": CACHE_TTL,
         "refresh_mode": "periodic_snapshot",
-        "scope": "系统覆盖的沪深A股样本（不含ETF/港股）",
+        "scope": breadth_scope if full else "系统覆盖的沪深A股样本（不含ETF/港股）",
         "source": "+".join(sorted(sources)) or "unavailable",
-        "coverage": {"configured": len(a_codes), "valid": len(valid_quotes), "ratio": round(coverage_ratio * 100, 1), "missing_count": len(missing_codes), "missing_codes": missing_codes[:50], "truncated": len(missing_codes) > 50},
+        "coverage": ({"configured": (full or {}).get("total") or len(a_codes),
+                      "valid": breadth_sample,
+                      "ratio": round(coverage_ratio * 100, 1),
+                      "missing_count": max(0, ((full or {}).get("total") or len(a_codes)) - breadth_sample),
+                      "missing_codes": [] if full else missing_codes[:50],
+                      "truncated": False if full else len(missing_codes) > 50,
+                      "scope": breadth_scope,
+                      "degraded": breadth_degraded,
+                      "reason": breadth_reason} if full else
+                     {"configured": len(a_codes), "valid": len(valid_quotes), "ratio": round(coverage_ratio * 100, 1), "missing_count": len(missing_codes), "missing_codes": missing_codes[:50], "truncated": len(missing_codes) > 50, "scope": breadth_scope, "degraded": True, "reason": breadth_reason}),
         "data_quality": {"level": "good" if coverage_ratio >= 0.95 else "partial" if coverage_ratio >= 0.5 else "poor", "coverage_ratio": round(coverage_ratio * 100, 1), "index_count": len(index_chgs), "judgment_available": sentiment_score is not None, "message": "行情与指数覆盖正常。" if coverage_ratio >= 0.95 and len(index_chgs) >= 2 else "部分行情或指数缺失，情绪结论可能偏差。" if coverage_ratio >= 0.5 else "有效数据不足，不生成市场情绪结论。"},
         "filter_options": {"breadth_buckets": breadth_buckets, "sector_keys": [item["key"] for item in sectors]},
         "indices": indices,
@@ -336,7 +425,13 @@ async def build_dashboard() -> Dict[str, Any]:
             "up": up_count, "down": down_count, "flat": flat_count,
             "up_ratio": round(up_ratio, 1), "median_chg": round(median_chg, 2),
             "limit_up": limit_up, "limit_down": limit_down,
+            "scope": breadth_scope, "sample": breadth_sample,
+            "source": breadth_source, "degraded": breadth_degraded,
+            "reason": breadth_reason,
+            # 分布桶仍来自核心样本（全市场快照只存汇总），单独标注，避免混读
             "distribution": _distribution(changes),
+            "distribution_scope": core_sample["scope"],
+            "distribution_sample": core_sample["sample"],
             "buckets": breadth_buckets,
         },
         "turnover": {"amount": round(total_amount, 2), "avg_turnover": round(mean(turnover_values), 2) if turnover_values else 0},

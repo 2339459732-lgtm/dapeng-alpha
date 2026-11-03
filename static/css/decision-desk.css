@@ -906,3 +906,27 @@ body.light-theme #decision-mount .dd-plan textarea { background: rgba(241, 245, 
 }
 .dd-strat-dim i.on { background: rgba(245, 158, 11, .18); color: var(--gold); }
 .dd-strat-empty { padding: 14px 4px; text-align: center; color: var(--muted); font-size: 11.5px; line-height: 1.8; }
+
+/* ---------- 研判链路 ---------- */
+.dd-pipe { display: flex; align-items: stretch; gap: 4px; flex-wrap: wrap; }
+.dd-pipe-item {
+  flex: 1 1 0; min-width: 108px; display: flex; flex-direction: column; gap: 3px;
+  padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border);
+  background: rgba(255, 255, 255, .025);
+}
+.dd-pipe-item b { font-size: 10.5px; color: var(--text2); font-weight: 600; }
+.dd-pipe-item span { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.dd-pipe-item i {
+  font-style: normal; font-size: 9px; color: var(--red);
+  border: 1px solid rgba(255, 61, 106, .4); border-radius: 3px; padding: 0 4px; width: fit-content;
+}
+.dd-pipe-item.is-degraded { border-color: rgba(255, 61, 106, .35); background: rgba(255, 61, 106, .06); }
+.dd-pipe-arrow { align-self: center; color: var(--muted); font-size: 12px; padding: 0 1px; }
+
+.dd-action {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border);
+  color: var(--text2); white-space: nowrap;
+}
+.dd-action.ok { color: var(--green); border-color: rgba(0, 233, 106, .45); background: rgba(0, 233, 106, .08); }
+.dd-action.warn { color: var(--gold); border-color: rgba(245, 158, 11, .45); background: rgba(245, 158, 11, .08); }
+.dd-action.bad { color: var(--red); border-color: rgba(255, 61, 106, .45); background: rgba(255, 61, 106, .08); }

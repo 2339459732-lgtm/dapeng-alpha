@@ -53,6 +53,8 @@ LAYER_OF = {
     "lhb_review": "engine", "lhb_fetch": "engine", "lhb_insight": "engine",
     "lhb_factors": "engine",
     "strategy_profile": "engine",
+    "strategy_review": "engine",
+    "decision_pipeline": "engine",
     "main": "api", "routers": "api", "payment": "api", "agents": "engine",
     "trading": "engine", "strategies": "engine", "infra": "infra", "providers": "providers",
     "stable_market_provider": "data", "api_tracking": "infra", "quote_hub": "data",

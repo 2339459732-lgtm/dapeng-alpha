@@ -61,6 +61,7 @@
   "GET /api/decision/lhb-review/recent",
   "GET /api/decision/lhb-review/{date}",
   "GET /api/decision/metrics",
+  "GET /api/decision/pipeline",
   "GET /api/decision/routing",
   "GET /api/decision/scan",
   "GET /api/decision/sentiment",

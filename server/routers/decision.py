@@ -118,6 +118,18 @@ async def decision_strategy_profile(refresh: bool = Query(False)):
     return await build(force=refresh)
 
 
+@router.get("/pipeline")
+async def decision_pipeline(refresh: bool = Query(False)):
+    """递进式研判链路：数据源 → 广度 → 板块 → 个股 → 研判团 → 两类产出。
+
+    每一步都返回样本数/输出数/口径/降级原因；`intraday` 是盘中清单，
+    `post_close` 是盘后复盘（含实际表现与偏差说明）。
+    """
+    from server.decision_pipeline import run
+
+    return await run(force=refresh)
+
+
 @router.get("/lhb-review")
 async def lhb_review_latest(
     refresh: bool = Query(False, description="强制重跑（会重新打上游，约 5-10 秒）"),

@@ -500,7 +500,11 @@ async def get_market_overview():
             "total_amount": (dash.get("turnover") or {}).get("amount"),
             "scope": dash.get("scope"),
             "coverage": dash.get("coverage"),
-            "basis": "与 /api/market-dashboard 同源的沪深A股样本广度（非交易所全量）",
+            "sample": breadth.get("sample"),
+            "degraded": breadth.get("degraded"),
+            "reason": breadth.get("reason"),
+            "basis": ("全 A 股（沪深京）覆盖样本广度" if not breadth.get("degraded")
+                      else "全市场快照不可用，退回核心样本广度"),
         }
 
     data = await cache.get_or_fetch("market_overview_v3", _fetch, CACHE_TTL_MARKET_OVERVIEW)
@@ -511,7 +515,7 @@ async def get_market_overview():
             "reason": "行情广度不可得：market-dashboard 样本行情暂不可用",
             "data": None,
         }
-    return {"ok": True, "source": "tencent_quotes (market-dashboard 同源样本)", "data": data}
+    return {"ok": True, "source": "market-coverage.v1+tencent_quotes", "data": data}
 
 
 @router.get("/hot-stocks")

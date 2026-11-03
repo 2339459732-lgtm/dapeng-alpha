@@ -36,12 +36,38 @@ from typing import Optional
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 
+
+def _load_env_file() -> None:
+    """读项目 .env，补进 os.environ（已存在的环境变量优先）。
+
+    看门狗是独立进程，不经过 FastAPI 的 dotenv 加载；不读 .env 的话 HOST/PORT
+    会退回写死的 127.0.0.1，表现为「改了 .env 却还只能本机访问」。
+    """
+    path = PROJECT_ROOT / ".env"
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key and key not in os.environ:
+            os.environ[key] = value.strip().strip('"').strip("'")
+
+
+_load_env_file()
+
 # ---------------------------------------------------------------------------
 # 解释器解析：不再写死单一路径，启动时按候选列表自动探测 + 实跑验证
 # ---------------------------------------------------------------------------
 
-HOST: str = "127.0.0.1"
-PORT: int = 8900
+HOST: str = (os.getenv("HOST") or "127.0.0.1").strip() or "127.0.0.1"
+PORT: int = int((os.getenv("PORT") or "8900").strip() or 8900)
+# 单实例守卫只绑回环：它只是互斥锁，不该跟着业务地址暴露到局域网
+GUARD_HOST: str = "127.0.0.1"
 # 单实例原子互斥守卫端口（与业务端口 8900 区分，避免干扰服务本身）
 GUARD_PORT: int = 8899
 # 用户级目录从环境变量推导，不写死机器路径
@@ -222,7 +248,7 @@ def _acquire_instance_lock(logger: logging.Logger) -> Optional[socket.socket]:
     """
     guard = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        guard.bind((HOST, GUARD_PORT))
+        guard.bind((GUARD_HOST, GUARD_PORT))
         guard.listen(1)
         logger.info("已获取单实例守卫锁 %s:%d", HOST, GUARD_PORT)
         return guard

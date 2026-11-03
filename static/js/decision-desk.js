@@ -39,6 +39,8 @@
     loadedAt: 0,
     strategyLoading: false,
     strategyAt: 0,
+    pipelineLoading: false,
+    pipelineAt: 0,
     mode: 'auto',
     stream: null,
     streamStatus: 'off',
@@ -152,6 +154,7 @@
     /* 候选池要拉 30+ 只票的日线，放进主批次会被浏览器同域并发限制堵在队尾；
      * 主批次落定后再单独拉，慢也不拖累其他卡片。 */
     loadStrategyOnce();
+    loadPipelineOnce();
   }
 
   /* ---------------- 构建骨架 ---------------- */
@@ -384,6 +387,24 @@
       });
   }
 
+  /** 研判链路单独加载：串了快照/扫描/候选池/专家，最慢；不阻塞主批次。 */
+  function loadPipelineOnce(force) {
+    if (state.pipelineLoading) return;
+    if (!force && state.pipelineAt && Date.now() - state.pipelineAt < 120000) return;
+    state.pipelineLoading = true;
+    var url = '/api/decision/pipeline' + (force ? '?refresh=true' : '');
+    jget(url, 90000)
+      .then(function (payload) { state.data.pipeline = payload; })
+      .catch(function (e) {
+        state.data.pipeline = { ok: false, reason: '研判链路异常：' + (e && e.message ? e.message : e) };
+      })
+      .finally(function () {
+        state.pipelineLoading = false;
+        state.pipelineAt = Date.now();
+        render();
+      });
+  }
+
   function renderPulse() {
     var host = $('dd-pulse');
     if (!host) return;
@@ -496,6 +517,7 @@
     html += renderIntel(d);
 
     html += group('决策层', 'DECISION', '候选与计划：可执行的那一部分');
+    html += renderPipeline();
     html += renderStrategy();
     html += renderHoldings(d);
     html += renderLhb(d);
@@ -732,6 +754,12 @@
         '<div class="dd-bar-flat" style="width:' + (flat / total * 100) + '%"></div>' +
         '<div class="dd-bar-down" style="width:' + (down / total * 100) + '%"></div></div></div>';
     }
+    var bScope = b.scope || (md && md.breadth && md.breadth.scope) || (md && md.scope) || '口径未标注';
+    var bSample = b.sample || (b.valid) || (md && md.coverage && md.coverage.valid) || '--';
+    var bDeg = !!(b.degraded || (md && md.breadth && md.breadth.degraded));
+    body += '<div class="dd-sub" title="' + esc((b.reason || (md && md.breadth && md.breadth.reason)) || '') + '">'
+      + '广度口径：' + esc(bScope) + ' · 样本 ' + esc(bSample)
+      + (bDeg ? ' · <span style="color:var(--red)">已降级</span>' : '') + '</div>';
     body += '<div class="dd-stat-grid">' +
       stat('涨停', b.limit_up == null ? '--' : b.limit_up + ' 家', num(b.limit_up) > 0 && num(b.limit_up) < num(b.limit_down) ? 'bad' : 'good') +
       stat('跌停', b.limit_down == null ? '--' : b.limit_down + ' 家', num(b.limit_down) > num(b.limit_up) ? 'bad' : '') +
@@ -1223,6 +1251,82 @@
   function group(title, en, note) {
     return '<div class="dd-group-head"><b>' + esc(title) + '</b><span>' + esc(en) + '</span>'
       + (note ? '<em>' + esc(note) + '</em>' : '') + '</div>';
+  }
+
+  /** 递进式研判链路：每一步的样本数、输出数与降级原因都摆在台面上。 */
+  function renderPipeline() {
+    var p = state.data.pipeline;
+    if (!p) {
+      return card('研判链路', 'PIPELINE',
+        '<div class="dd-empty">链路计算中（数据源 → 广度 → 板块 → 个股 → 研判团，约 3–10 秒）…</div>', 'span12');
+    }
+    if (!p.ok) {
+      return card('研判链路', 'PIPELINE', '<div class="dd-empty">' + esc(p.reason || '暂不可用') + '</div>', 'span12');
+    }
+    var stages = p.stages || [];
+    var flow = stages.map(function (s, i) {
+      var aria = s.status === 'degraded' ? ' is-degraded' : '';
+      var count = (s.sample == null ? '--' : s.sample) + (s.output != null && s.output !== s.sample ? ' → ' + s.output : '');
+      return '<div class="dd-pipe-item' + aria + '" title="' + esc(s.reason || s.scope || '') + '">'
+        + '<b>' + esc(s.name) + '</b><span>' + esc(count) + '</span>'
+        + (s.degraded ? '<i>降级</i>' : '') + '</div>'
+        + (i < stages.length - 1 ? '<span class="dd-pipe-arrow">→</span>' : '');
+    }).join('');
+
+    var body = '<div class="dd-pipe">' + flow + '</div>';
+    if (p.degraded_stages && p.degraded_stages.length) {
+      body += '<div class="dd-sub" style="color:var(--red)">降级环节：' + esc(p.degraded_stages.join('、'))
+        + '（原因见各环节悬浮提示）</div>';
+    }
+
+    var intra = p.intraday || {};
+    var items = intra.items || [];
+    body += '<div class="dd-sub" style="margin-top:2px"><b>盘中清单</b> · '
+      + (intra.market_open ? '交易时段实时判定' : '休市：待确认清单') + '</div>';
+    if (!items.length) {
+      body += '<div class="dd-strat-empty">' + esc(intra.note || '无可买入标的') + '</div>';
+    } else {
+      var rows = items.slice(0, 8).map(function (it) {
+        var act = it.action === 'ready' ? '可买' : it.action === 'watch' ? '观察' : it.action === 'blocked' ? '放弃' : it.action === 'market_closed' ? '待开盘' : '未知';
+        var cls = it.action === 'ready' ? 'ok' : it.action === 'blocked' ? 'bad' : 'warn';
+        return '<tr><td><span class="dd-strat-name">' + esc(it.name) + '</span>'
+          + '<span class="dd-strat-code">' + esc(String(it.code || '').slice(2)) + '</span></td>'
+          + '<td><span class="dd-action ' + cls + '">' + act + '</span></td>'
+          + '<td class="num">' + (it.score == null ? '--' : it.score) + '</td>'
+          + '<td class="num">' + (it.open_pct == null ? '--' : it.open_pct.toFixed(1) + '%') + '</td>'
+          + '<td class="num">' + (it.volume_ratio == null ? '--' : it.volume_ratio.toFixed(1)) + '</td>'
+          + '<td>' + esc((it.note || '') + (it.reasons && it.reasons.length ? '；' + it.reasons.join('；') : '')) + '</td></tr>';
+      }).join('');
+      body += '<div class="dd-strat-wrap"><table class="dd-strat-table"><thead><tr>'
+        + '<th>标的</th><th>动作</th><th class="num">分</th><th class="num">开盘</th>'
+        + '<th class="num">量比</th><th>判定依据</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    var pc = p.post_close || {};
+    body += '<div class="dd-sub" style="margin-top:6px"><b>盘后复盘</b></div>';
+    if (!pc.available) {
+      body += '<div class="dd-empty">' + esc(pc.reason || '暂无') + '</div>';
+    } else {
+      var f = (pc.screening || {}).funnel || {};
+      var perf = pc.performance || {};
+      body += '<div class="dd-sub">' + esc(pc.date || '') + ' · 全市场 ' + (f.universe == null ? '--' : f.universe)
+        + ' → 预筛 ' + (f.prefiltered == null ? '--' : f.prefiltered)
+        + ' → 评分 ' + (f.scored == null ? '--' : f.scored)
+        + ' → 入选 ' + (f.passed == null ? '--' : f.passed) + '</div>';
+      if (perf.status === 'evaluated') {
+        var s = perf.summary || {};
+        body += '<div class="dd-sub">下一交易日：可评估 ' + (s.evaluated || 0) + ' 只，胜率 '
+          + (s.win_rate == null ? '--' : s.win_rate + '%') + '，平均收益 '
+          + (s.avg_ret_pct == null ? '--' : s.avg_ret_pct + '%') + '，触目标 ' + (s.hit_target || 0)
+          + ' / 触止损 ' + (s.hit_stop || 0) + '</div>';
+      } else {
+        body += '<div class="dd-sub">表现：' + esc(perf.reason || perf.status || '待下一交易日') + '</div>';
+      }
+      (pc.deviations || []).forEach(function (d) {
+        body += '<div class="dd-sub" style="color:var(--text2)">· ' + esc(d) + '</div>';
+      });
+    }
+    return card('研判链路 · 盘中清单 / 盘后复盘', 'PIPELINE', body, 'span12');
   }
 
   /** 8 分制候选池：独立纸面档案，不参与六专家结论。 */
