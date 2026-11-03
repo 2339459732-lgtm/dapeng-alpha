@@ -291,10 +291,30 @@ def origin_allowed(request: Request) -> bool:
     allowed = {o.strip().rstrip("/") for o in (os.getenv("ALLOWED_ORIGINS") or "").split(",") if o.strip()}
     if origin.rstrip("/") in allowed:
         return True
-    host = (request.headers.get("host") or "").strip()
-    if not host:
+
+    # 反代场景：应用看到的 Host 常是内网地址，浏览器发的 Origin 是公网域名。
+    # 只比较 hostname，不比较 scheme（TLS 在反代终止），并采信可信代理的
+    # X-Forwarded-Host，否则登录会被自己的 CSRF 校验挡成 403。
+    from urllib.parse import urlsplit
+
+    origin_host = urlsplit(origin).hostname
+    if not origin_host:
         return False
-    return origin.rstrip("/") in {f"http://{host}", f"https://{host}"}
+    hosts = set()
+    host = (request.headers.get("host") or "").strip()
+    if host:
+        hosts.add(host.split(":")[0].lower())
+    trusted = _truthy("TRUST_PROXY")
+    if not trusted:
+        peer = (request.client.host if request.client else "") or ""
+        proxies = {x.strip() for x in (os.getenv("TRUSTED_PROXIES") or "").split(",") if x.strip()}
+        trusted = peer in proxies
+    if trusted:
+        for item in (request.headers.get("x-forwarded-host") or "").split(","):
+            item = item.strip()
+            if item:
+                hosts.add(item.split(":")[0].lower())
+    return origin_host.lower() in hosts
 
 
 def allowed_ips() -> List[Any]:

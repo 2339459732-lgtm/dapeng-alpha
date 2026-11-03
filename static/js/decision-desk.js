@@ -42,6 +42,8 @@
     pipelineLoading: false,
     pipelineAt: 0,
     pipelineSnapshot: null,
+    strategyRetry: 0,
+    pipelineRetry: 0,
     mode: 'auto',
     stream: null,
     streamStatus: 'off',
@@ -375,7 +377,15 @@
     state.strategyLoading = true;
     var url = '/api/decision/strategy-profile' + (force ? '?refresh=true' : '');
     jget(url, 60000)
-      .then(function (payload) { state.data.strategy = payload; })
+      .then(function (payload) {
+        state.data.strategy = payload;
+        // 冷启动时全市场快照还没跑完：15 秒后自动重试，最多 3 次
+        if (payload && payload.ok === false && /尚未就绪|未就绪/.test(payload.reason || '')
+            && (state.strategyRetry || 0) < 3) {
+          state.strategyRetry += 1;
+          setTimeout(function () { loadStrategyOnce(true); }, 15000);
+        }
+      })
       .catch(function (e) {
         state.data.strategy = { ok: false, available: false,
           reason: '候选池接口异常：' + (e && e.message ? e.message : e) };
@@ -397,6 +407,13 @@
       .then(function (payload) {
         state.data.pipeline = payload;
         if (payload && payload.ok && payload.stages) state.pipelineSnapshot = payload;
+        var cold = payload && (payload.degraded_stages || []).some(function (s) {
+          return s === 'stock' || s === 'breadth' || s === 'sources';
+        });
+        if (cold && (state.pipelineRetry || 0) < 3) {
+          state.pipelineRetry += 1;
+          setTimeout(function () { loadPipelineOnce(true); }, 15000);
+        }
       })
       .catch(function (e) {
         state.data.pipeline = { ok: false, reason: '研判链路异常：' + (e && e.message ? e.message : e) };

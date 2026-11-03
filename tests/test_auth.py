@@ -327,3 +327,39 @@ def test_min_len_default_is_32(monkeypatch):
     assert auth.min_key_len() == 32
     monkeypatch.setenv("ACCESS_KEY", "test-key-0712-abcd")
     assert auth.key_strength_issue() is not None
+
+
+def test_origin_allowed_behind_trusted_proxy(monkeypatch):
+    """反代后 Host 是内网、Origin 是公网，不能把自己的登录挡成 403。"""
+    from starlette.requests import Request
+
+    monkeypatch.setenv("TRUST_PROXY", "1")
+
+    def make(origin: str):
+        headers = [(b"host", b"127.0.0.1:8900"),
+                   (b"x-forwarded-host", b"dapeng-alpha.app.workbuddy.host"),
+                   (b"origin", origin.encode())]
+        return Request({"type": "http", "method": "POST", "path": "/api/auth/login",
+                        "headers": headers, "client": ("10.0.0.2", 1),
+                        "scheme": "http", "query_string": b""})
+
+    assert auth.origin_allowed(make("https://dapeng-alpha.app.workbuddy.host")) is True
+    assert auth.origin_allowed(make("https://evil.example.com")) is False
+
+
+def test_origin_allowed_behind_trusted_proxy(monkeypatch):
+    """反代后 Host 是内网、Origin 是公网，不能把自己的登录挡成 403。"""
+    from starlette.requests import Request
+
+    monkeypatch.setenv("TRUST_PROXY", "1")
+
+    def make(origin: str):
+        headers = [(b"host", b"127.0.0.1:8900"),
+                   (b"x-forwarded-host", b"dapeng-alpha.app.workbuddy.host"),
+                   (b"origin", origin.encode())]
+        return Request({"type": "http", "method": "POST", "path": "/api/auth/login",
+                        "headers": headers, "client": ("10.0.0.2", 1),
+                        "scheme": "http", "query_string": b""})
+
+    assert auth.origin_allowed(make("https://dapeng-alpha.app.workbuddy.host")) is True
+    assert auth.origin_allowed(make("https://evil.example.com")) is False
