@@ -1,0 +1,167 @@
+/* ════════════════════════════════════════════════════════════════════════
+   AXON · 3D 星图（自由力导向星系）
+   独立增强层，不与 plate-graph.html 的图版样式耦合；沿用 AXON 的墨金变量。
+   ════════════════════════════════════════════════════════════════════════ */
+
+.starmap {
+  position: fixed; inset: 0; z-index: 1200;
+  display: none;
+  background:
+    radial-gradient(72% 58% at 50% 46%, rgba(28, 24, 18, .92) 0%, rgba(9, 9, 12, .97) 58%, #05060a 100%),
+    #05060a;
+  color: #ece6da;
+  font-family: "Noto Sans SC", "PingFang SC", -apple-system, sans-serif;
+  isolation: isolate;
+}
+.starmap.is-open { display: block; }
+body.starmap-open { overflow: hidden; }
+
+.starmap-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; display: block;
+  cursor: grab; touch-action: none;
+}
+.starmap.is-drag .starmap-canvas { cursor: grabbing; }
+
+/* 画框：细金线 + 四角刻痕，延续图版的「仪器」语言 */
+.starmap-frame {
+  position: absolute; inset: 16px; pointer-events: none;
+  border: 1px solid rgba(214, 176, 132, .16);
+}
+.starmap-frame::before,
+.starmap-frame::after {
+  content: ""; position: absolute; width: 14px; height: 14px;
+  border: 1px solid rgba(214, 176, 132, .55);
+}
+.starmap-frame::before { left: -1px; top: -1px; border-right: 0; border-bottom: 0; }
+.starmap-frame::after { right: -1px; bottom: -1px; border-left: 0; border-top: 0; }
+
+/* HUD */
+.starmap-hud { position: absolute; left: 38px; top: 34px; pointer-events: none; }
+.starmap-kicker {
+  font: 500 9px/1 "Cascadia Mono", ui-monospace, monospace;
+  letter-spacing: .28em; color: rgba(214, 176, 132, .62);
+}
+.starmap-title {
+  margin: 10px 0 6px;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: 21px; font-weight: 700; letter-spacing: .10em;
+  color: #efe3cf;
+}
+.starmap-state {
+  font: 500 10px/1.5 "Cascadia Mono", ui-monospace, monospace;
+  color: rgba(236, 230, 218, .52); letter-spacing: .06em;
+}
+
+.starmap-actions { position: absolute; right: 38px; top: 34px; display: flex; gap: 8px; }
+.starmap-btn {
+  appearance: none; cursor: pointer;
+  padding: 7px 13px; border-radius: 2px;
+  border: 1px solid rgba(214, 176, 132, .26);
+  background: rgba(10, 10, 14, .55);
+  color: rgba(236, 230, 218, .78);
+  font: 500 10.5px/1 "Cascadia Mono", ui-monospace, monospace;
+  letter-spacing: .10em;
+  transition: color .16s, border-color .16s, background .16s;
+}
+.starmap-btn:hover { color: #f7ecd9; border-color: rgba(214, 176, 132, .6); background: rgba(214, 176, 132, .10); }
+.starmap-btn:focus-visible { outline: 1px solid rgba(214, 176, 132, .8); outline-offset: 2px; }
+.starmap-btn.is-close { color: rgba(214, 176, 132, .86); }
+
+.starmap-legend {
+  position: absolute; left: 38px; bottom: 34px;
+  display: flex; flex-wrap: wrap; gap: 14px; max-width: 52vw;
+  font: 500 10px/1.4 "Cascadia Mono", ui-monospace, monospace;
+  color: rgba(236, 230, 218, .58);
+}
+.sf-leg { display: inline-flex; align-items: center; gap: 6px; }
+.sf-leg i { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+
+.starmap-hint {
+  position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%);
+  font: 500 10px/1.4 "Cascadia Mono", ui-monospace, monospace;
+  color: rgba(236, 230, 218, .38); letter-spacing: .06em; white-space: nowrap;
+}
+
+/* 档案卡 */
+.sf-card {
+  position: absolute; right: 38px; bottom: 76px; width: 300px;
+  padding: 16px 18px 15px;
+  border: 1px solid rgba(214, 176, 132, .22);
+  background: linear-gradient(180deg, rgba(15, 15, 19, .94), rgba(8, 9, 12, .96));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.sf-card.is-show { opacity: 1; transform: none; pointer-events: auto; }
+.sf-card-hd { display: flex; align-items: center; justify-content: space-between; }
+.sf-card-tag {
+  font: 500 9px/1 "Cascadia Mono", ui-monospace, monospace;
+  letter-spacing: .18em; color: rgba(214, 176, 132, .8);
+  border: 1px solid rgba(214, 176, 132, .28); padding: 3px 6px;
+}
+.sf-card-x {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: rgba(236, 230, 218, .5); font-size: 16px; line-height: 1; padding: 2px 4px;
+}
+.sf-card-x:hover { color: #f7ecd9; }
+.sf-card h3 {
+  margin: 11px 0 4px;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: 15px; font-weight: 700; letter-spacing: .02em; color: #f2e7d5;
+  overflow-wrap: anywhere;
+}
+.sf-card-path {
+  margin: 0 0 10px; font: 500 9.5px/1.5 "Cascadia Mono", ui-monospace, monospace;
+  color: rgba(236, 230, 218, .42); overflow-wrap: anywhere;
+}
+.sf-card-meta { display: flex; gap: 14px; font-size: 10px; color: rgba(236, 230, 218, .5); }
+.sf-card-meta b { color: rgba(236, 230, 218, .86); font-weight: 600; }
+.sf-card-sum {
+  margin: 10px 0 0; font-size: 11.5px; line-height: 1.65;
+  color: rgba(236, 230, 218, .64);
+}
+.sf-card-link {
+  display: inline-block; margin-top: 11px;
+  font: 500 10px/1 "Cascadia Mono", ui-monospace, monospace;
+  color: rgba(214, 176, 132, .92); text-decoration: none;
+  border-bottom: 1px solid rgba(214, 176, 132, .35); padding-bottom: 3px;
+}
+.sf-card-link:hover { color: #ffe9c8; border-color: rgba(255, 233, 200, .8); }
+
+/* 入口按钮（AXON 图版工具栏） */
+.sh-starmap {
+  appearance: none; cursor: pointer; flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 9px; border-radius: 2px;
+  border: 1px solid var(--hair-2, rgba(214, 176, 132, .22));
+  background: transparent;
+  color: var(--ink-3, rgba(236, 230, 218, .62));
+  font: inherit; font-size: 10.5px; letter-spacing: .08em;
+  transition: color .16s var(--ease, ease), border-color .16s var(--ease, ease), background .16s var(--ease, ease);
+}
+.sh-starmap svg { width: 13px; height: 13px; flex: 0 0 auto; opacity: .88; }
+.sh-starmap:hover { color: var(--gold-hi, #f0d8b4); border-color: rgba(214, 176, 132, .45); background: rgba(214, 176, 132, .08); }
+.sh-starmap:focus-visible { outline: 1px solid rgba(214, 176, 132, .7); outline-offset: 2px; }
+.sh-starmap .v3d-label { min-width: 2em; }
+
+@media (max-width: 980px) {
+  .sh-starmap .v3d-label { display: none; }
+  .sh-starmap { padding: 5px 7px; }
+}
+
+@media (max-width: 860px) {
+  .starmap-frame { inset: 10px; }
+  .starmap-hud { left: 20px; top: 22px; }
+  .starmap-title { font-size: 17px; }
+  .starmap-actions { right: 20px; top: 22px; }
+  .starmap-legend { display: none; }
+  .starmap-hint { left: 20px; right: 20px; transform: none; text-align: left; white-space: normal; bottom: 20px; }
+  .sf-card { left: 14px; right: 14px; bottom: 58px; width: auto; }
+}
+
+/* 档案卡摘要：最多 3 行，避免长摘要把卡片撑高 */
+.sf-card-sum {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}

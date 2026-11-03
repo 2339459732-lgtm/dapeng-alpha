@@ -1,0 +1,1218 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   DAPENG Alpha · 文档关系图谱样式（docs-graph.css）
+   ---------------------------------------------------------------------------
+   仅服务 static/project-docs.html 的「图谱」视图：
+     1. 顶部工具条（视图切换 / 搜索 / 分组 chip / 面包屑）
+     2. 力导向画布 + 右侧分析面板（窄屏改底部抽屉）
+     3. 加载态 / 空态 / 错误态
+   红线：不改 dashboard.css（三页共享）；只复用其 CSS 变量，保持深色玻璃态一致。
+   配色：中性底 var(--bg)，银灰主体 var(--text/--text2)，
+         香槟金 #ecd9a6 仅用于「入口/核心节点」强调，其余色相由 JS 按 group 分配。
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --dg-gold: #ecd9a6;              /* 香槟金：入口/核心节点强调（规格指定） */
+  --dg-line: rgba(148, 163, 184, .25);
+  --dg-panel-w: 340px;
+  --dg-ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+/* ── 视图切换（顶栏按钮组）────────────────────────────────────────────── */
+.docs-view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .03);
+}
+.docs-view-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.docs-view-btn:hover { color: var(--text); background: rgba(6, 182, 212, .10); }
+.docs-view-btn[aria-selected="true"] {
+  color: #041018;
+  background: var(--cyan);
+  font-weight: 700;
+}
+.docs-view-btn .dg-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+}
+
+/* ── 视图互斥：图谱模式下隐藏列表视图的三块结构 ────────────────────────── */
+body.docs-view-graph .docs-shell,
+body.docs-view-graph .docs-breadcrumb-wrap,
+body.docs-view-graph .docs-footer,
+body.docs-view-graph .docs-progress { display: none !important; }
+
+#docs-graph-view { display: none; }
+body.docs-view-graph #docs-graph-view { display: block; }
+
+/* ── 图谱容器 ─────────────────────────────────────────────────────────── */
+.dg-wrap {
+  position: relative;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 14px 20px 26px;
+}
+.dg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--glass, rgba(6, 12, 28, .72));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dg-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+  min-width: 0;
+}
+.dg-crumb button {
+  appearance: none; border: 0; background: transparent;
+  color: var(--text2); font: inherit; cursor: pointer; padding: 2px 4px; border-radius: 5px;
+}
+.dg-crumb button:hover { color: var(--cyan); background: rgba(6, 182, 212, .10); }
+.dg-crumb .dg-sep { color: var(--border2); }
+.dg-crumb .dg-now { color: var(--dg-gold); font-weight: 600; white-space: nowrap; }
+
+.dg-search {
+  position: relative;
+  flex: 1 1 200px;
+  min-width: 160px;
+  max-width: 320px;
+}
+.dg-search input {
+  width: 100%;
+  padding: 6px 10px 6px 26px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .22);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.dg-search input:focus { outline: none; border-color: rgba(6, 182, 212, .45); }
+.dg-search::before {
+  content: "⌕";
+  position: absolute;
+  left: 8px; top: 50%;
+  transform: translateY(-52%);
+  color: var(--muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.dg-chips { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.dg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .02);
+  color: var(--text2);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.dg-chip:hover { color: var(--text); border-color: var(--border2); }
+.dg-chip[aria-pressed="true"] { color: var(--text); border-color: currentColor; background: rgba(255, 255, 255, .06); }
+.dg-chip .dg-sw { width: 8px; height: 8px; border-radius: 2px; background: currentColor; flex: none; }
+.dg-chip .dg-n { font-family: 'SF Mono', Consolas, monospace; font-size: 10px; opacity: .8; }
+.dg-chip.is-gold { color: var(--dg-gold); }
+
+.dg-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'SF Mono', Consolas, monospace;
+  white-space: nowrap;
+}
+
+/* ── 画布 + 面板 ──────────────────────────────────────────────────────── */
+.dg-body {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+.dg-canvas-card {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  overflow: hidden;
+}
+#dg-canvas {
+  width: 100%;
+  height: clamp(420px, calc(100vh - 260px), 820px);
+}
+/* 画布左下角提示（仅 hover 显示，不占布局） */
+.dg-hint {
+  position: absolute;
+  left: 12px; bottom: 10px;
+  font-size: 10.5px;
+  color: var(--muted);
+  pointer-events: none;
+  font-family: 'SF Mono', Consolas, monospace;
+}
+
+/* 右侧分析面板（340px，translateX 滑入 180ms） */
+.dg-panel {
+  flex: 0 0 var(--dg-panel-w);
+  width: var(--dg-panel-w);
+  max-width: var(--dg-panel-w);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--glass2, rgba(10, 18, 40, .88));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 14px 14px 16px;
+  overflow-y: auto;
+  max-height: clamp(420px, calc(100vh - 260px), 820px);
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 180ms var(--dg-ease), opacity 180ms var(--dg-ease);
+}
+.dg-panel[hidden] { display: none; }
+.dg-panel.is-leaving { transform: translateX(24px); opacity: 0; }
+
+.dg-panel-hd {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.dg-panel-title {
+  flex: 1 1 auto;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+.dg-panel-close {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, .03);
+  color: var(--text2);
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  flex: none;
+}
+.dg-panel-close:hover { color: var(--text); border-color: var(--border2); }
+
+.dg-path {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  border: 1px dashed var(--border2);
+  border-radius: 8px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--text2);
+  word-break: break-all;
+}
+.dg-path .dg-copy {
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--text2);
+  font: inherit;
+  font-size: 10px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.dg-path .dg-copy:hover { color: var(--cyan); border-color: rgba(6, 182, 212, .4); }
+
+.dg-kv { display: grid; grid-template-columns: 62px 1fr; gap: 4px 10px; margin-bottom: 10px; }
+.dg-kv .k { font-size: 11px; color: var(--muted); }
+.dg-kv .v { font-size: 11.5px; color: var(--text2); font-family: 'SF Mono', Consolas, monospace; word-break: break-word; }
+.dg-kv .v.is-gold { color: var(--dg-gold); }
+.dg-kv .v.is-red { color: var(--red); }
+
+.dg-summary {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text2);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(148, 163, 184, .06);
+  margin-bottom: 12px;
+}
+
+.dg-rel-hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.dg-rel-hd b { color: var(--cyan); font-family: 'SF Mono', Consolas, monospace; }
+.dg-rel-list { display: flex; flex-direction: column; gap: 3px; }
+.dg-rel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .02);
+  color: var(--text2);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.dg-rel:hover { color: var(--text); border-color: var(--border2); background: rgba(6, 182, 212, .08); }
+.dg-rel .dg-rel-main { display: flex; align-items: baseline; gap: 6px; }
+.dg-rel .dg-rel-name { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dg-rel .dg-rel-dir { flex: none; font-size: 9.5px; color: var(--muted); font-family: 'SF Mono', Consolas, monospace; }
+/* 边的出处（真实行号 / 登记分组）——拿不到出处时该行不渲染，不留空占位 */
+.dg-rel .dg-rel-origin {
+  font-size: 9.5px;
+  color: var(--muted);
+  font-family: 'SF Mono', Consolas, monospace;
+  line-height: 1.4;
+  word-break: break-all;
+}
+.dg-rel:hover .dg-rel-origin { color: var(--text2); }
+.dg-rel-empty { font-size: 11px; color: var(--muted); padding: 4px 2px; }
+
+.dg-actions { display: flex; gap: 8px; margin-top: 14px; }
+.dg-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--text2);
+  font: inherit;
+  font-size: 11.5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.dg-btn:hover { color: var(--text); border-color: var(--border2); }
+.dg-btn.is-primary { border-color: rgba(6, 182, 212, .45); background: rgba(6, 182, 212, .14); color: var(--cyan); }
+.dg-btn.is-gold { border-color: rgba(236, 217, 166, .45); color: var(--dg-gold); }
+
+.dg-note {
+  margin-top: 10px;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ── 加载 / 空 / 错误态 ───────────────────────────────────────────────── */
+.dg-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 300px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 1px dashed var(--border2);
+  border-radius: 12px;
+  background: rgba(148, 163, 184, .03);
+}
+.dg-state[hidden] { display: none; }
+.dg-state-icon { font-size: 22px; opacity: .7; }
+.dg-state-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.dg-state-msg {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text2);
+  max-width: 620px;
+  word-break: break-word;
+}
+.dg-state-msg code {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 11px;
+  color: var(--dg-gold);
+  background: rgba(236, 217, 166, .08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ── 窄屏（<900px）：面板改底部抽屉 ──────────────────────────────────── */
+@media (max-width: 900px) {
+  .dg-wrap { padding: 10px 12px 20px; }
+  .dg-body { flex-direction: column; }
+  #dg-canvas { height: clamp(300px, 56vh, 460px); }
+  .dg-panel {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    width: auto;
+    max-width: none;
+    flex: none;
+    max-height: 62vh;
+    border-radius: 14px 14px 0 0;
+    border-bottom: 0;
+    z-index: 60;
+    transform: translateY(0);
+    box-shadow: 0 -14px 40px rgba(0, 0, 0, .55);
+  }
+  .dg-panel.is-leaving { transform: translateY(24px); opacity: 0; }
+  .dg-meta { display: none; }
+  .dg-search { max-width: none; }
+}
+
+/* ── 减少动效：面板瞬时显示，不做位移动画 ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .dg-panel,
+  .dg-panel.is-leaving,
+  .dg-view-btn,
+  .dg-chip,
+  .dg-rel,
+  .dg-btn,
+  .dg-path .dg-copy {
+    transition: none !important;
+    animation: none !important;
+  }
+  .dg-panel.is-leaving { transform: none; opacity: 1; }
+}
+
+/* ══ 粒子流动层（v5）═════════════════════════════════════════════════════
+   独立 canvas 叠在 ECharts 画布之上，只做视觉表达：
+   - pointer-events:none —— 不拦截滚轮/拖拽/点击，漫游与选中完全交给原图表
+   - 方向取自真实引用方向（source→target）；无方向的登记关联不产生流动
+   - 系统开启「减少动态效果」时整层隐藏，不消耗任何绘制资源 */
+.dg-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+/* 提示文字与右下角统计压在粒子之上，保持可读 */
+.dg-hint,
+#dg-filter-info {
+  z-index: 3;
+}
+
+#dg-particles-toggle.is-on {
+  border-color: rgba(6, 182, 212, .45);
+  background: rgba(6, 182, 212, .14);
+  color: var(--cyan);
+}
+#dg-particles-toggle[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-particles { display: none !important; }
+}
+
+/* 图例小圆点：区分「有方向的正文引用」与「无方向的登记关联」 */
+.dg-hint-dot {
+  display: inline-block;
+  vertical-align: middle;
+  width: 14px; height: 0;
+  margin: 0 2px;
+  border-top-width: 1.4px;
+  border-top-style: solid;
+}
+.dg-hint-dot.is-dir { border-top-color: var(--cyan); }
+.dg-hint-dot.is-undir { border-top-color: var(--dg-gold); border-top-style: dashed; }
+/* 提示为两行，窄屏允许换行但不遮挡画布主体 */
+.dg-hint { line-height: 1.7; max-width: calc(100% - 120px); }
+
+/* ══ 大气层（v7）═════════════════════════════════════════════════════════
+   星尘 + 极光光斑 + 暗角，位于 ECharts 画布之下、卡片背景之上。
+   三层 z-index 约定：atmo(0) < ECharts(1) < 粒子(2) < 提示文字(3) */
+.dg-atmo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.dg-canvas-card > #dg-canvas {
+  position: relative;
+  z-index: 1;
+}
+/* 卡片内缘描边光：让画布像一块发光的玻璃，而不是一块黑矩形 */
+.dg-canvas-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    inset 0 0 60px rgba(6, 182, 212, .05),
+    inset 0 -40px 80px rgba(0, 0, 0, .35);
+}
+
+/* ══ 高级质感层（v8）：只在图谱视图生效，纯装饰，不影响任何布局度量 ══════
+   目标：把「扁平深色块」升级为「有光的玻璃层」。
+   手法：顶部 1px 高光 + 底部渐隐阴影 + 极淡的色相晕染，
+        指标不动（不改 padding/margin/font-size），避免推翻已通过的布局验收。 */
+
+/* 工具条：玻璃顶光 + 底部渐隐，与画布形成层次 */
+.dg-toolbar {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, 0) 42%),
+    linear-gradient(180deg, rgba(12, 22, 44, .82), rgba(6, 12, 26, .78));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .05) inset,
+    0 -18px 40px rgba(0, 0, 0, .28) inset,
+    0 8px 28px rgba(0, 0, 0, .32);
+}
+.dg-toolbar::before {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; top: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, .55), rgba(236, 217, 166, .42), transparent);
+  pointer-events: none;
+}
+
+/* 分组 chip：悬停微升，选中时用自身色相发光 */
+.dg-chip {
+  transition: color 140ms var(--dg-ease), border-color 140ms var(--dg-ease),
+              background 140ms var(--dg-ease), box-shadow 160ms var(--dg-ease), transform 140ms var(--dg-ease);
+}
+.dg-chip:hover { transform: translateY(-1px); }
+.dg-chip[aria-pressed="true"] {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .04) inset, 0 0 16px -4px currentColor;
+}
+
+/* 按钮：主按钮呼吸式光边；普通按钮悬停发光 */
+.dg-btn {
+  transition: color 140ms var(--dg-ease), border-color 140ms var(--dg-ease),
+              background 140ms var(--dg-ease), box-shadow 160ms var(--dg-ease);
+}
+.dg-btn:hover { box-shadow: 0 0 14px -4px rgba(6, 182, 212, .55); }
+.dg-btn.is-primary {
+  box-shadow: 0 0 0 1px rgba(6, 182, 212, .18) inset, 0 0 18px -6px rgba(6, 182, 212, .75);
+}
+
+/* 搜索框：聚焦时出现外发光环 */
+.dg-search input:focus {
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .12), 0 0 18px -6px rgba(6, 182, 212, .65);
+}
+
+/* 分析面板：更厚的玻璃 + 顶部色带，滚动条也走暗色细条 */
+.dg-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 26%),
+    linear-gradient(180deg, rgba(12, 21, 43, .92), rgba(7, 13, 29, .94));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .06) inset,
+    0 0 60px -18px rgba(6, 182, 212, .35),
+    0 20px 50px rgba(0, 0, 0, .45);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, .35) transparent;
+}
+.dg-panel::-webkit-scrollbar { width: 8px; }
+.dg-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, .28);
+  border-radius: 8px;
+}
+.dg-panel::-webkit-scrollbar-track { background: transparent; }
+.dg-panel::before {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; top: 0; height: 1px;
+  background: linear-gradient(90deg, rgba(6, 182, 212, .75), rgba(236, 217, 166, .55), transparent);
+  pointer-events: none;
+}
+/* 面板需要定位上下文才能放顶部色带 */
+.dg-panel { position: relative; }
+
+/* 面板标题：极淡的渐变文字。
+   必须包在 @supports 里 —— 一旦浏览器不支持 background-clip:text，
+   color:transparent 会让标题彻底看不见（宁可纯色，也不能丢字）。 */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .dg-panel-title {
+    background: linear-gradient(180deg, #ffffff, #c8d6e6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* 出链/反链条目：悬停时左侧亮条 + 上浮，明确「可点」 */
+.dg-rel {
+  position: relative;
+  transition: color 140ms var(--dg-ease), border-color 140ms var(--dg-ease),
+              background 140ms var(--dg-ease), transform 140ms var(--dg-ease);
+}
+.dg-rel::before {
+  content: "";
+  position: absolute;
+  left: -1px; top: 4px; bottom: 4px; width: 2px;
+  border-radius: 2px;
+  background: var(--cyan);
+  opacity: 0;
+  transition: opacity 140ms var(--dg-ease);
+}
+.dg-rel:hover { transform: translateX(1px); }
+.dg-rel:hover::before { opacity: .9; }
+
+/* 关系区标题：数字用青色发光，强调「几个」 */
+.dg-rel-hd b {
+  text-shadow: 0 0 12px rgba(6, 182, 212, .55);
+}
+
+/* 动画偏好：以上均为过渡而非动画，reduce 时统一取消 */
+@media (prefers-reduced-motion: reduce) {
+  .dg-chip, .dg-btn, .dg-rel, .dg-panel { transition: none !important; }
+  .dg-chip:hover, .dg-rel:hover { transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   v10 设计语言重写（参考 solar-system-atlas 的仪器式美学）
+   ---------------------------------------------------------------------
+   核心判断：那种"高级感"来自**克制**，不是叠加特效。因此这一版是往回收：
+     · 强调色统一收敛到暖金 #D6B084 —— 通过重定义 --cyan 让图谱视图内所有
+       原本的青色高亮自动变金，不必逐条改规则（作用域仅限 body.docs-view-graph）
+     · 边框从 1px 实色改为 1px 极低透明度暖色细线（仪器刻线感）
+     · 圆角收紧到 4px，去掉大范围外发光
+     · 微标签统一大写 + 宽字距 + 小字号（拉丁文按字母拉开，中文保持原样）
+   ══════════════════════════════════════════════════════════════════════════ */
+
+body.docs-view-graph {
+  --cyan: #D6B084;              /* 图谱视图内：青色高亮整体替换为暖金 */
+  --dg-gold: #D6B084;
+  --dg-ink: #E7E1D5;
+  --dg-hair: rgba(198, 168, 130, .26);
+  --dg-hair-strong: rgba(214, 176, 132, .52);
+  --dg-dim: rgba(231, 225, 213, .45);
+}
+
+/* 画布卡片：细线金框，去掉 v7 的青色内发光 */
+.dg-canvas-card {
+  border: 1px solid var(--dg-hair);
+  border-radius: 12px;
+  background: #070708;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+}
+.dg-canvas-card::after {
+  box-shadow:
+    inset 0 1px 0 rgba(231, 225, 213, .05),
+    inset 0 0 80px rgba(0, 0, 0, .55);
+}
+
+/* 工具条：近黑玻璃 + 顶部一条金色细线（取代原来的渐变粗光带） */
+.dg-toolbar {
+  border: 1px solid var(--dg-hair);
+  border-radius: 10px;
+  background: rgba(8, 8, 11, .62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .45);
+}
+.dg-toolbar::before {
+  left: 0; right: 0; top: -1px;
+  background: linear-gradient(90deg, transparent, rgba(214, 176, 132, .45) 22%, rgba(214, 176, 132, .18) 62%, transparent);
+}
+
+/* 分组 chip：改成「编号 + 名称 + 计数」的仪器列表观感，小圆角、细线 */
+.dg-chips { counter-reset: dgchip; }
+.dg-chip {
+  border-radius: 4px;
+  border-color: var(--dg-hair);
+  background: rgba(231, 225, 213, .02);
+  padding: 4px 9px;
+  letter-spacing: .04em;
+}
+.dg-chip::before {
+  counter-increment: dgchip;
+  content: counter(dgchip, decimal-leading-zero);
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 9.5px;
+  color: var(--dg-dim);
+  margin-right: 6px;
+  letter-spacing: 0;
+}
+.dg-chip[aria-pressed="true"] {
+  background: rgba(214, 176, 132, .10);
+  border-color: var(--dg-hair-strong);
+  box-shadow: none;
+}
+.dg-chip[aria-pressed="true"]::before { color: var(--dg-gold); }
+.dg-chip:hover {
+  transform: none;
+  border-color: var(--dg-hair-strong);
+  background: rgba(214, 176, 132, .06);
+}
+.dg-chip .dg-n { opacity: .55; }
+
+/* 按钮：细线、小圆角、无外发光；只做边框与文字提亮 */
+.dg-btn {
+  border-radius: 4px;
+  border-color: var(--dg-hair);
+  background: transparent;
+  letter-spacing: .06em;
+  transition: color 160ms var(--dg-ease), border-color 160ms var(--dg-ease), background 160ms var(--dg-ease);
+}
+.dg-btn:hover {
+  box-shadow: none;
+  border-color: var(--dg-hair-strong);
+  background: rgba(214, 176, 132, .07);
+}
+.dg-btn.is-primary {
+  box-shadow: none;
+  border-color: var(--dg-hair-strong);
+  background: rgba(214, 176, 132, .10);
+}
+#dg-particles-toggle.is-on {
+  border-color: var(--dg-hair-strong);
+  background: rgba(214, 176, 132, .10);
+  color: var(--dg-gold);
+}
+
+/* 搜索框：去发光环，聚焦只提亮边框 */
+.dg-search input:focus {
+  box-shadow: none;
+  border-color: var(--dg-hair-strong);
+  background: rgba(231, 225, 213, .04);
+}
+
+/* 分析面板：12px 小圆角 + 细线金框 + 近黑玻璃 */
+.dg-panel {
+  border: 1px solid var(--dg-hair);
+  border-radius: 12px;
+  background: rgba(8, 8, 11, .72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+}
+.dg-panel::before {
+  left: 0; right: 0;
+  background: linear-gradient(90deg, rgba(214, 176, 132, .55), rgba(214, 176, 132, .10) 55%, transparent);
+}
+
+/* 标题：细字重 + 轻字距（参考站标题是 300 字重 + 6.7px 字距） */
+.dg-panel-title {
+  font-weight: 300;
+  letter-spacing: .06em;
+  line-height: 1.42;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .dg-panel-title {
+    background: linear-gradient(180deg, #F2EDE3, #BDB4A4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* 微标签统一：大写 + 宽字距 + 等宽数字（拉丁字母拉开，中文不受 letter-spacing 影响太大） */
+.dg-rel-hd,
+.dg-hint,
+.dg-meta,
+.dg-kv .k,
+.dg-crumb button {
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+.dg-rel-hd b {
+  text-shadow: none;
+  color: var(--dg-gold);
+  letter-spacing: 0;
+}
+.dg-kv .k { font-size: 10px; color: var(--dg-dim); }
+.dg-kv .v { color: var(--dg-ink); }
+
+/* 出链/反链条目：细线 + 悬停时左侧金色细条（原先 2px 青色改为 1px 金） */
+.dg-rel {
+  border-color: rgba(231, 225, 213, .08);
+  background: transparent;
+}
+.dg-rel::before {
+  width: 1px;
+  left: 0;
+  background: var(--dg-gold);
+}
+.dg-rel:hover {
+  transform: none;
+  background: rgba(214, 176, 132, .06);
+  border-color: var(--dg-hair);
+}
+.dg-rel:hover::before { opacity: 1; }
+
+/* 左下角 HUD 提示：小字、宽字距、金色编号感的分隔 */
+.dg-hint {
+  color: rgba(231, 225, 213, .38);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.dg-hint-dot.is-dir { border-top-color: var(--dg-gold); }
+.dg-hint-dot.is-undir { border-top-color: rgba(231, 225, 213, .45); }
+
+/* 右下角元信息：等宽 + 金色数字，像仪表的读数 */
+#dg-filter-info { color: var(--dg-dim); letter-spacing: .06em; }
+#dg-meta { color: var(--dg-dim); letter-spacing: .06em; }
+
+/* ══ v10 入场编排（只播一次）══════════════════════════════════════════════
+   顺序：工具条(0ms) → 画布(90ms) → chip 逐个(120ms 起，每个 +28ms)
+   意图是给眼睛一个落点顺序，不是炫技；总时长控制在 900ms 内。
+   prefers-reduced-motion 时全部不播（JS 侧也不会加 .dg-entering）。 */
+@keyframes dgRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dgFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.dg-entering .dg-toolbar {
+  animation: dgRise 480ms cubic-bezier(.22, .61, .36, 1) both;
+}
+.dg-entering .dg-canvas-card {
+  animation: dgRise 640ms 90ms cubic-bezier(.22, .61, .36, 1) both;
+}
+.dg-entering .dg-panel:not([hidden]) {
+  animation: dgFade 420ms 120ms ease-out both;
+}
+.dg-entering .dg-chip {
+  animation: dgFade 380ms ease-out both;
+}
+.dg-entering .dg-chip:nth-child(1) { animation-delay: 120ms; }
+.dg-entering .dg-chip:nth-child(2) { animation-delay: 148ms; }
+.dg-entering .dg-chip:nth-child(3) { animation-delay: 176ms; }
+.dg-entering .dg-chip:nth-child(4) { animation-delay: 204ms; }
+.dg-entering .dg-chip:nth-child(5) { animation-delay: 232ms; }
+.dg-entering .dg-chip:nth-child(6) { animation-delay: 260ms; }
+.dg-entering .dg-chip:nth-child(7) { animation-delay: 288ms; }
+.dg-entering .dg-chip:nth-child(8) { animation-delay: 316ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-entering .dg-toolbar,
+  .dg-entering .dg-canvas-card,
+  .dg-entering .dg-panel,
+  .dg-entering .dg-chip {
+    animation: none !important;
+  }
+}
+
+/* v10 响应式收口：
+   窄屏画布变矮，两行说明会压在节点上 → 只保留交互提示，收起图例；
+   同时给提示加极弱的暗色背景，保证压在星尘上也读得清。 */
+@media (max-width: 900px) {
+  .dg-hint-legend { display: none; }
+  .dg-hint {
+    max-width: calc(100% - 24px);
+    line-height: 1.6;
+  }
+}
+.dg-hint {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .85), 0 0 8px rgba(0, 0, 0, .6);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   v11 布局体系：两行分组 + 8pt 间距网格
+   ---------------------------------------------------------------------
+   旧结构是 6 个元素挤在一个 flex-wrap 里，1440 宽时搜索框、chip、按钮会
+   随机折成两行，读起来没有层级。现在显式分两行：
+     第一行 = 定位 / 检索 / 读数（左→右三个层级）
+     第二行 = 筛选 / 操作（左筛选右操作，符合「先选后做」的阅读顺序）
+   间距统一走 4 的倍数：4 / 8 / 12 / 16。 */
+.dg-toolbar {
+  display: block;
+  padding: 10px 12px;
+}
+.dg-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.dg-row-top { margin-bottom: 8px; }
+.dg-row-bottom { align-items: center; }
+
+.dg-crumb { flex: 0 1 auto; min-width: 0; }
+.dg-search { flex: 1 1 auto; min-width: 160px; }
+.dg-row-top .dg-meta {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 10.5px;
+}
+.dg-chips {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+.dg-chips::-webkit-scrollbar { height: 0; }
+.dg-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 控件统一 28px 高，形成一条水平基准线 */
+.dg-btn, .dg-chip, .dg-search input { height: 28px; }
+.dg-btn { padding: 0 12px; display: inline-flex; align-items: center; }
+.dg-chip { display: inline-flex; align-items: center; padding: 0 10px; }
+
+/* 窄屏：允许 chip 换行、读数折到第二行，避免横向滚动条被藏起来后无法触达 */
+@media (max-width: 900px) {
+  .dg-row-top { flex-wrap: wrap; row-gap: 8px; }
+  .dg-row-top .dg-meta { flex-basis: 100%; }
+  .dg-chips { flex-wrap: wrap; overflow-x: visible; }
+  .dg-row-bottom { flex-wrap: wrap; row-gap: 8px; }
+  .dg-actions { flex-basis: 100%; justify-content: flex-end; }
+}
+
+/* 面板排版：加大留白、拉开行高，让长文本有呼吸感 */
+.dg-panel { padding: 16px 16px 20px; }
+.dg-panel-title { font-size: 17px; line-height: 1.4; }
+.dg-kv {
+  grid-template-columns: 70px 1fr;
+  gap: 7px 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(231, 225, 213, .07);
+}
+.dg-kv .v { line-height: 1.5; }
+.dg-rel-hd { margin-top: 12px; margin-bottom: 6px; }
+.dg-rel { padding: 6px 8px; line-height: 1.45; }
+.dg-rel-list { gap: 4px; }
+
+/* ══ 系统关联区块（v12）═══════════════════════════════════════════════════
+   把「文档正文提到的 server 模块 / API 端点」在面板里显性化，
+   并区分三种状态：已实现（金）/ 计划中（灰，文档标注「新增」）/ 缺失（红）。
+   这是设计与实现之间最直接的对照：一眼能看出文档写的东西是否真的存在。 */
+.dg-sys-group {
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dg-dim);
+  margin: 10px 0 5px;
+}
+.dg-sys-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dg-sys-chip {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  padding: 2px 6px;
+  border: 1px solid rgba(231, 225, 213, .16);
+  border-radius: 3px;
+  color: rgba(231, 225, 213, .62);
+  background: rgba(231, 225, 213, .03);
+}
+.dg-sys-chip i {
+  font-style: normal;
+  margin-left: 4px;
+  font-size: 9px;
+  opacity: .55;
+}
+.dg-sys-chip.is-ok {
+  color: var(--dg-gold);
+  border-color: rgba(214, 176, 132, .42);
+  background: rgba(214, 176, 132, .07);
+}
+.dg-sys-chip.is-plan {
+  color: rgba(231, 225, 213, .40);
+  border-style: dashed;
+}
+.dg-sys-chip.is-miss {
+  color: #F09595;
+  border-color: rgba(240, 149, 149, .45);
+  background: rgba(240, 149, 149, .07);
+}
+.dg-sys-chip.is-unk {
+  color: rgba(231, 225, 213, .48);
+}
+.dg-sys-warn {
+  margin-top: 8px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #F09595;
+}
+.dg-sys-empty {
+  font-size: 11px;
+  color: var(--dg-dim);
+  padding: 3px 2px 6px;
+}
+
+/* ══ 显示设置弹出层（v13）═════════════════════════════════════════════════
+   位置固定在工具条右下角，与 chip 行同一视觉层级；小圆角 + 细金线，和整体仪器风一致。 */
+.dg-toolbar { position: relative; }
+.dg-settings {
+  position: absolute;
+  right: 10px;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: 232px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--dg-hair, rgba(198, 168, 130, .26));
+  border-radius: 8px;
+  background: rgba(9, 12, 20, .96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .55);
+}
+.dg-settings[hidden] { display: none; }
+.dg-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.dg-set-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(231, 225, 213, .45);
+  flex: none;
+}
+.dg-set-opts { display: inline-flex; gap: 2px; }
+.dg-set-opt {
+  appearance: none;
+  border: 1px solid rgba(198, 168, 130, .18);
+  background: transparent;
+  color: rgba(231, 225, 213, .55);
+  font: inherit;
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color 140ms var(--dg-ease), border-color 140ms var(--dg-ease), background 140ms var(--dg-ease);
+}
+.dg-set-opt:hover { color: var(--dg-ink, #E7E1D5); border-color: rgba(214, 176, 132, .42); }
+.dg-set-opt.is-on {
+  color: var(--dg-gold, #D6B084);
+  border-color: rgba(214, 176, 132, .55);
+  background: rgba(214, 176, 132, .10);
+}
+.dg-set-foot {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(231, 225, 213, .07);
+  font-size: 9.5px;
+  letter-spacing: .06em;
+  color: rgba(231, 225, 213, .32);
+}
+
+/* v13 修复：backdrop-filter 会让 .dg-toolbar 自建层叠上下文，
+   其子元素即使 z-index:30 也只能压在工具条内部 —— 弹出层因此被画布盖住（视觉上像"没打开"）。
+   给工具条本身一个 z-index，让整个上下文浮到画布之上。 */
+.dg-toolbar { z-index: 20; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   v27 · 仪器框与图例（视觉收口）
+   ---------------------------------------------------------------------
+   画布不再只是一个「黑底 + 图」，而是一张有画幅边界的仪器视图：
+     · 四角刻线（L 形 1px 短线）给出画幅边界，替代厚重的卡片描边
+     · 左上角题注 + 右上角缩放读数，构成仪表盘的「铭牌区」
+     · 底部图例把连线语义、节点角色的说明压在一条线上，取代原来的两行段落
+   全部图层 pointer-events:none，鼠标穿透到 ECharts 画布。
+   ══════════════════════════════════════════════════════════════════════════ */
+.dg-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+.dg-hud-tick {
+  position: absolute;
+  width: 13px; height: 13px;
+  border: 0 solid rgba(214, 176, 132, .40);
+}
+.dg-hud-tick.is-tl { top: 9px; left: 9px; border-top-width: 1px; border-left-width: 1px; }
+.dg-hud-tick.is-tr { top: 9px; right: 9px; border-top-width: 1px; border-right-width: 1px; }
+.dg-hud-tick.is-bl { bottom: 9px; left: 9px; border-bottom-width: 1px; border-left-width: 1px; }
+.dg-hud-tick.is-br { bottom: 9px; right: 9px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.dg-hud-cap {
+  position: absolute;
+  top: 12px; left: 28px;
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: .20em;
+  color: rgba(231, 225, 213, .40);
+  text-transform: uppercase;
+}
+.dg-hud-cap b {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .30em;
+  color: rgba(214, 176, 132, .62);
+}
+.dg-hud-cap span { letter-spacing: .12em; }
+
+.dg-hud-zoom {
+  position: absolute;
+  top: 11px; right: 28px;
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: rgba(231, 225, 213, .28);
+}
+.dg-hud-k { letter-spacing: .22em; }
+.dg-hud-v {
+  min-width: 42px;
+  text-align: right;
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: rgba(214, 176, 132, .78);
+  font-variant-numeric: tabular-nums;
+}
+.dg-hud-bar {
+  position: relative;
+  width: 46px; height: 2px;
+  background: rgba(231, 225, 213, .10);
+  overflow: hidden;
+}
+.dg-hud-bar > i {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 23%;
+  background: rgba(214, 176, 132, .55);
+  transition: width 220ms var(--dg-ease);
+}
+
+/* ── 图例：一行说清「颜色 / 线型 / 刻度环」三件事 ─────────────────────── */
+.dg-hint {
+  left: 26px; bottom: 11px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  max-width: calc(100% - 160px);
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 9.5px;
+  letter-spacing: .04em;
+  color: rgba(231, 225, 213, .52);
+}
+.dg-lg { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dg-lg-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #D6B084;
+  box-shadow: 0 0 0 2px rgba(214, 176, 132, .16);
+}
+.dg-lg-line {
+  width: 16px; height: 1px;
+  background: rgba(214, 176, 132, .78);
+  position: relative;
+}
+.dg-lg-line::after {
+  content: '';
+  position: absolute;
+  right: -1px; top: -2px;
+  border: 2.5px solid transparent;
+  border-left-color: rgba(214, 176, 132, .78);
+}
+.dg-lg-line.is-dash {
+  background: none;
+  border-top: 1px dashed rgba(231, 225, 213, .42);
+  height: 0;
+}
+.dg-lg-line.is-dash::after { display: none; }
+.dg-lg-tick {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(214, 176, 132, .34);
+}
+.dg-lg-hint {
+  color: rgba(231, 225, 213, .30);
+  letter-spacing: .06em;
+}
+@media (max-width: 760px) {
+  .dg-hud-cap span, .dg-lg-hint { display: none; }
+  .dg-hint { gap: 4px 12px; }
+}
+
+/* 选中脉冲：从被点节点扩散的一圈金色细环（仅 selectNode 时创建一个，1 秒后自毁） */
+.dg-ping {
+  position: absolute;
+  width: 9px; height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  border: 1px solid rgba(226, 190, 141, .9);
+  box-shadow: 0 0 12px rgba(214, 176, 132, .35);
+  pointer-events: none;
+  z-index: 5;
+  animation: dgPing 1.05s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+@keyframes dgPing {
+  0%   { transform: scale(.5); opacity: .9; border-width: 1.6px; }
+  70%  { opacity: .28; }
+  100% { transform: scale(15); opacity: 0; border-width: 1px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dg-ping { display: none; }
+}
+
+/* 图例：枢纽引用环（金=出链 / 灰=反链） */
+.dg-lg-ring {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(231, 225, 213, .34);
+  border-top-color: rgba(216, 180, 136, .95);
+  border-right-color: rgba(216, 180, 136, .95);
+  transform: rotate(-45deg);
+}
+
+/* ── 画幅收束（v27）────────────────────────────────────────────────────────
+   应力布局的固有长宽比约 1.3，而 1500px 容器配 740px 高是 2.0 —— 两者不匹配时，
+   节点云只能占中间六成宽度，左右各留 290px 纯黑，看上去像「没画满」。
+   把图谱容器收到 1240px 后，画幅比 ≈1.5，构图与画框的比例关系才对上；
+   多余的留白交给页面背景，而不是让画布自己空着。 */
+@media (min-width: 1280px) {
+  .dg-wrap { max-width: 1260px; }
+}

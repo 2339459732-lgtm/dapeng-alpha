@@ -1,0 +1,83 @@
+# 类图 / 数据结构图 — v5.4 Sidebar 5 工具升级
+
+```mermaid
+classDiagram
+    class SectorRow {
+        +int rank
+        +string name
+        +string code
+        +float changePct
+        +string leadStock
+        +float fundFlow
+        +string key
+    }
+
+    class SectorDetail {
+        +string sectorKey
+        +string sectorName
+        +float avgChg
+        +int limitUp
+        +int limitDn
+        +int upCount
+        +int dnCount
+        +LeaderStock[] topStocks
+        +FundFlow fundFlow
+    }
+
+    class LeaderStock {
+        +string code
+        +string name
+        +float chg
+    }
+
+    class FundFlow {
+        +float superLarge
+        +float large
+        +float medium
+        +float small
+        +float main
+        +bool isEstimated
+    }
+
+    class StockListRow {
+        +string code
+        +string name
+        +float chg
+        +float turnover
+        +float marketCap
+        +float pe
+        +int priority
+    }
+
+    class ScreenFilter {
+        +int minScore
+        +float minChg
+        +float minVol
+        +float minTurnover
+        +float maxPe
+        +int limit
+        +string sector
+    }
+
+    class ScanParams {
+        +float priceMin
+        +float priceMax
+        +string sectors
+        +int minScore
+        +float minChg
+    }
+
+    class AppState {
+        +SectorRow[] sectorRankingCache
+        +string sectorCurrentPeriod
+        +string sectorSortOrder
+        +string sectorSelectedKey
+        +string sectorSelectedName
+        +bool screenMode
+        +bool scanPanelVisible
+    }
+
+    SectorDetail --> LeaderStock : topStocks[]
+    SectorDetail --> FundFlow : fundFlow
+    AppState --> SectorRow : sectorRankingCache
+```

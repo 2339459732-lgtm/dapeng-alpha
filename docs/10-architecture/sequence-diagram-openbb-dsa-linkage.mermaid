@@ -1,0 +1,80 @@
+%% 时序图二：点击「板块某只股票」→ K线+信号+下单面板（L4/L5 联动）
+%% 来源: openbb-dsa-integration-design.md §4.3
+sequenceDiagram
+    autonumber
+    participant U as 用户
+    participant HM as 板块热力图(app.js heatmapChart)
+    participant DB as DrillBus(linkage.js)
+    participant RT as hash 路由
+    participant SL as 选股列表(app.js)
+    participant KC as K线主图(chart.js klineChart)
+    participant IND as 副图(/api/kline/indicators)
+    participant AUT as 自动化面板(automation.js)
+    participant ORD as 下单面板(automation-trade.js)
+    participant BK as 后端
+
+    Note over U,HM: 阶段一 L4 钻取: 热力图格 -> 选股列表 (J1)
+    U->>HM: hover 板块格 -> cursor:pointer (PRD 6.1)
+    U->>HM: click「半导体 +2.3%」
+    HM->>HM: params.name.split(' ')[0] -> SECTORS.find()
+    HM->>DB: DrillBus.emit('sector', {sector_key:'semi', period:'20'})
+    DB->>RT: location.hash = '#/sector/semi?period=20'
+    DB->>SL: on('sector') -> applySectorFilter('semi','20')
+    SL->>BK: GET /api/sector/stocks?sector=semi&period=20
+    BK-->>SL: 32 只成分股 (含 source/degraded)
+    SL->>SL: 面包屑「板块: 半导体」+ 清空筛选按钮
+    SL->>DB: Linkage.connect('sector-group', [heatmapChart, sectorRankChart, fundFlowChart])
+    Note over DB: ECharts connect(groupId) 使三图共享 axisPointer
+
+    Note over U,SL: 阶段二 L4 钻取: 选股列表 -> K线 (J2)
+    U->>SL: click 中钨高新(sh600549)
+    SL->>DB: DrillBus.emit('stock', {code:'sh600549', name:'中钨高新', from:'sector'})
+    DB->>RT: hash = '#/stock/sh600549?from=sector&period=20&tab=kline'
+    DB->>KC: on('stock') -> loadKline('sh600549','day')
+    par K线与副图并行
+        KC->>BK: GET /api/kline?code=sh600549&period=day
+        BK-->>KC: bars + ma + macd + strategy
+        KC->>KC: proChart(klinecharts) 渲染主图
+        KC->>KC: 面包屑「半导体 > 中钨高新」+ 返回保留筛选
+    and
+        KC->>IND: GET /api/kline/indicators?code=sh600549&period=day&indicator=adx
+        IND->>BK: 复用 tencent_kline 缓存 (不新增上游)
+        BK-->>IND: 640 根 + adx/plus_di/minus_di
+        IND-->>KC: panes + label "ADX(14)"
+        KC->>KC: 副图渲染 (sma 序列尾部 null 对齐)
+    end
+    KC->>KC: Capability.attach(klineCard, meta) -> 「实时 3s」
+
+    Note over KC,BK: 阶段三 实时: 复用既有 SSE, 不新增连接
+    BK-->>KC: SSE quotes.tick (topic=quotes, codes=sh600549) 沿用 chart.js:3189
+    KC->>KC: _klineLive 更新最后一根 bar (不重拉全量)
+    KC->>KC: 副图最后一根用新价本地重算 (<=16ms, 不请求后端)
+
+    Note over KC,AUT: 阶段四 L4 钻取: 副图信号点 -> 信号详情 (J3)
+    U->>KC: click 副图信号点 (ADX 上穿 + DI 金叉)
+    KC->>DB: DrillBus.emit('signal', {code, signal_type:'adx_cross', ts, strategy_id})
+    DB->>RT: hash = '#/auto?tab=signals&code=sh600549&ts=...'
+    DB->>AUT: on('signal') -> switchAutomationTab('signals') + highlightRow(ts)
+    AUT->>BK: GET /api/automation/signals?code=sh600549&limit=100
+    BK-->>AUT: 信号 (含 strategy_version="ma_cross_atr@v1+8f3a2b1c")
+    AUT->>AUT: 定位该条并高亮 + 显示策略版本
+
+    Note over AUT,ORD: 阶段五 L4 钻取: 信号 -> 下单确认 (J4/J5)
+    U->>AUT: click「按此信号下单」
+    AUT->>DB: DrillBus.emit('order', {code, side:'buy', signal_id, qty_suggest})
+    DB->>ORD: 打开下单面板并预填
+    ORD->>ORD: 显示来源信号摘要 (PRD 6.3 J4 强制)
+    U->>ORD: 提交 (可改数量)
+    ORD->>BK: POST /api/automation/orders {code, side, qty, signal_id}
+    BK->>BK: 决策闸 4 维 -> 关卡 1-9 -> 关卡 10(集中度) -> 约束 -> PaperGateway
+    alt 通过
+        BK-->>ORD: {ok:true, order_id, filled_price, slippage}
+        ORD->>DB: DrillBus.emit('filled', {order_id})
+        DB->>AUT: hash = '#/auto?tab=review&order_id=...'
+        AUT->>BK: GET /api/automation/orders?code= -> 定位该笔
+        AUT->>AUT: 显示 成交价 vs 信号价 vs 滑点
+    else 被拒 (fail_code 归一后)
+        BK-->>ORD: {ok:false, fail_code:"LIMIT_UP", fail_reason:"已达涨停价 12.34"}
+        ORD->>ORD: renderOrderFailure(res) -> title「已达涨停价 12.34, 无法买入」+ next_action「可设条件单『涨停打开后买入』」
+        ORD-->>U: 双段文案 (原因 + 下一步), 非裸字符串
+    end

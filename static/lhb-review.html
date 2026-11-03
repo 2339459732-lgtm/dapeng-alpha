@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龙虎榜复盘 · DAPENG Alpha</title>
+<link rel="icon" href="data:,">
+<meta name="theme-color" content="#020510">
+<meta name="description" content="每日龙虎榜复盘：优质席位动向、买卖动因归因、封板时刻级推断与推演逻辑。">
+<link rel="stylesheet" href="css/dashboard.css?v=70">
+<link rel="stylesheet" href="css/lhb-review.css?v=4">
+</head>
+<body class="lr-body">
+<div class="lr-wrap">
+
+  <!-- ============ 顶栏 ============ -->
+  <header class="lr-top">
+    <div class="lr-brand"><b>龙虎榜复盘</b><span>LHB REVIEW</span></div>
+    <a class="lr-back" href="/dashboard.html#decision">← 返回决策台</a>
+    <div class="lr-tools">
+      <div class="lr-date-group">
+        <button type="button" id="lr-prev" title="前一交易日" aria-label="前一交易日">◀</button>
+        <input type="text" id="lr-date" placeholder="YYYY-MM-DD" inputmode="numeric" aria-label="复盘日期">
+        <button type="button" id="lr-next" title="后一交易日" aria-label="后一交易日">▶</button>
+      </div>
+      <button type="button" class="lr-btn" id="lr-load">读取</button>
+      <button type="button" class="lr-btn is-primary" id="lr-regen">重新生成</button>
+      <span class="lr-stamp" id="lr-stamp"></span>
+    </div>
+  </header>
+
+  <!-- ============ 状态位 ============ -->
+  <div id="lr-alert" hidden></div>
+
+  <!-- ============ 主体 ============ -->
+  <main id="lr-main">
+    <div class="lr-skeleton" id="lr-skeleton">
+      <div class="lr-sk-line" style="width:62%"></div>
+      <div class="lr-sk-line" style="width:38%"></div>
+    </div>
+  </main>
+
+  <!-- ============ 声明 ============ -->
+  <section class="lr-caveats" id="lr-caveats" hidden>
+    <h3>口径与边界</h3>
+    <ul id="lr-caveat-list"></ul>
+  </section>
+
+</div>
+
+<script src="js/lhb-review.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,3178 @@
+{
+ "version": 1,
+ "generated_at": "2026-10-22T23:19:14+08:00",
+ "endpoint_source": "openapi",
+ "stats": {
+  "modules": 32,
+  "docs_linked": 29,
+  "modules_referenced": 28,
+  "endpoints_referenced": 163,
+  "docs_with_missing_module": 0,
+  "planned_modules": 2,
+  "real_endpoints": 144
+ },
+ "modules": {
+  "ak_market": {
+   "file": "server/ak_market.py",
+   "lines": 661,
+   "imports": [
+    "market_dashboard",
+    "realtime"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md",
+    "docs/30-data/DATA-DICTIONARY.md"
+   ]
+  },
+  "api_tracking": {
+   "file": "server/api_tracking.py",
+   "lines": 449,
+   "imports": [
+    "config"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/architecture-tab-admin.md"
+   ]
+  },
+  "brain": {
+   "file": "server/brain.py",
+   "lines": 460,
+   "imports": [
+    "intel_agent",
+    "llm",
+    "market_survey_engine",
+    "qlib_factor_engine",
+    "trading"
+   ],
+   "endpoints": [
+    "/insights",
+    "/intel",
+    "/intel/scan",
+    "/run/{task_id}",
+    "/status",
+    "/survey/refresh"
+   ],
+   "docs": []
+  },
+  "cache": {
+   "file": "server/cache.py",
+   "lines": 426,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/10-architecture/system_design.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/40-ops/CHANGELOG-2026-10-22.md"
+   ]
+  },
+  "chan_engine": {
+   "file": "server/chan_engine.py",
+   "lines": 300,
+   "imports": [],
+   "endpoints": [],
+   "docs": []
+  },
+  "config": {
+   "file": "server/config.py",
+   "lines": 737,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/architecture-tab-admin.md",
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/auto-trading-architecture.md",
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/10-architecture/system_design.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/30-data/DATA-DICTIONARY.md",
+    "docs/40-ops/CHANGELOG-2026-10-22.md",
+    "docs/90-archive/auto-trading-arch-v0-deprecated.md"
+   ]
+  },
+  "eastmoney": {
+   "file": "server/eastmoney.py",
+   "lines": 325,
+   "imports": [
+    "realtime"
+   ],
+   "endpoints": [],
+   "docs": []
+  },
+  "fundamental": {
+   "file": "server/fundamental.py",
+   "lines": 1021,
+   "imports": [
+    "akshare_fundamental",
+    "base",
+    "cache",
+    "quote_hub",
+    "server"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md"
+   ]
+  },
+  "global_assets": {
+   "file": "server/global_assets.py",
+   "lines": 264,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md",
+    "docs/30-data/DATA-DICTIONARY.md"
+   ]
+  },
+  "global_linkage": {
+   "file": "server/global_linkage.py",
+   "lines": 386,
+   "imports": [
+    "global_assets",
+    "stable_market_provider",
+    "tencent_kline"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md"
+   ]
+  },
+  "ict_history": {
+   "file": "server/ict_history.py",
+   "lines": 427,
+   "imports": [
+    "server"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md"
+   ]
+  },
+  "ict_model": {
+   "file": "server/ict_model.py",
+   "lines": 703,
+   "imports": [
+    "config"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md"
+   ]
+  },
+  "ict_structure": {
+   "file": "server/ict_structure.py",
+   "lines": 651,
+   "imports": [
+    "ict_history",
+    "server"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md"
+   ]
+  },
+  "indicators": {
+   "file": "server/indicators.py",
+   "lines": 1541,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md"
+   ]
+  },
+  "llm": {
+   "file": "server/llm.py",
+   "lines": 279,
+   "imports": [
+    "config"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/20-prd/incremental-prd-westock-mcp.md"
+   ]
+  },
+  "main": {
+   "file": "server/main.py",
+   "lines": 374,
+   "imports": [
+    "alert_agent",
+    "api_tracking",
+    "brain",
+    "cache",
+    "config",
+    "orchestrator",
+    "routers",
+    "stable_market_provider",
+    "stock_pool",
+    "tencent_kline",
+    "trading"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/10-architecture/architecture-tab-admin.md",
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/auto-trading-architecture.md",
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/10-architecture/system_design.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/90-archive/HANDOFF-v5.4.md",
+    "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+    "docs/90-archive/auto-trading-arch-v0-deprecated.md"
+   ]
+  },
+  "market_survey_engine": {
+   "file": "server/market_survey_engine.py",
+   "lines": 446,
+   "imports": [
+    "ak_market",
+    "cache",
+    "llm",
+    "market_dashboard",
+    "trading"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/SYSTEM-WORKFLOW.md"
+   ]
+  },
+  "qlib_factor_engine": {
+   "file": "server/qlib_factor_engine.py",
+   "lines": 1217,
+   "imports": [
+    "cache",
+    "chan_engine",
+    "market_dashboard",
+    "tencent_kline"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/20-prd/openbb-dsa-integration-prd.md"
+   ]
+  },
+  "quant_core": {
+   "file": "server/quant_core.py",
+   "lines": 723,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "docs/20-prd/incremental-prd-westock-mcp.md"
+   ]
+  },
+  "quote_hub": {
+   "file": "server/quote_hub.py",
+   "lines": 289,
+   "imports": [
+    "realtime",
+    "stream"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md"
+   ]
+  },
+  "realtime": {
+   "file": "server/realtime.py",
+   "lines": 152,
+   "imports": [
+    "symbols"
+   ],
+   "endpoints": [
+    "/realtime"
+   ],
+   "docs": [
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md"
+   ]
+  },
+  "risk_metrics": {
+   "file": "server/risk_metrics.py",
+   "lines": 384,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md"
+   ]
+  },
+  "sector_graph": {
+   "file": "server/sector_graph.py",
+   "lines": 323,
+   "imports": [],
+   "endpoints": [],
+   "docs": []
+  },
+  "sector_linkage": {
+   "file": "server/sector_linkage.py",
+   "lines": 231,
+   "imports": [
+    "sector_map",
+    "stable_market_provider"
+   ],
+   "endpoints": [],
+   "docs": []
+  },
+  "sector_map": {
+   "file": "server/sector_map.py",
+   "lines": 123,
+   "imports": [],
+   "endpoints": [],
+   "docs": []
+  },
+  "sector_resolve": {
+   "file": "server/sector_resolve.py",
+   "lines": 250,
+   "imports": [
+    "config",
+    "sector_map"
+   ],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md"
+   ]
+  },
+  "stable_market_provider": {
+   "file": "server/stable_market_provider.py",
+   "lines": 1089,
+   "imports": [
+    "config",
+    "realtime",
+    "sector_map"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/30-data/DATA-DICTIONARY.md"
+   ]
+  },
+  "stock_pool": {
+   "file": "server/stock_pool.py",
+   "lines": 165,
+   "imports": [
+    "ak_market",
+    "config"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md"
+   ]
+  },
+  "strategies": {
+   "file": "server/strategies.py",
+   "lines": 1570,
+   "imports": [],
+   "endpoints": [],
+   "docs": [
+    "CHANGELOG.md",
+    "docs/10-architecture/system_design.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md",
+    "docs/40-ops/CHANGELOG-2026-10-22.md"
+   ]
+  },
+  "symbols": {
+   "file": "server/symbols.py",
+   "lines": 140,
+   "imports": [],
+   "endpoints": [],
+   "docs": []
+  },
+  "tencent_kline": {
+   "file": "server/tencent_kline.py",
+   "lines": 245,
+   "imports": [
+    "symbols"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/30-data/DATA-DICTIONARY.md"
+   ]
+  },
+  "westock": {
+   "file": "server/westock.py",
+   "lines": 605,
+   "imports": [
+    "config"
+   ],
+   "endpoints": [],
+   "docs": [
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/system_design.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/30-data/DATA-DICTIONARY.md"
+   ]
+  }
+ },
+ "doc_links": {
+  "CHANGELOG.md": {
+   "modules": [
+    {
+     "name": "main",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ak_market",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "strategies",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "sector_resolve",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ict_model",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ict_history",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ict_structure",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "quote_hub",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "global_linkage",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/kline",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/quote",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/system",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/macro",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/market/north",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/meta/capability",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/ict/scan",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/ict/history",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/ict/structure-stats",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/timeshare",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/audit",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/system-health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/review/round-trips",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache/purge-expired",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/dashboard",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/search",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/indicators",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/risk/portfolio",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/trade-reviews",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/weekly-list",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/summary",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-map/stock",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/sector-linkage",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-graph",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-clusters",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "README.md": {
+   "modules": [],
+   "endpoints": []
+  },
+  "docs/00-strategy/MASTER-PLAN-2026Q4.md": {
+   "modules": [
+    {
+     "name": "stable_market_provider",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "indicators",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "global_assets",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ak_market",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/automation/orders",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/qlib/meta",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/quant/run",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/round-trips",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/news",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/index",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/spot",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/north",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/health/datasources",
+     "mentions": 1,
+     "exists": false
+    }
+   ]
+  },
+  "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/strategy-lab/evaluate",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/00-strategy/README.md": {
+   "modules": [],
+   "endpoints": []
+  },
+  "docs/00-strategy/capability-evolution-plan-2026.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/review/summary",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/00-strategy/product-roadmap-2026.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/review/summary",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/SYSTEM-WORKFLOW.md": {
+   "modules": [
+    {
+     "name": "cache",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "realtime",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "stable_market_provider",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "global_assets",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "global_linkage",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "market_survey_engine",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/stream/quotes",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/quote",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/proposals",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/market",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/signals",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/stream",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/review",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes/multi",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/multi-period-resonance",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-dashboard",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-linkage",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/strategy-lab",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/automation/gate",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/signals",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/audit",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/run-cycle",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/decision-quality",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/summary",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/equity",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/weekly",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/trade-reviews",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/status",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/iterations",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/run",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/stats",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/architecture-sidebar-tools.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/lhb",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/architecture-tab-admin.md": {
+   "modules": [
+    {
+     "name": "api_tracking",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "main",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/admin/stats",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/calls",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/error-ranking",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/admin",
+     "mentions": 5,
+     "exists": false
+    },
+    {
+     "path": "/api/fund-flow",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/architecture-v54-sidebar-pro.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 7,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/realtime",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/architecture-westock-mcp.md": {
+   "modules": [
+    {
+     "name": "westock",
+     "mentions": 4,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "stock_pool",
+     "mentions": 4,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "main",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/finance",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/news",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/news/market",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/auto-trading-architecture.md": {
+   "modules": [
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/automation",
+     "mentions": 3,
+     "exists": false
+    },
+    {
+     "path": "/api/automation/gate",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/signals",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/auto",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/user",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/gate/live-switch",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/backtest",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/enable",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/paper/confirm",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/risk/reset-breaker",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/notify/test",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/impl-checklist-openbb-dsa.md": {
+   "modules": [
+    {
+     "name": "fundamental",
+     "mentions": 8,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 4,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "main",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "risk_metrics",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "indicators",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/finance",
+     "mentions": 9,
+     "exists": true
+    },
+    {
+     "path": "/api/meta/capability",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/indicators",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/risk/portfolio",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/finance/valuation",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/audit",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/stats",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/review/metrics",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/signals",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/risk/reset-breaker",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/decision-quality",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/openbb-dsa-integration-design.md": {
+   "modules": [
+    {
+     "name": "risk_metrics",
+     "mentions": 5,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "fundamental",
+     "mentions": 5,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "indicators",
+     "mentions": 4,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 4,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "quote_hub",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "stable_market_provider",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ak_market",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "etf_rotation",
+     "mentions": 1,
+     "exists": false,
+     "planned": true
+    },
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "stock_pool",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/finance",
+     "mentions": 12,
+     "exists": true
+    },
+    {
+     "path": "/api/meta/capability",
+     "mentions": 10,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 7,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/indicators",
+     "mentions": 6,
+     "exists": true
+    },
+    {
+     "path": "/api/risk/portfolio",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/finance/valuation",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/audit",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/timeshare",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/qt/stock/get",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/screening/strategy",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/screening/run",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/etf/rotation",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/automation/decision-quality",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/review/metrics",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/quote",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector/stocks",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/automation/signals",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/10-architecture/system_design.md": {
+   "modules": [
+    {
+     "name": "westock",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "strategies",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "__init__",
+     "mentions": 1,
+     "exists": false,
+     "planned": false
+    },
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/quotes",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 4,
+     "exists": true
+    }
+   ]
+  },
+  "docs/20-prd/auto-trading-prd.md": {
+   "modules": [],
+   "endpoints": []
+  },
+  "docs/20-prd/incremental-prd-sidebar-tools.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/screen",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/20-prd/incremental-prd-tab-admin.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/fund-flow",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/stats",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/calls",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/error-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quote",
+     "mentions": 1,
+     "exists": false
+    }
+   ]
+  },
+  "docs/20-prd/incremental-prd-v54-sidebar-pro.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 6,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/quote",
+     "mentions": 1,
+     "exists": false
+    }
+   ]
+  },
+  "docs/20-prd/incremental-prd-westock-mcp.md": {
+   "modules": [
+    {
+     "name": "stock_pool",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "mcp_client",
+     "mentions": 1,
+     "exists": false,
+     "planned": true
+    },
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "tencent_kline",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "realtime",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "westock",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "cache",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "llm",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "quant_core",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/finance",
+     "mentions": 5,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb/stock",
+     "mentions": 2,
+     "exists": false
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding/top",
+     "mentions": 2,
+     "exists": false
+    },
+    {
+     "path": "/api/news",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/news/market",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/macro",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/chip",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/margin",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/dividend",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/shareholder",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/events",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/industry-chain",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/strategy/mcp",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/filter/mcp",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/ranking",
+     "mentions": 1,
+     "exists": false
+    }
+   ]
+  },
+  "docs/20-prd/openbb-dsa-integration-prd.md": {
+   "modules": [
+    {
+     "name": "strategies",
+     "mentions": 7,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "fundamental",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "risk_metrics",
+     "mentions": 3,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "ak_market",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "etf_rotation",
+     "mentions": 2,
+     "exists": false,
+     "planned": true
+    },
+    {
+     "name": "global_assets",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "qlib_factor_engine",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/finance",
+     "mentions": 7,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/conditional-orders",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/30-data/DATA-DICTIONARY.md": {
+   "modules": [
+    {
+     "name": "ak_market",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "tencent_kline",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "global_assets",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "stable_market_provider",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "westock",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-graph",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/news",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/index",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/spot",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market/north",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-map/stock",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/sector-linkage",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-clusters",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/system-health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/40-ops/API-REFERENCE.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/agents",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/conditional-orders",
+     "mentions": 4,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/orders",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/proposals",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/users",
+     "mentions": 3,
+     "exists": true
+    },
+    {
+     "path": "/api/market-dashboard",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/news",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/config",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/quant/config",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/alerts/watch",
+     "mentions": 2,
+     "exists": false
+    },
+    {
+     "path": "/api/admin/logs",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/notifications",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/orders",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/stream",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/market",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/signals",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/stream/stats",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/debug-kline",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline/quote",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/multi-period-resonance",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes/multi",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/realtime",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-sentiment",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market/all",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market/north",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/north-holding",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-clusters",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-graph",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-linkage",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-map/stock",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sectors",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan/status",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/search",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/strategy-lab/evaluate",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/agents/health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/analyze",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/analyze/chart-summary",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/global/assets",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/global/linkage",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/index",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/macro",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/news",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/ak/spot",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/market/survey",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/qlib/backtest",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/qlib/dynamic",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/qlib/factors",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/intelligent/qlib/meta",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/news/market",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/audit",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/decision-quality",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/gate",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/gate/live-switch",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/init-paper",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/notify/test",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/positions",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/risk/reset-breaker",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/run-cycle",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/signals",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/backtest",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/enable",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/automation/strategy/paper/confirm",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/iterations",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/library",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/run",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/status",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/evolution/trade-reviews",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/equity",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/round-trips",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/summary",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/trade-reviews",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/weekly",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/review/weekly-list",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/brain/insights",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/brain/intel",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/brain/intel/scan",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/brain/run",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/brain/status",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/brain/survey/refresh",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quant/logs",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/quant/result",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/quant/run",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quant/status",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/alerts",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/api-health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/calls",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/dashboard",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/error-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/export",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/notifications/read",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/revenue-trend",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/sector-heatmap",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/stats",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/system",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/system-health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/payment/alipay/notify",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/payment/alipay/return",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/payment/create",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/payment/simulate-pay",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/payment/status",
+     "mentions": 1,
+     "exists": false
+    },
+    {
+     "path": "/api/payment/wechat/notify",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/40-ops/CHANGELOG-2026-10-22.md": {
+   "modules": [
+    {
+     "name": "cache",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "strategies",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/search",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/dashboard",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache/purge-expired",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/meta/capability",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/40-ops/DEPLOYMENT.md": {
+   "modules": [],
+   "endpoints": [
+    {
+     "path": "/api/health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/cache/purge-expired",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/health/datasources",
+     "mentions": 1,
+     "exists": false
+    }
+   ]
+  },
+  "docs/90-archive/HANDOFF-v5.4.md": {
+   "modules": [
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/screen",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-stocks",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/search",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/analyze",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sector-ranking",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/fund-flow/sector",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/hot-stocks",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/lhb",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/market-overview",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/profile",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/finance",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/report",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/consensus",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/stats",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/calls",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/error-ranking",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md": {
+   "modules": [
+    {
+     "name": "main",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/health",
+     "mentions": 2,
+     "exists": true
+    },
+    {
+     "path": "/api/global",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/quotes",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/kline",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/scan",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/analyze",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/search",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/admin/dashboard",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  },
+  "docs/90-archive/auto-trading-arch-v0-deprecated.md": {
+   "modules": [
+    {
+     "name": "main",
+     "mentions": 2,
+     "exists": true,
+     "planned": false
+    },
+    {
+     "name": "config",
+     "mentions": 1,
+     "exists": true,
+     "planned": false
+    }
+   ],
+   "endpoints": [
+    {
+     "path": "/api/auto",
+     "mentions": 2,
+     "exists": false
+    },
+    {
+     "path": "/api/health",
+     "mentions": 1,
+     "exists": true
+    },
+    {
+     "path": "/api/sectors",
+     "mentions": 1,
+     "exists": true
+    }
+   ]
+  }
+ },
+ "missing_modules": {}
+}

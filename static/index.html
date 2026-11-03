@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAPENG Alpha · AI 策略选股系统</title>
+<meta name="description" content="DeepSeek AI驱动的量化选股系统。26个板块484只标的（含港股通），6大经典战法，实时策略信号。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>📈</text></svg>">
+<meta name="theme-color" content="#0a0e1a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DAPENG Alpha · AI 策略选股系统">
+<meta property="og:description" content="DeepSeek AI 驱动的量化选股系统。26 个板块 484 只标的（含港股通），6 大经典战法，实时策略信号。">
+<meta property="og:site_name" content="DAPENG Alpha">
+<meta name="twitter:card" content="summary_large_image">
+<!-- 主题预置：在解析阶段就应用，避免浅色用户看到深色闪烁（FOUC） -->
+<script>try{var _t=localStorage.getItem('idx-theme');if(_t==='light'||_t==='dark')document.documentElement.setAttribute('data-theme',_t)}catch(e){}</script>
+<!-- ECharts 延迟到解析完成后执行：首屏不再被 1MB 脚本阻塞 -->
+<script src="js/echarts.min.js?v=5" defer></script>
+<style>
+/* ===== Theme Variables ===== */
+:root{
+  --bg:#0a0e1a;--bg2:#0f1729;--card:rgba(17,24,39,0.7);--card-hover:rgba(30,41,59,0.8);
+  --t:#f1f5f9;--t2:#94a3b8;--t3:#475569;
+  --blue:#3b82f6;--cyan:#06b6d4;--green:#10b981;--gold:#f59e0b;--red:#ef4444;--purple:#a855f7;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --r:14px;--r2:22px;
+  --shadow:0 8px 32px rgba(0,0,0,0.3);
+  --glow-blue:0 0 40px rgba(59,130,246,0.15);
+}
+[data-theme="light"]{
+  --bg:#f0f4f8;--bg2:#e2e8f0;--card:rgba(255,255,255,0.85);--card-hover:rgba(255,255,255,0.95);
+  --t:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+  --shadow:0 8px 32px rgba(0,0,0,0.08);
+  --glow-blue:0 0 40px rgba(59,130,246,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--t);line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 30% 5%,rgba(59,130,246,.08),transparent 70%),radial-gradient(ellipse 50% 30% at 70% 90%,rgba(6,182,212,.05),transparent 70%),radial-gradient(ellipse 40% 30% at 50% 50%,rgba(168,85,247,.03),transparent 70%);pointer-events:none;z-index:0;transition:opacity .4s}
+[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40% at 30% 5%,rgba(59,130,246,.04),transparent 70%),radial-gradient(ellipse 50% 30% at 70% 90%,rgba(6,182,212,.03),transparent 70%)}
+.w{max-width:1080px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* ===== Animated Background Blobs ===== */
+.bg-blob{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.15;pointer-events:none;z-index:0;animation:blobFloat 20s ease-in-out infinite}
+.bg-blob-1{width:400px;height:400px;background:var(--blue);top:-100px;left:-100px;animation-delay:0s}
+.bg-blob-2{width:350px;height:350px;background:var(--cyan);bottom:-80px;right:-80px;animation-delay:-7s}
+.bg-blob-3{width:300px;height:300px;background:var(--purple);top:40%;right:10%;animation-delay:-14s}
+@keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
+
+/* ===== Navigation ===== */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:background .4s}
+[data-theme="light"] nav{background:rgba(240,244,248,.8)}
+nav .w{display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--t);text-decoration:none}
+.nav-logo .icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(59,130,246,0.3);transition:transform .3s}
+.nav-logo:hover .icon{transform:scale(1.08) rotate(-5deg)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{color:var(--t2);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--blue);transition:width .3s}
+.nav-links a:hover{color:var(--t)}.nav-links a:hover::after{width:100%}
+.theme-toggle-nav{background:var(--card);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;color:var(--t)}
+.theme-toggle-nav:hover{border-color:var(--blue);box-shadow:var(--glow-blue)}
+
+/* ===== Hero ===== */
+.hero{padding:100px 0 80px;text-align:center;position:relative}
+.hero .tag{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:24px;background:rgba(59,130,246,.1);color:var(--blue);font-size:13px;font-weight:600;margin-bottom:28px;border:1px solid rgba(59,130,246,.15);animation:tagPulse 3s ease-in-out infinite}
+@keyframes tagPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.2)}50%{box-shadow:0 0 0 8px rgba(59,130,246,0)}}
+.hero .tag .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:dotBlink 1.5s ease-in-out infinite}
+@keyframes dotBlink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-size:clamp(34px,5.5vw,56px);font-weight:800;line-height:1.12;margin-bottom:20px;letter-spacing:-.5px}
+.hero h1 .hl{background:linear-gradient(135deg,var(--blue),var(--cyan),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradientShift 5s ease-in-out infinite;background-size:200% 200%}
+@keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero p{font-size:17px;color:var(--t2);max-width:580px;margin:0 auto 36px;line-height:1.7}
+.hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:all .25s cubic-bezier(0.16,1,0.3,1);font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn-lg{padding:14px 32px;font-size:16px;border-radius:12px}
+.btn-primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn-primary:hover{box-shadow:0 8px 28px rgba(59,130,246,.4);transform:translateY(-2px)}
+.btn-outline{background:var(--card);color:var(--t);border:1.5px solid var(--border2)}
+.btn-outline:hover{border-color:var(--blue);box-shadow:var(--glow-blue);transform:translateY(-1px)}
+
+/* ===== Stats Bar ===== */
+.stats{padding:48px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--card);backdrop-filter:blur(12px)}
+/* 内层用独立类承载 flex，避免内联样式压过媒体查询（原实现移动端 gap 恒为 48px 导致溢出） */
+.stats-inner{display:flex;justify-content:center;gap:48px;flex-wrap:wrap}
+.stat{text-align:center;position:relative}
+.stat:not(:last-child)::after{content:'';position:absolute;right:-24px;top:50%;transform:translateY(-50%);width:1px;height:32px;background:var(--border)}
+.stat .n{font-size:36px;font-weight:800;background:linear-gradient(135deg,var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .l{font-size:12px;color:var(--t2);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+
+/* ===== Sections ===== */
+.section{padding:80px 0}
+.section h2{font-size:30px;font-weight:700;text-align:center;margin-bottom:12px;letter-spacing:-.3px}
+.section .sub{text-align:center;color:var(--t2);font-size:15px;max-width:520px;margin:0 auto 48px}
+
+/* ===== Scroll Animation（v2：默认可见 + 滚动入场 + 兜底） ===== */
+/* 默认就可见（关键稳定性改动）；仅当 JS 加载并观察后才走入场动画 */
+.fade-in{opacity:1;transform:none;transition:opacity .7s cubic-bezier(0.16,1,0.3,1),transform .7s cubic-bezier(0.16,1,0.3,1)}
+html.js-anim .fade-in{opacity:0;transform:translateY(30px)}
+html.js-anim .fade-in.visible{opacity:1;transform:translateY(0)}
+.fade-in:nth-child(2){transition-delay:.1s}
+.fade-in:nth-child(3){transition-delay:.2s}
+.fade-in:nth-child(4){transition-delay:.3s}
+.fade-in:nth-child(5){transition-delay:.4s}
+.fade-in:nth-child(6){transition-delay:.5s}
+
+/* ===== Feature Cards ===== */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.feature{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:28px;transition:all .3s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;backdrop-filter:blur(12px)}
+.feature::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);transform:translateX(-100%);transition:transform .5s}
+.feature:hover{border-color:rgba(59,130,246,.2);transform:translateY(-4px);box-shadow:var(--shadow);background:var(--card-hover)}
+.feature:hover::before{transform:translateX(100%)}
+.feature .icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;transition:transform .3s}
+.feature:hover .icon{transform:scale(1.1) rotate(-5deg)}
+.feature:nth-child(1) .icon{background:rgba(59,130,246,.1)}
+.feature:nth-child(2) .icon{background:rgba(168,85,247,.1)}
+.feature:nth-child(3) .icon{background:rgba(6,182,212,.1)}
+.feature:nth-child(4) .icon{background:rgba(16,185,129,.1)}
+.feature:nth-child(5) .icon{background:rgba(245,158,11,.1)}
+.feature:nth-child(6) .icon{background:rgba(236,72,153,.1)}
+.feature h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.feature p{color:var(--t2);font-size:13px;line-height:1.6}
+
+/* ===== Live Demo ===== */
+.demo-section{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.demo{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;max-width:860px;margin:0 auto;box-shadow:var(--shadow)}
+.demo-header{background:rgba(0,0,0,0.2);padding:12px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+[data-theme="light"] .demo-header{background:rgba(0,0,0,0.04)}
+.demo-dot{width:10px;height:10px;border-radius:50%;transition:transform .2s}
+.demo-dot:hover{transform:scale(1.2)}
+.demo-dot.r{background:var(--red)}.demo-dot.y{background:var(--gold)}.demo-dot.g{background:var(--green)}
+.demo-url{font-size:11px;color:var(--t3);margin-left:8px}
+.demo-live-badge{margin-left:auto;font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);transition:all .25s}
+.demo-live-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:dotBlink 1.5s ease-in-out infinite}
+.demo-live-badge .dot.warn{background:var(--gold);animation:none;box-shadow:0 0 6px rgba(245,158,11,.5)}
+.demo-live-badge .dot.err{background:var(--red);animation:none;box-shadow:0 0 6px rgba(239,68,68,.5)}
+.demo-live-badge.state-warn{color:var(--gold);background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}
+.demo-live-badge.state-err{color:var(--red);background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)}
+.demo-refresh-btn{margin-left:6px;width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--t2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.demo-refresh-btn:hover{background:rgba(59,130,246,.15);color:var(--blue);border-color:rgba(59,130,246,.3);transform:rotate(90deg)}
+.demo-body{padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.demo-stock{padding:18px;border-radius:var(--r);background:var(--card);border:1px solid var(--border);transition:all .25s;cursor:pointer}
+.demo-stock:hover{border-color:rgba(59,130,246,.2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.demo-stock .ds-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px}
+.demo-stock .ds-name{font-size:15px;font-weight:700}
+.demo-stock .ds-code{font-size:11px;color:var(--t3);margin-top:2px}
+.demo-stock .ds-score{font-size:20px;font-weight:800;padding:2px 10px;border-radius:8px}
+.demo-stock .ds-signal{display:inline-block;margin-top:8px;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:600}
+.ds-signal.buy{background:rgba(16,185,129,.12);color:var(--green)}.ds-signal.hold{background:rgba(245,158,11,.12);color:var(--gold)}.ds-signal.sell{background:rgba(239,68,68,.12);color:var(--red)}
+.demo-stock .ds-reason{font-size:11px;color:var(--t2);margin-top:6px;line-height:1.4}
+.demo-stock .ds-spark{width:100%;height:30px;margin-top:8px}
+
+/* ===== Mini Chart Preview ===== */
+.chart-preview{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;max-width:860px;margin:24px auto 0;box-shadow:var(--shadow)}
+.chart-preview-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.chart-preview-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.chart-preview-body{padding:16px}
+#mini-chart{width:100%;height:200px}
+
+/* ===== Pricing ===== */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:860px;margin:0 auto}
+.plan{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:32px;text-align:center;position:relative;transition:all .35s cubic-bezier(0.16,1,0.3,1);backdrop-filter:blur(12px)}
+.plan:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:var(--border2)}
+.plan.popular{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.12),var(--glow-blue)}
+.plan.popular::before{content:'最受欢迎';position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;padding:4px 16px;border-radius:12px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+.plan .name{font-size:19px;font-weight:700;margin-bottom:18px}
+.plan .price .amt{font-size:44px;font-weight:800}.plan .price .per{font-size:14px;color:var(--t2)}
+.plan .save{font-size:13px;color:var(--green);margin-bottom:18px;min-height:20px}
+.plan ul{list-style:none;text-align:left;margin-bottom:24px}
+.plan ul li{padding:7px 0;font-size:13px;color:var(--t2);display:flex;align-items:center;gap:10px;transition:color .2s}
+.plan ul li::before{content:'✓';color:var(--green);font-weight:700;font-size:14px}.plan ul li.no{opacity:.4}.plan ul li.no::before{content:'—';color:var(--t3)}
+.plan .btn{width:100%}
+
+/* ===== Footer ===== */
+footer{border-top:1px solid var(--border);padding:40px 0;text-align:center;color:var(--t3);font-size:12px;background:var(--card);backdrop-filter:blur(12px)}
+footer a{color:var(--t2);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--t)}
+footer .footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:12px}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+.modal-overlay.show{display:flex;animation:modalIn .3s ease-out}
+@keyframes modalIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border-radius:var(--r2);padding:36px;max-width:440px;width:100%;border:1px solid var(--border2);box-shadow:0 24px 64px rgba(0,0,0,.5);animation:modalSlide .4s cubic-bezier(0.16,1,0.3,1)}
+@keyframes modalSlide{from{transform:translateY(30px) scale(0.96);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.modal h2{font-size:20px;margin-bottom:18px}
+.modal input,.modal select{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--t);font-size:14px;margin-bottom:12px;font-family:inherit;transition:border-color .2s}
+.modal input:focus,.modal select:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.modal .btn{width:100%}
+.success-block{display:none;text-align:center;padding:20px 0}
+.success-block.show{display:block;animation:successPop .5s cubic-bezier(0.34,1.56,.64,1)}
+@keyframes successPop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.code{display:inline-block;font-size:28px;font-weight:800;letter-spacing:3px;background:rgba(59,130,246,.1);padding:8px 20px;border-radius:10px;font-family:'Courier New',monospace;color:var(--blue);margin:8px 0}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-120px);z-index:200;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:var(--shadow)}
+.toast.show{transform:translateX(-50%) translateY(0)}.toast.s{background:var(--green);color:#fff}.toast.e{background:var(--red);color:#fff}.toast.i{background:var(--blue);color:#fff}
+
+/* 导航项增至 9 个后，中等宽度下收紧间距，避免与 logo 挤压 */
+@media(max-width:1040px){
+  .nav-links{gap:16px}
+  .nav-links a{font-size:13px}
+}
+
+/* ===== Mobile Menu ===== */
+.mobile-menu-btn{display:none;background:none;border:none;color:var(--t);font-size:22px;cursor:pointer}
+@media(max-width:768px){
+  .mobile-menu-btn{display:block}
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--bg2);flex-direction:column;padding:20px;gap:16px;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .hero{padding:60px 0 40px}
+  .section{padding:48px 0}
+  .stats-inner{gap:26px 34px}
+  .stat .n{font-size:28px}
+  .stat:not(:last-child)::after{display:none}
+}
+@media(max-width:420px){
+  .stats-inner{gap:20px 26px}
+  .stat .n{font-size:24px}
+  .stat .l{font-size:11px;letter-spacing:.5px}
+}
+
+/* ===== 加载旋转（原代码引用 animation:spin 但从未定义该 keyframe） ===== */
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 涨跌配色：遵循 A 股惯例（涨=红 / 跌=绿），与 dashboard.css 保持一致 ===== */
+.chg-up{color:var(--red)}
+.chg-dn{color:var(--green)}
+.chg-flat{color:var(--t2)}
+/* 评分强度：强=红 / 中=金 / 弱=绿，与涨跌色同一语义体系 */
+.score-strong{color:var(--red)}
+.score-mid{color:var(--gold)}
+.score-weak{color:var(--green)}
+
+/* 信号徽章：买入=红、观望=绿，与站点交易面板约定一致；warm 表示仅行情评分、非策略信号 */
+.ds-signal.buy{background:rgba(239,68,68,.12);color:var(--red)}
+.ds-signal.hold{background:rgba(245,158,11,.12);color:var(--gold)}
+.ds-signal.sell{background:rgba(16,185,129,.12);color:var(--green)}
+.ds-signal.warm{background:rgba(148,163,184,.12);color:var(--t2)}
+
+/* ===== 空态 / 错误态（替代原先的随机假数据） ===== */
+.demo-empty,.chart-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:36px 16px;color:var(--t2);font-size:13px;text-align:center}
+.chart-empty{height:200px;padding:0}
+.demo-empty .btn{padding:8px 20px;font-size:13px;border-radius:10px}
+.chart-retry{margin-top:2px;font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline}
+
+/* ===== 无障碍：尊重系统「减少动态效果」设置 ===== */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .bg-blob{display:none}
+  html.js-anim .fade-in{opacity:1!important;transform:none!important}
+  .feature:hover,.demo-stock:hover,.plan:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<noscript>
+  <div style="position:relative;z-index:10;background:var(--gold);color:#111;text-align:center;padding:10px 16px;font-size:13px">
+    当前浏览器已禁用 JavaScript，实时行情与图表将无法加载。请启用 JavaScript 后刷新页面，或直接
+    <a href="/dashboard.html" style="color:#111;text-decoration:underline">进入交易系统</a>。
+  </div>
+</noscript>
+
+<!-- Animated Background -->
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+<div class="bg-blob bg-blob-3"></div>
+
+<nav><div class="w">
+  <a href="/" class="nav-logo"><span class="icon">📈</span>DAPENG Alpha</a>
+  <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+  <div class="nav-links">
+    <a href="#features">功能</a>
+    <a href="#demo">实时演示</a>
+    <a href="#pricing">定价</a>
+    <a href="/quant.html">量化回测</a>
+    <a href="/dashboard.html#market">市场情绪</a>
+    <a href="/project-docs.html">项目文档</a>
+    <a href="/api-reference.html">接口目录</a>
+    <a href="/dashboard.html">打开系统</a>
+    <a href="/admin.html" style="color:var(--gold)">管理后台</a>
+    <button class="theme-toggle-nav" onclick="toggleTheme()" id="theme-btn" title="切换主题">🌙</button>
+  </div>
+</div></nav>
+
+<section class="hero"><div class="w">
+  <div class="tag" id="hero-live-badge"><span class="dot"></span>🤖 DeepSeek AI 驱动 · 实时运行中</div>
+  <h1>AI 量化选股<br><span class="hl">让数据替你决策</span></h1>
+  <p>覆盖 26 个板块 484 只标的（含港股通），6 大经典战法。<br>DeepSeek AI 实时分析策略信号，帮你找到真正值得关注的股票。</p>
+  <div class="cta"><a href="#pricing" class="btn btn-primary btn-lg">开通 Pro · ¥99/月</a><a href="/dashboard.html" class="btn btn-outline btn-lg">免费体验</a></div>
+</div></section>
+
+<div class="stats"><div class="w stats-inner">
+  <div class="stat"><div class="n" data-count="26">0</div><div class="l">覆盖板块</div></div>
+  <div class="stat"><div class="n" data-count="484">0</div><div class="l">监控股票</div></div>
+  <div class="stat"><div class="n" data-count="6">0</div><div class="l">经典战法</div></div>
+  <div class="stat"><div class="n" data-count="95" data-suffix="%+">0</div><div class="l">AI 信号准确率</div></div>
+</div></div>
+
+<section class="section" id="features"><div class="w"><h2 class="fade-in">核心功能</h2><p class="sub fade-in">从选股到决策，一站式量化分析</p>
+<div class="features">
+  <div class="feature fade-in"><div class="icon">📊</div><h3>多板块覆盖</h3><p>26个行业板块，484只代表性个股（含港股通），实时行情数据更新。</p></div>
+  <div class="feature fade-in"><div class="icon">🤖</div><h3>AI 策略分析</h3><p>DeepSeek AI 深度分析每只股票，6大经典战法综合评分。</p></div>
+  <div class="feature fade-in"><div class="icon">📈</div><h3>K线技术指标</h3><p>MACD/KDJ/RSI/BOLL/BBI 全套指标，日K/周K/60分钟多周期。</p></div>
+  <div class="feature fade-in"><div class="icon">🔔</div><h3>策略信号推送</h3><p>动量突破、均线金叉、量价背离等买入信号实时提醒。</p></div>
+  <div class="feature fade-in"><div class="icon">🛡️</div><h3>风险评估</h3><p>ATR止损/仓位建议/最大回撤/VaR风险量化。</p></div>
+  <div class="feature fade-in"><div class="icon">📋</div><h3>全市场扫描</h3><p>一键扫描全市场，按策略评分排序，快速找到优质标的。</p></div>
+</div></div></section>
+
+<section class="section demo-section" id="demo"><div class="w">
+  <h2 class="fade-in">AI 策略信号 · 实时演示</h2>
+  <p class="sub fade-in">以下是系统实时产生的分析结果，数据来自真实行情接口</p>
+  <div class="demo fade-in">
+    <div class="demo-header">
+      <span class="demo-dot r"></span><span class="demo-dot y"></span><span class="demo-dot g"></span>
+      <span class="demo-url">DAPENG Alpha · 实时策略信号</span>
+      <span class="demo-live-badge" id="demo-live-badge"><span class="dot"></span>LIVE</span>
+      <button class="demo-refresh-btn" id="demo-refresh-btn" onclick="refreshAll(true)" title="刷新演示数据">↻</button>
+    </div>
+    <div class="demo-body" id="demo-stocks">
+      <div style="grid-column:1/-1;text-align:center;padding:40px 10px;color:var(--t2)">
+        <div style="font-size:32px;margin-bottom:8px;animation:spin 1s linear infinite;display:inline-block">⟳</div>
+        <div>正在获取实时行情数据...</div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-preview fade-in">
+    <div class="chart-preview-header">
+      <div class="chart-preview-title">📊 板块涨跌概览 · 实时</div>
+      <span class="demo-live-badge"><span class="dot"></span>LIVE</span>
+    </div>
+    <div class="chart-preview-body">
+      <div id="mini-chart"></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="section" id="pricing"><div class="w"><h2 class="fade-in">简单定价</h2><p class="sub fade-in">所有计划均享 7 天免费试用</p>
+<div class="plans">
+  <div class="plan fade-in"><div class="name">🆓 免费体验</div><div class="price"><span class="amt">¥0</span> <span class="per">/月</span></div><div class="save">&nbsp;</div><ul><li>每日查看 5 只股票</li><li>基础策略评分</li><li>K线技术图表</li><li class="no">AI 深度分析</li><li class="no">全市场扫描</li><li class="no">信号推送</li></ul><a href="/dashboard.html" class="btn btn-outline">免费体验</a></div>
+  <div class="plan popular fade-in"><div class="name">⭐ Pro 版</div><div class="price"><span class="amt">¥99</span> <span class="per">/月</span></div><div class="save">年付 ¥799（省 ¥389）</div><ul><li>无限股票查看</li><li>AI 深度策略分析</li><li>6 大经典战法评分</li><li>全市场智能扫描</li><li>策略信号推送</li><li>风险评估报告</li></ul><button class="btn btn-primary" onclick="openPay('pro')">立即开通</button></div>
+  <div class="plan fade-in"><div class="name">👑 旗舰版</div><div class="price"><span class="amt">¥299</span> <span class="per">/月</span></div><div class="save">年付 ¥2,499（省 ¥1,089）</div><ul><li>Pro 全部功能</li><li>策略回测引擎</li><li>自定义策略参数</li><li>实时微信推送</li><li>每日 AI 研报</li><li>1v1 投资顾问</li></ul><button class="btn btn-outline" onclick="openPay('premium')">开通旗舰版</button></div>
+</div></div></section>
+
+<footer><div class="w">
+  <div class="footer-links"><a href="/dashboard.html">交易系统</a><a href="/admin.html">管理后台</a><a href="#features">功能介绍</a><a href="#pricing">定价方案</a></div>
+  <p>DAPENG Alpha · AI策略选股系统 v5.0</p>
+  <p style="margin-top:6px">本系统仅提供数据分析参考，不构成投资建议。投资有风险，入市需谨慎。</p>
+</div></footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="pay-modal"><div class="modal">
+  <button onclick="closePay()" style="float:right;background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer">✕</button>
+  <div id="pay-step1"><h2 id="pay-title">开通 Pro 版 · ¥99/月</h2><input id="pay-name" placeholder="姓名"><input id="pay-phone" placeholder="手机号"><button class="btn btn-primary" onclick="goPay()">下一步</button></div>
+  <div id="pay-step2" style="display:none"><h2 style="text-align:center">支付方式</h2><div style="display:flex;gap:10px;margin-bottom:12px"><button class="btn btn-outline active" onclick="pickPay(this,'wechat')" style="flex:1">💚 微信</button><button class="btn btn-outline" onclick="pickPay(this,'alipay')" style="flex:1">💙 支付宝</button></div><div id="qr-box" style="display:none;text-align:center;margin-bottom:12px"><canvas id="qr" width="200" height="200" style="background:#fff;border-radius:10px"></canvas><p style="font-size:13px;color:var(--t2);margin-top:8px">📱 扫码支付</p><p style="font-size:11px;color:var(--t3);margin-top:2px">演示环境 · 示意图形，不会真实扣款</p></div><div id="sim-box" style="display:none"><button class="btn btn-outline" onclick="simPay()" style="width:100%">🧪 模拟支付</button></div><button class="btn btn-outline" onclick="backPay()" style="width:100%;margin-top:8px">← 返回</button></div>
+  <div class="success-block" id="pay-step3"><div style="font-size:48px">🆓</div><h2>开通成功</h2><p style="color:var(--t2)">Pro 会员已激活</p><button class="btn btn-primary" onclick="closePay()">开始使用</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== Theme Toggle ===== */
+function toggleTheme(){
+  const html=document.documentElement;
+  const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  const btn=document.getElementById('theme-btn');
+  if(btn)btn.textContent=next==='dark'?'🌙':'☀️';
+  try{localStorage.setItem('idx-theme',next)}catch(e){}
+  renderMiniChart();
+}
+/* 主题已在 <head> 内联脚本中提前恢复（消除 FOUC），此处仅同步按钮图标 */
+(function(){const b=document.getElementById('theme-btn');if(b)b.textContent=document.documentElement.getAttribute('data-theme')==='light'?'☀️':'🌙'})();
+
+/* ===== Scroll Animation（v2：首屏稳定 + 入场 + 兜底） ===== */
+// 1. 立即加上 js-anim，CSS 接管 opacity:0；这样 JS 失败也不会全空白
+document.documentElement.classList.add('js-anim');
+// 2. IntersectionObserver 提前触发（rootMargin 200px）
+const fadeObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      fadeObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0,rootMargin:'200px 0px'});
+document.querySelectorAll('.fade-in').forEach(el=>fadeObserver.observe(el));
+// 3. 兜底：1.2s 后移除 js-anim，所有未触发的 .fade-in 强制可见（防 Edge/低端机 observer 不触发）
+setTimeout(()=>{
+  document.documentElement.classList.remove('js-anim');
+  document.querySelectorAll('.fade-in').forEach(el=>el.classList.add('visible'));
+},1200);
+
+/* ===== Animated Counters（v2：首屏立即动，不等滚动） ===== */
+function animateCounter(el){
+  const target=parseInt(el.dataset.count);
+  const suffix=el.dataset.suffix||'';
+  const duration=1500;
+  const start=performance.now();
+  function tick(now){
+    const t=Math.min((now-start)/duration,1);
+    const eased=1-Math.pow(1-t,3);
+    el.textContent=Math.floor(eased*target)+suffix;
+    if(t<1)requestAnimationFrame(tick);
+    else el.textContent=target+suffix;
+  }
+  requestAnimationFrame(tick);
+}
+function startAllCounters(){
+  document.querySelectorAll('[data-count]:not(.counted)').forEach(el=>{el.classList.add('counted');animateCounter(el)});
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',startAllCounters);
+}else{
+  startAllCounters();
+}
+
+/* ===================================================================
+   ===== 统一数据层 v3 =====
+   原实现：健康探测 2 次 + 演示 4 次 + 图表 8 次「串行」= 14 次请求
+   现实现：8 个板块「并行」拉取一次，三处消费者共享同一快照
+   =================================================================== */
+const DEMO_SECTORS=['semiconductor','new_energy','pharma','ai_compute'];
+const CHART_SECTORS=['semiconductor','new_energy','pharma','consumer','finance','military','ai_compute','photovoltaic'];
+const SECTOR_NAMES={semiconductor:'半导体',new_energy:'新能源',pharma:'医药',consumer:'消费',finance:'金融',military:'军工',ai_compute:'AI算力',photovoltaic:'光伏'};
+const ALL_SECTORS=Array.from(new Set(CHART_SECTORS.concat(DEMO_SECTORS)));
+const SNAPSHOT_TTL=45000;
+
+let _snapshot=null;        // {ts, bySector:{}, okCount, total, ms}
+let _snapshotInflight=null;
+
+async function fetchSectorQuotes(sector,timeoutMs){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{
+    const r=await fetch('/api/quotes?sector='+encodeURIComponent(sector)+'&fast=1',{signal:ctrl.signal,cache:'no-store'});
+    if(!r.ok)return {sector,ok:false,stocks:[]};
+    const d=await r.json();
+    const stocks=(d&&d.ok&&d.data&&Array.isArray(d.data.stocks))?d.data.stocks:[];
+    return {sector,ok:stocks.length>0,stocks,sectorName:(d&&d.data&&d.data.sector_name)||SECTOR_NAMES[sector]||sector};
+  }catch(e){
+    return {sector,ok:false,stocks:[]};
+  }finally{
+    clearTimeout(tid);
+  }
+}
+
+/* 获取全量快照；force=true 跳过 TTL 强制刷新 */
+async function loadSnapshot(force){
+  if(!force&&_snapshot&&(Date.now()-_snapshot.ts)<SNAPSHOT_TTL)return _snapshot;
+  if(_snapshotInflight)return _snapshotInflight;
+  _snapshotInflight=(async()=>{
+    const t0=performance.now();
+    const results=await Promise.all(ALL_SECTORS.map(s=>fetchSectorQuotes(s,5000)));
+    const bySector={};
+    let okCount=0;
+    results.forEach(r=>{bySector[r.sector]=r;if(r.ok)okCount++});
+    _snapshot={ts:Date.now(),bySector,okCount,total:ALL_SECTORS.length,ms:Math.round(performance.now()-t0)};
+    _snapshotInflight=null;
+    return _snapshot;
+  })();
+  return _snapshotInflight;
+}
+
+/* ===== Hero 健康徽章（复用快照，不再单独发请求） ===== */
+function renderHeroBadge(snap){
+  const badge=document.getElementById('hero-live-badge');
+  if(!badge)return;
+  /* 延迟明细放入 title，避免冷启动耗时直接暴露在首屏文案中 */
+  const detail=snap.okCount+'/'+snap.total+' 个板块 · 响应 '+snap.ms+'ms';
+  badge.title='数据源 '+detail;
+  if(snap.okCount===snap.total){
+    badge.innerHTML='<span class="dot"></span>🤖 DeepSeek AI 驱动 · 实时运行中';
+  }else if(snap.okCount>0){
+    badge.innerHTML='<span class="dot warn"></span>⚠️ 部分数据源异常（'+snap.okCount+'/'+snap.total+'）';
+  }else{
+    badge.innerHTML='<span class="dot err"></span>🔧 数据服务维护中';
+  }
+}
+
+/* ===== Live Demo 卡片（v3：真实字段 + A股配色 + 无假数据兜底） ===== */
+const _esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const _num=v=>{const n=Number(v);return (v===null||v===undefined||!Number.isFinite(n))?null:n};
+
+/* signals 是对象数组 [{type,label,score,desc}]，原代码直接 .join() 会渲染成 [object Object] */
+function buildReason(s){
+  const sigs=Array.isArray(s.signals)?s.signals:[];
+  const labels=sigs.filter(x=>x&&x.label).slice(0,2).map(x=>x.label);
+  if(labels.length)return labels.join(' · ');
+  /* 无策略信号时，只陈述真实行情事实，不编造策略结论 */
+  const out=[];
+  const turn=_num(s.turnover),price=_num(s.price),hi=_num(s.high),lo=_num(s.low),y=_num(s.yclose);
+  if(turn!==null&&turn>0)out.push('换手 '+turn.toFixed(2)+'%');
+  if(hi!==null&&lo!==null&&price!==null&&hi>lo){
+    const pos=(price-lo)/(hi-lo);
+    if(pos>=0.8)out.push('贴近日内高点');
+    else if(pos<=0.2)out.push('靠近日内低点');
+  }
+  if(hi!==null&&lo!==null&&y!==null&&y>0){
+    const amp=(hi-lo)/y*100;
+    if(amp>=8)out.push('振幅 '+amp.toFixed(1)+'%');
+  }
+  return out.slice(0,2).join(' · ')||'行情已更新';
+}
+
+/* 有真实策略信号才标「买入/关注/观望」；仅有行情评分时如实标注「行情评分」 */
+function signalMeta(score,hasSignals){
+  if(!hasSignals)return {cls:'warm',text:'行情评分'};
+  if(score>=70)return {cls:'buy',text:'买入信号'};
+  if(score>=50)return {cls:'hold',text:'关注'};
+  return {cls:'sell',text:'观望'};
+}
+
+function renderDemoCards(snap){
+  const demoEl=document.getElementById('demo-stocks');
+  const liveBadge=document.getElementById('demo-live-badge');
+  if(!demoEl)return;
+
+  if(liveBadge){
+    if(snap.okCount===snap.total)liveBadge.innerHTML='<span class="dot"></span>LIVE';
+    else if(snap.okCount>0)liveBadge.innerHTML='<span class="dot warn"></span>部分 · '+snap.okCount+'/'+snap.total;
+    else liveBadge.innerHTML='<span class="dot err"></span>服务维护';
+  }
+
+  /* 每个板块取评分最高 1 只 → 4 张卡覆盖 4 个不同板块（原实现可能 4 张全是同一板块） */
+  const picks=[],rest=[];
+  DEMO_SECTORS.forEach(sec=>{
+    const r=snap.bySector[sec];
+    if(!r||!r.ok||!r.stocks.length)return;
+    const sorted=r.stocks.slice().sort((a,b)=>(_num(b.score)||0)-(_num(a.score)||0));
+    const tag=r.sectorName||SECTOR_NAMES[sec]||sec;
+    picks.push(Object.assign({},sorted[0],{_sector:tag}));
+    sorted.slice(1).forEach(x=>rest.push(Object.assign({},x,{_sector:tag})));
+  });
+  rest.sort((a,b)=>(_num(b.score)||0)-(_num(a.score)||0));
+  while(picks.length<4&&rest.length)picks.push(rest.shift());
+
+  if(!picks.length){
+    demoEl.innerHTML='<div class="demo-empty"><div style="font-size:28px">📡</div><div>行情数据暂不可用</div>'
+      +'<div style="font-size:12px;color:var(--t3)">数据源暂无返回，请稍后重试</div>'
+      +'<button class="btn btn-outline" onclick="refreshAll(true)">重新加载</button></div>';
+    return;
+  }
+
+  picks.sort((a,b)=>(_num(b.score)||0)-(_num(a.score)||0));
+  demoEl.innerHTML=picks.slice(0,4).map(s=>{
+    const score=_num(s.score);
+    const scoreText=score===null?'--':String(Math.round(score*10)/10);
+    const scoreCls=score===null?'score-mid':(score>=70?'score-strong':score>=50?'score-mid':'score-weak');
+    const hasSig=Array.isArray(s.signals)&&s.signals.some(x=>x&&x.label);
+    const meta=signalMeta(score===null?0:score,hasSig);
+    /* 明确区分评分来源，避免把「涨跌幅推导分」误读为策略结论 */
+    const sigTitle=hasSig?'基于日 K 线策略评分计算':'暂无策略缓存，该评分由实时涨跌幅推导，仅供参考';
+
+    const chg=_num(s.chg),price=_num(s.price);
+    /* A 股惯例：涨=红、跌=绿（与 dashboard.css 一致） */
+    const chgCls=chg===null?'chg-flat':(chg>0?'chg-up':chg<0?'chg-dn':'chg-flat');
+    const chgText=chg===null?'--':((chg>0?'+':'')+chg.toFixed(2)+'%');
+    const priceText=price===null?'--':price.toFixed(2);
+
+    return '<div class="demo-stock" onclick="location.href=\'/dashboard.html?code='+encodeURIComponent(s.code||'')+'\'">'
+      +'<div class="ds-header">'
+      +'<div><div class="ds-name">'+_esc(s.name||'--')+'</div><div class="ds-code">'+_esc(s.code||'')+' · '+_esc(s._sector||'')+'</div></div>'
+      +'<div class="ds-score '+scoreCls+'">'+scoreText+'</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span style="font-size:16px;font-weight:700;font-family:\'Courier New\',monospace">'+priceText+'</span>'
+      +'<span class="'+chgCls+'" style="font-size:12px;font-weight:600">'+chgText+'</span>'
+      +'</div>'
+      +'<div class="ds-signal '+meta.cls+'" title="'+_esc(sigTitle)+'">'+meta.text+'</div>'
+      +'<div class="ds-reason">'+_esc(buildReason(s))+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ===== Mini Chart ===== */
+var miniChart=null;
+function renderMiniChart(){
+  const el=document.getElementById('mini-chart');
+  if(!el)return;
+
+  if(typeof echarts==='undefined'){
+    el.innerHTML='<div class="chart-empty"><div>图表组件尚未就绪</div><button class="chart-retry" onclick="renderMiniChart()">重试</button></div>';
+    return;
+  }
+  const snap=_snapshot;
+  if(!snap)return;
+
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const names=[],upData=[],dnData=[];
+  CHART_SECTORS.forEach(sec=>{
+    names.push(SECTOR_NAMES[sec]||sec);
+    const r=snap.bySector[sec];
+    if(!r||!r.ok){upData.push(null);dnData.push(null);return}
+    let u=0,d=0;
+    r.stocks.forEach(x=>{const c=_num(x.chg);if(c===null)return;if(c>0)u++;else if(c<0)d++});
+    upData.push(u);dnData.push(d);
+  });
+
+  /* 无有效数据时显示空态，绝不用随机数伪造行情 */
+  const hasData=upData.some(v=>v!==null&&v>0)||dnData.some(v=>v!==null&&v>0);
+  if(!hasData){
+    if(miniChart){miniChart.dispose();miniChart=null}
+    el.innerHTML='<div class="chart-empty"><div>板块数据暂不可用</div><button class="chart-retry" onclick="refreshAll(true)">重新加载</button></div>';
+    return;
+  }
+
+  /* 之前可能渲染过空态，canvas 已被移除，需重新初始化 */
+  if(!miniChart||!el.querySelector('canvas')){
+    if(miniChart){miniChart.dispose();miniChart=null}
+    el.innerHTML='';
+    miniChart=echarts.init(el);
+  }
+
+  miniChart.setOption({
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:isDark?'rgba(10,18,40,0.95)':'rgba(255,255,255,0.95)',borderColor:isDark?'rgba(255,255,255,0.1)':'#e2e8f0',textStyle:{color:isDark?'#e2e8f0':'#0f172a',fontSize:11}},
+    legend:{data:['上涨','下跌'],textStyle:{color:isDark?'#94a3b8':'#475569',fontSize:11},top:0,right:10},
+    grid:{left:'3%',right:'4%',bottom:'3%',top:30,containLabel:true},
+    xAxis:{type:'category',data:names,axisLabel:{color:isDark?'#94a3b8':'#475569',fontSize:10,interval:0,rotate:15},axisLine:{lineStyle:{color:isDark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)'}}},
+    yAxis:{type:'value',axisLabel:{color:isDark?'#94a3b8':'#475569',fontSize:10},splitLine:{lineStyle:{color:isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'}}},
+    series:[
+      /* A 股惯例：上涨=红、下跌=绿（原实现相反） */
+      {name:'上涨',type:'bar',data:upData,connectNulls:false,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#ef4444'},{offset:1,color:'rgba(239,68,68,0.3)'}]),borderRadius:[3,3,0,0]},barWidth:'32%'},
+      {name:'下跌',type:'bar',data:dnData,connectNulls:false,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#10b981'},{offset:1,color:'rgba(16,185,129,0.3)'}]),borderRadius:[3,3,0,0]},barWidth:'32%'}
+    ]
+  },true);
+}
+
+/* ===== Payment Modal ===== */
+let pk={plan:'pro',gw:'wechat',oid:'',timer:null};
+function openPay(p){pk.plan=p;pk.gw='wechat';pk.oid='';document.getElementById('pay-title').textContent=p==='pro'?'开通 Pro 版 · ¥99/月':'开通旗舰版 · ¥299/月';showPay(1);document.getElementById('pay-modal').classList.add('show')}
+function closePay(){document.getElementById('pay-modal').classList.remove('show');if(pk.timer)clearInterval(pk.timer)}
+function showPay(n){['pay-step1','pay-step2','pay-step3'].forEach((id,i)=>document.getElementById(id).style.display=i+1===n?'block':'none')}
+function backPay(){showPay(1)}
+function pickPay(b,g){pk.gw=g;document.querySelectorAll('#pay-step2 .btn-outline').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(pk.oid)goPay()}
+function toast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast '+t+' show';clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500)}
+async function goPay(){const n=document.getElementById('pay-name').value||'会员',p=document.getElementById('pay-phone').value||'';showPay(2);document.getElementById('qr-box').style.display='none';document.getElementById('sim-box').style.display='none';try{const r=await fetch('/api/payment/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:pk.plan,gateway:pk.gw,user_name:n,user_phone:p,elder_count:0})});const d=await r.json();if(!d.ok){toast(d.data?.message||'失败','e');return}pk.oid=d.data.order_id;if(pk.gw==='wechat'){document.getElementById('qr-box').style.display='block';drawQR(d.data.code_url||pk.oid);poll()}if(d.data.sandbox)document.getElementById('sim-box').style.display='block'}catch(e){toast('网络异常','e')}}
+function drawQR(t){const c=document.getElementById('qr'),x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,200,200);x.fillStyle='#000';const s=9,m=22;function f(a,b){x.fillRect(a,b,s*3,s*3);x.fillStyle='#fff';x.fillRect(a+s,b+s,s,s);x.fillStyle='#000'}f(m,m);f(200-m-s*3,m);f(m,200-m-s*3);for(let i=0;i<90;i++){const r=m+Math.random()*(200-m*2-s),y=m+Math.random()*(200-m*2-s);if(Math.random()>.5)x.fillRect(r,y,s,s)}}
+function poll(){if(pk.timer)clearInterval(pk.timer);let n=0;pk.timer=setInterval(async()=>{if(++n>90){clearInterval(pk.timer);toast('超时','e');return}try{const r=await fetch('/api/payment/status/'+pk.oid);const d=await r.json();if(d.ok&&d.data&&d.data.paid){clearInterval(pk.timer);showPay(3)}}catch(e){}},2000)}
+async function simPay(){if(!pk.oid)return;try{const r=await fetch('/api/payment/simulate-pay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:pk.oid})});const d=await r.json();if(d.ok){clearInterval(pk.timer);showPay(3)}}catch(e){toast('失败','e')}}
+document.getElementById('pay-modal').addEventListener('click',function(e){if(e.target===this)closePay()});
+
+/* ===== Init（v3：单次并行刷新驱动全部区块） ===== */
+async function refreshAll(force){
+  const snap=await loadSnapshot(force);
+  renderHeroBadge(snap);
+  renderDemoCards(snap);
+  renderMiniChart();
+  return snap;
+}
+
+function initPage(){
+  refreshAll(true);
+  /* 60s 轮询；标签页不可见时跳过，避免后台空转消耗服务端资源 */
+  setInterval(()=>{if(document.hidden)return;refreshAll(true)},60000);
+  /* 跟随容器宽度变化（原实现只监听 window.resize，容器内布局变化时图表不重绘） */
+  const mc=document.getElementById('mini-chart');
+  if(mc&&typeof ResizeObserver!=='undefined'){
+    new ResizeObserver(()=>{if(miniChart)miniChart.resize()}).observe(mc);
+  }
+  window.addEventListener('resize',()=>{if(miniChart)miniChart.resize()});
+}
+
+if(document.readyState==='loading'){
+  window.addEventListener('DOMContentLoaded',initPage);
+}else{
+  initPage();
+}
+</script>
+</body>
+</html>

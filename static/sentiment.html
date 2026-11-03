@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>市场情绪追踪 · 已并入决策台</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="市场情绪追踪已并入「决策台 · 事实层」，本页仅保留兼容入口。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<link rel="stylesheet" href="css/dashboard.css">
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: radial-gradient(120% 90% at 50% 0%, #141a24 0%, #0b0e14 60%, #070a0f 100%);
+    color: var(--text, #e8eef7);
+    font: 14px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    padding: 24px;
+  }
+  .merge-card {
+    width: min(680px, 100%);
+    border: 1px solid rgba(255, 255, 255, .09);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .03);
+    padding: 26px 26px 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  }
+  .merge-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; letter-spacing: .6px; text-transform: uppercase;
+    color: var(--gold, #f59e0b); margin-bottom: 10px;
+  }
+  .merge-eyebrow::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; box-shadow: 0 0 0 3px rgba(245, 158, 11, .14);
+  }
+  h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: .4px; }
+  p { margin: 0 0 14px; color: var(--text2, #9aa4b2); }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 18px; font-size: 12.5px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+  th { color: var(--text2, #9aa4b2); font-weight: 600; font-size: 11px; letter-spacing: .4px; }
+  td:last-child { color: var(--green, #00e96a); white-space: nowrap; }
+  td.gone { color: var(--text2, #9aa4b2); text-decoration: line-through; }
+  .merge-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .merge-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 8px; text-decoration: none;
+    font-size: 13px; font-weight: 600;
+    color: #0b0e14; background: linear-gradient(180deg, #f0c987, #d6b084);
+    border: 1px solid rgba(214, 176, 132, .5);
+  }
+  .merge-btn.is-ghost {
+    color: var(--text, #e8eef7); background: rgba(255, 255, 255, .04);
+    border-color: rgba(255, 255, 255, .12); font-weight: 500;
+  }
+  .merge-hint { font-size: 11.5px; color: var(--text2, #9aa4b2); }
+  .merge-hint code { color: var(--cyan, #06b6d4); }
+</style>
+</head>
+<body>
+  <main class="merge-card" role="main">
+    <div class="merge-eyebrow">Design merge · 2026-11-02</div>
+    <h1>市场情绪追踪已并入「决策台 · 事实层」</h1>
+    <p>
+      这两个页面原本各抓一批行情、各算一个「情绪分」，口径与时点都不一致。
+      现在并入同一个中心：<strong>事实层</strong>（指数 / 广度 / 资金 / 板块 + 统一情绪）→
+      <strong>判断层</strong>（市场调查 / 轮动 / 异动）→
+      <strong>决策层</strong>（结论 / 专家 / 风控 / 复盘）。情绪分只保留 <code>sentiment.v1</code> 一个口径。
+    </p>
+
+    <table aria-label="原面板去向">
+      <thead><tr><th>原「情绪追踪」面板</th><th>合并后位置</th></tr></thead>
+      <tbody>
+        <tr><td>市场情绪仪表</td><td>决策台 · 事实层 · 市场情绪（统一口径 + 六维 + 追踪）</td></tr>
+        <tr><td>三锚点信号塔</td><td>决策台 · 事实层 · 三锚点信号（量能 / 均线 / 情绪）</td></tr>
+        <tr><td>涨跌分布</td><td>决策台 · 事实层 · 市场广度（可点击筛选）</td></tr>
+        <tr><td>板块热力图 / 涨跌排行</td><td>决策台 · 事实层 · 板块热力（可排序、联动筛选）</td></tr>
+        <tr><td>涨幅 / 跌幅 TOP20</td><td>决策台 · 事实层 · 涨跌榜</td></tr>
+        <tr><td class="gone">全球指数概览</td><td>已在「全球市场」与「外部环境」中</td></tr>
+        <tr><td class="gone">上证 10 日走势</td><td>已在「指数趋势」（12/24/48 点窗口）中</td></tr>
+        <tr><td class="gone">北向资金趋势</td><td>数据源已废弃；资金面卡改用沪深港通</td></tr>
+        <tr><td class="gone">资金流向概览</td><td>已在「资金面」体征中</td></tr>
+      </tbody>
+    </table>
+
+    <div class="merge-actions">
+      <a class="merge-btn" id="merge-go" href="/dashboard.html#market">前往决策台 · 事实层 →</a>
+      <a class="merge-btn is-ghost" href="/project-docs.html">查看设计说明</a>
+      <span class="merge-hint">3 秒后自动跳转 · 书签请改用 <code>dashboard.html#decision</code></span>
+    </div>
+  </main>
+
+<script>
+(function () {
+  // 保留跨页上下文（?sector=<板块名> 等），别在跳转时丢掉
+  var search = location.search || '';
+  var target = '/dashboard.html' + search + '#market';
+  var link = document.getElementById('merge-go');
+  if (link) link.href = target;
+  var timer = setTimeout(function () { location.replace(target); }, 3000);
+  // 用户主动点击就不再等待
+  if (link) link.addEventListener('click', function () { clearTimeout(timer); });
+})();
+</script>
+</body>
+</html>

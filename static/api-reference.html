@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>接口目录 · DAPENG Alpha</title>
+<link rel="stylesheet" href="css/dashboard.css?v=70">
+<style>
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans,-apple-system,'Segoe UI','Microsoft YaHei',sans-serif)}
+  .api-wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+  .api-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .api-title{font-size:20px;font-weight:700;letter-spacing:.3px}
+  .api-sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.7}
+  .api-sub code{background:rgba(148,163,184,.12);padding:1px 5px;border-radius:4px;font-size:11px}
+  .api-back{margin-left:auto;font-size:12px;color:var(--cyan);text-decoration:none;border:1px solid rgba(6,182,212,.3);
+    padding:5px 10px;border-radius:7px}
+  .api-back:hover{background:rgba(6,182,212,.1)}
+  .api-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .api-stat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:9px;
+    padding:8px 14px;min-width:88px}
+  .api-stat b{display:block;font-size:18px;font-family:'SF Mono','Cascadia Code',monospace;line-height:1.3}
+  .api-stat span{font-size:10.5px;color:var(--muted)}
+  .api-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;position:sticky;top:0;
+    background:linear-gradient(180deg,var(--bg) 70%,transparent);padding:10px 0;z-index:5}
+  .api-search{flex:1 1 280px;min-width:220px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+    border-radius:8px;color:var(--text);font-size:13px;padding:8px 12px;outline:none}
+  .api-search:focus{border-color:rgba(6,182,212,.45);background:rgba(6,182,212,.05)}
+  .api-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .api-chip{font-size:11.5px;padding:5px 10px;border-radius:999px;cursor:pointer;user-select:none;
+    background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.18);color:var(--text2);transition:all .15s}
+  .api-chip:hover{background:rgba(148,163,184,.14)}
+  .api-chip.on{background:rgba(6,182,212,.14);border-color:rgba(6,182,212,.4);color:var(--cyan)}
+  .api-chip em{font-style:normal;opacity:.6;font-size:10.5px;margin-left:3px}
+  .api-count{font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  table.api-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.api-table th{text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.6px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:56px;
+    background:var(--bg);z-index:4}
+  table.api-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:top}
+  table.api-table tr:hover td{background:rgba(6,182,212,.04)}
+  .api-m{font-family:'SF Mono','Cascadia Code',monospace;font-size:10.5px;font-weight:700;padding:2px 7px;
+    border-radius:5px;white-space:nowrap;display:inline-block;min-width:44px;text-align:center}
+  .api-m.GET{background:rgba(6,182,212,.13);color:var(--cyan);border:1px solid rgba(6,182,212,.28)}
+  .api-m.POST{background:rgba(245,158,11,.13);color:#f59e0b;border:1px solid rgba(245,158,11,.28)}
+  .api-m.DELETE{background:rgba(148,163,184,.14);color:var(--text2);border:1px solid rgba(148,163,184,.25)}
+  .api-m.PUT,.api-m.PATCH{background:rgba(139,92,246,.14);color:#a78bfa;border:1px solid rgba(139,92,246,.3)}
+  .api-path{font-family:'SF Mono','Cascadia Code',monospace;font-size:12px;color:var(--text);word-break:break-all;cursor:pointer}
+  .api-path:hover{color:var(--cyan)}
+  .api-desc{color:var(--text2);line-height:1.55}
+  .api-desc .none{color:var(--muted);opacity:.7}
+  .api-q{font-family:'SF Mono','Cascadia Code',monospace;font-size:11px;color:var(--muted);word-break:break-all}
+  .api-empty{text-align:center;color:var(--muted);padding:40px 0;font-size:13px}
+  .api-legend{margin-top:26px;font-size:11.5px;color:var(--muted);line-height:1.9;
+    border-top:1px solid rgba(255,255,255,.06);padding-top:14px}
+  .api-legend b{color:var(--text2)}
+  .api-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);background:rgba(6,182,212,.16);
+    border:1px solid rgba(6,182,212,.4);color:var(--cyan);font-size:12px;padding:7px 14px;border-radius:8px;
+    opacity:0;transition:all .2s;pointer-events:none;z-index:99}
+  .api-toast.on{opacity:1;transform:translate(-50%,0)}
+  @media(max-width:760px){
+    table.api-table th:nth-child(4),table.api-table td:nth-child(4){display:none}
+    .api-wrap{padding:16px 12px 40px}
+  }
+</style>
+</head>
+<body>
+<div class="api-wrap">
+  <div class="api-top">
+    <div class="api-title">接口目录</div>
+    <a class="api-back" href="/project-docs.html">📘 项目文档</a>
+    <a class="api-back" href="/dashboard.html" style="margin-left:8px">◀ 返回看板</a>
+  </div>
+  <div class="api-sub">
+    数据来自运行中服务的 <code>/openapi.json</code>，共 <b id="api-total">0</b> 个端点 / <b id="api-paths">0</b> 条路径 —— 由
+    <code>tools/gen_api_page.py</code> 生成，不手工维护，因此不会与代码脱节。<br>
+    统一三键信封 <code>{ ok, data, message }</code>；取不到值一律 <code>null</code> + <code>reason</code>，绝不用 <code>0</code> 冒充。
+  </div>
+
+  <div class="api-stats" id="api-stats"></div>
+
+  <div class="api-toolbar">
+    <input class="api-search" id="api-search" type="search" placeholder="搜索路径或说明（如 kline / 复盘 / 下单）…" autocomplete="off">
+    <div class="api-chips" id="api-chips"></div>
+    <div class="api-count" id="api-count"></div>
+  </div>
+
+  <table class="api-table">
+    <thead><tr><th style="width:70px">方法</th><th style="width:38%">路径</th><th>说明</th><th style="width:22%">参数</th></tr></thead>
+    <tbody id="api-body"></tbody>
+  </table>
+  <div class="api-empty" id="api-empty" style="display:none">没有匹配的接口，换个关键词试试</div>
+
+  <div class="api-legend">
+    <b>通用约定</b><br>
+    · <b>GET</b> 查询 / <b>POST</b> 变更 / <b>DELETE</b> 撤销 · 点击路径可复制<br>
+    · 降级响应带 <code>degraded:true</code> 与 <code>reason</code>，前端显示来源徽章；取不到数据不编造<br>
+    · 本地调试：<code>curl --noproxy '*' http://127.0.0.1:8900/api/health</code><br>
+    · 涨=红、跌=绿；买入键红、卖出键绿
+  </div>
+</div>
+<div class="api-toast" id="api-toast">已复制</div>
+
+<script>
+var API_ROWS = [{"m":"GET","p":"/api/stream","d":"合并订阅：?topics=market,signals,quotes&codes=sh600519,sz000858&period=day","q":["topics","codes","period"],"g":"实时推送","gi":0},{"m":"GET","p":"/api/stream/market","d":"市场级推送：指数快照 / 涨跌家数 / 板块排行前 N / 外部环境摘要","q":[],"g":"实时推送","gi":0},{"m":"GET","p":"/api/stream/quotes","d":"个股实时报价推送（K 线最后一根动态更新用）：?codes=sh600519&period=day","q":["codes","period"],"g":"实时推送","gi":0},{"m":"GET","p":"/api/stream/signals","d":"信号级推送：新信号 / 下单-成交-拒单 / 持仓变动","q":[],"g":"实时推送","gi":0},{"m":"GET","p":"/api/stream/stats","d":"订阅数与上游取数计数（验收证据：证明连接数不放大上游请求）","q":[],"g":"实时推送","gi":0},{"m":"GET","p":"/api/debug-kline","d":"开发调试接口：仅 DEBUG=1 时启用，生产环境不暴露堆栈","q":["code"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/kline","d":"获取 K 线数据 + MA/MACD/策略指标","q":["code","period","limit","fresh"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/kline/indicators","d":"独立技术指标端点（12 类 + 3 项补充）","q":["code","period","limit","names","indicator","params","fresh"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/kline/indicators/catalog","d":"指标目录：名字、overlay、panes、参数 schema（含 type/min/max/default/unit/desc）","q":[],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/kline/quote","d":"个股实时快照（K 线实时对接的轮询兜底接口，与 SSE quotes.tick 同结构）","q":["code","period"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/multi-period-resonance","d":"多周期共振分析 — 同时拉取 6 个周期 K 线并计算共振状态","q":["code"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/quotes","d":"获取板块行情 + 策略评分（支持全量或分页）","q":["sector","fast","page","limit"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/quotes/multi","d":"批量获取指定股票的实时行情","q":["codes"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/realtime","d":"腾讯实时行情接口 — 毫秒级返回","q":["codes"],"g":"行情与K线","gi":1},{"m":"GET","p":"/api/fund-flow","d":"个股资金流向（东财批量接口单只查询）","q":["code"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/fund-flow/sector","d":"板块资金流向汇总（东财个股资金流批量聚合）","q":["sector"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/hot-stocks","d":"热门股（真实活跃榜与换手率聚合 + 分页支持）","q":["type","limit","page"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/lhb","d":"龙虎榜（真实数据源与日期解析 + 分页支持）","q":["tab","date","page","limit"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/market-dashboard","d":"大盘纵览总接口：指数快照、涨跌家数、情绪评分与 regime、板块与资金、风险标签、机会提示","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/market-overview","d":"市场涨跌分布 —— 复用 /api/market-dashboard 的多板块样本广度（同一实现，口径统一）","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/market-sentiment","d":"获取市场情绪评分","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/market/all","d":"全市场 A 股实时排行（AkShare / 东方财富 数据源）","q":["sort_by","limit"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/market/north","d":"沪深港通资金流向（北向沪股通/深股通 + 南向港股通）","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/north-holding","d":"沪深股通成份股","q":["market"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-clusters","d":"同涨同跌簇（去市场因子相关 + 阈值 + topK 连通分量），每簇带成员/均相关/样本量/as_of","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-graph","d":"单板块邻居：成分股 Jaccard 重叠 + 收益相关（去市场因子）","q":["code","top"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-linkage","d":"板块金融属性敏感度（板块日收益 × M2 外部因子日收益）","q":["code","top"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-map/stock/{code}","d":"反查某股票所属板块列表（读 data/sector_map.json，M3）","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-ranking","d":"板块排行（全量宇宙 + 层级过滤 + 全量排序后分页）","q":["page","limit","level"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sector-stocks","d":"板块成分股（统一解析三套板块标识）","q":["sector"],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/sectors","d":"返回所有板块元数据，包含股票数量","q":[],"g":"市场与板块","gi":2},{"m":"GET","p":"/api/scan","d":"智能选股 v3：腾讯行情 + DeepSeek AI 二阶段引擎","q":["price_min","price_max","sectors"],"g":"选股筛选","gi":3},{"m":"GET","p":"/api/scan/status","d":"智能扫描状态：按价格区间与板块筛选后的候选池概况（含过滤原因与样本量）","q":["price_min","price_max","sectors"],"g":"选股筛选","gi":3},{"m":"GET","p":"/api/screen","d":"条件选股 — 按策略评分和涨跌幅筛选全市场股票","q":["min_score","min_chg","min_vol","min_turnover","max_pe","sector","limit"],"g":"选股筛选","gi":3},{"m":"GET","p":"/api/search","d":"搜索股票 — 支持全市场 5000+ A 股代码与名称跨板块极速模糊匹配","q":["keyword","limit"],"g":"选股筛选","gi":3},{"m":"GET","p":"/api/strategy-lab/evaluate","d":"对当前个股的三类规则策略做轻量级历史评估","q":["code","period"],"g":"选股筛选","gi":3},{"m":"GET","p":"/api/agents","d":"列出所有 Agent 状态","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/agents/health","d":"Agent 系统健康检查","q":[],"g":"智能与全球","gi":4},{"m":"POST","p":"/api/agents/{name}/start","d":"启动 Agent","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/agents/{name}/status","d":"查询单个 Agent 状态","q":[],"g":"智能与全球","gi":4},{"m":"POST","p":"/api/agents/{name}/stop","d":"停止 Agent","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/analyze","d":"实时分析总结：基于K线+行情+策略数据，生成结构化分析","q":["code"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/analyze/chart-summary","d":"K线 + 震荡指标自动分析总结（60s 缓存）","q":["code","period"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/consensus","d":"机构评级 + 一致预期（合并返回）","q":["code"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/finance","d":"财务基本面快照 —— 6 张指标卡（P0-1 主体）","q":["code","type"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/finance/valuation","d":"估值日频序列 + 窗口分位（契约见架构设计 §3.3）","q":["code","years","indicators"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/global","d":"获取全球市场指数","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/global/assets","d":"全球资产分类快照（美股/港股/亚太/欧洲/商品/外汇，真实实时，60s 缓存）","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/global/linkage","d":"世界金融市场对 A 股传导建模：领先滞后相关 + 开盘缺口传导 + 每日影响打分卡","q":["force"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/ak/index","d":"获取主要指数实时快照","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/ak/macro","d":"获取宏观经济数据","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/ak/news","d":"获取财经要闻与市场情报","q":["limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/ak/spot","d":"获取 AkShare A 股全市场快照","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/market/survey","d":"获取市场全景调查、板块轮动与异动监控","q":[],"g":"智能与全球","gi":4},{"m":"POST","p":"/api/intelligent/qlib/backtest","d":"组合动态因子并执行真实逐期截面回测评估","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/qlib/dynamic","d":"动态因子缠论选股：真实行情+K线+缠论结构实时排名","q":["limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/qlib/factors","d":"获取动态因子缠论因子库（含真实公式、可用性与不可用原因）","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/intelligent/qlib/meta","d":"获取因子回测面板元信息（因子/基准/区间/默认参数）","q":[],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/news","d":"个股新闻资讯（复用已有 get_news 方法）","q":["code","limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/news/market","d":"市场资讯 —— 改用可达的 AkShare 要闻链路（东财，失效自动降级新浪）","q":["limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/news/{code}","d":"获取个股新闻情绪分析","q":["limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/profile","d":"个股简况（复用已有 stock_profile 方法）","q":["code"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/report","d":"研报列表","q":["code","limit"],"g":"智能与全球","gi":4},{"m":"GET","p":"/api/automation/audit","d":"审计日志查询：决策闸判定/下单/拒单/撤单/配置变更/条件单触发等全量留痕","q":["action","actor","result","limit","offset"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/conditional-orders","d":"条件单列表（可按 status 过滤：pending / triggered / expired / canceled）","q":["status"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/conditional-orders","d":"新建条件单（价格 >=/<= 或定时触发）；触发时仍走风控 9 关 + 决策闸","q":["body"],"g":"自动化交易","gi":5},{"m":"DELETE","p":"/api/automation/conditional-orders/{conditional_id}","d":"撤销未触发的条件单，并写审计留痕","q":[],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/conditional-orders/{conditional_id}/check","d":"按当前价即时评估一条条件单（便于验证/手动触发）；满足则走风控+决策闸下单","q":[],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/config","d":"读取自动化全量配置：总开关、触发条件、风控参数、策略门禁与显示名、决策闸参数、各配置段更新时间","q":[],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/config","d":"合并更新自动化配置（风控/触发/决策闸/条件单过期天数）；实盘开关不接受此端点，须走 /gate/live-switch 二次确认","q":["body"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/decision-quality","d":"决策质量评分（含被闸拒绝的决策）：信号强度 vs 实际结果","q":["limit"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/gate","d":"风控总览：总开关、各策略门禁状态、熔断与当日亏损状态、SMTP 状态、监控循环运行时状态","q":[],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/gate/live-switch","d":"实盘总开关（需 confirm_text 二次确认）；未接入券商通道时开启会被拒绝","q":["body"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/init-paper","d":"开启 paper 总开关、白名单覆盖全池、为已回测/验证中策略启用默认标的、复位熔断","q":[],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/market-sync","d":"返回交易时段、市况状态与动态阈值建议","q":["index_pct","breadth"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/notify/test","d":"发送测试邮件，验证 SMTP 配置与收件人是否可达","q":["body"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/orders","d":"订单分页查询（可按标的过滤，含拒绝单与失败原因），返回 total + items","q":["code","limit","offset"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/orders","d":"手动下单：与信号单共用决策闸 + 风控 9 关（白名单/额度/涨跌停/停牌/T+1 一个都不绕）","q":["body"],"g":"自动化交易","gi":5},{"m":"DELETE","p":"/api/automation/orders/{order_id}","d":"撤单：只能撤未成交单。已成交/已拒绝 → 明确拒绝（不静默成功）","q":[],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/positions","d":"当前纸面持仓（成本/最新价/浮动盈亏）+ 账户权益 + 纸面运行天数进度","q":[],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/review/metrics","d":"复盘指标条 7 项：交易笔数 / 胜率 / 盈亏比 / 最大回撤 / 夏普 / 索提诺 / Omega（+ CVaR95）","q":["days","benchmark"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/risk/health","d":"把风控各道关卡、策略门禁、熔断、行情时段、近期拒单拼成一份可执行的体检报告","q":[],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/risk/reset-breaker","d":"复位熔断计数与当日亏损状态（人工确认后执行，留痕）","q":[],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/run-cycle","d":"执行一轮完整闭环：策略信号→模拟成交→自动平仓→单笔复盘→迭代决策","q":["drill"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/automation/signals","d":"信号分页查询（可按标的过滤），返回 total + items","q":["code","limit","offset"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/strategy/backtest","d":"对指定策略跑一次历史回测，结果写入该策略门禁记录（backtested）","q":["body"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/strategy/enable","d":"启用/停用策略并设置标的；paper 目标要求门禁已达 backtested 及以上","q":["body"],"g":"自动化交易","gi":5},{"m":"POST","p":"/api/automation/strategy/paper/confirm","d":"人工确认纸面验证通过，把策略门禁从 paper_validating 推进到 paper_passed","q":["body"],"g":"自动化交易","gi":5},{"m":"GET","p":"/api/evolution/iterations","d":"策略迭代日志（晋级/降级/调参记录），按时间倒序分页","q":["limit"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/evolution/library","d":"策略库：已验证/观察中的策略与参数沉淀","q":[],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/evolution/proposals","d":"待人工确认的迭代提案列表（含提案依据与建议变更）","q":["limit"],"g":"复盘迭代","gi":6},{"m":"POST","p":"/api/evolution/proposals/{proposal_id}/apply","d":"人工立即应用某条迭代提案，走与自动应用相同的双轨验证后才落库","q":[],"g":"复盘迭代","gi":6},{"m":"POST","p":"/api/evolution/proposals/{proposal_id}/reject","d":"人工否决某条迭代提案（留痕，不再自动应用）","q":[],"g":"复盘迭代","gi":6},{"m":"POST","p":"/api/evolution/run","d":"手动触发闭环日结例程（full=True 含调参提案与周报，默认开启便于验证）","q":["full"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/evolution/status","d":"闭环总览：日结循环状态、单笔复盘/迭代/策略库/待处理提案数量，以及闭环口径说明","q":[],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/evolution/trade-reviews","d":"单笔交易复盘记录（MFE/MAE/出场效率/归因标签），按时间倒序分页","q":["limit"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/equity","d":"净值曲线 vs 沪深300（窗口首日归一化为 1.0）","q":["days"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/round-trips","d":"指定标的的闭合交易（FIFO 净口径）——每笔含 K 线买卖点标注字段","q":["code","include_drill","limit"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/summary","d":"北极星指标总览：超额收益 / 回撤 / 胜率盈亏比 / 可回溯率 + 逐项达标判定","q":["days","include_drill"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/trade-reviews","d":"单笔复盘列表（KV trade_reviews，review_engine.TradeReviewer 产出）","q":["code","limit","offset"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/weekly","d":"本周复盘报告：自动生成 + 落 KV（同周重复调用覆盖，供连续周数统计）","q":["include_drill"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/review/weekly-list","d":"历史周报列表（KV weekly_reports，每周由 /review/weekly 幂等落一份），新周在前","q":["limit"],"g":"复盘迭代","gi":6},{"m":"GET","p":"/api/brain/alignment","d":"三层对证：数据配置是否合法 / 能力图 / 各层同一指标是否对得上","q":["refresh","light"],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/capabilities","d":"主脑能力矩阵：计算能力 / 决策能力 / 依赖资源 / 当前可用性 / 提升目标","q":[],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/config","d":"主脑配置身份与生效值：跑的是哪一版、有没有回落、最近改过什么","q":["history"],"g":"AI主脑","gi":7},{"m":"POST","p":"/api/brain/cycle","d":"按需跑一次完整闭环：情绪追踪 → 市场调查 → 六专家 → 决策备忘录","q":["force"],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/cycle/latest","d":"最近一次闭环结果（进程内 KV 缓存，重启后为空）","q":[],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/insights","d":"主脑洞察记录（最近 N 条，按时间顺序返回，含来源任务与生成时间）","q":["limit"],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/intel","d":"最新情报评估（世界局势/地缘 → 市场影响）","q":[],"g":"AI主脑","gi":7},{"m":"POST","p":"/api/brain/intel/scan","d":"立即执行一轮情报扫描评估","q":[],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/lineage/recent","d":"最近 N 条结论溯源链路（摘要级，不含每节点 facts 明细）","q":["limit"],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/lineage/{trace_id}","d":"按 trace_id 回放一条结论的完整依据链（含各节点版本、时点、字段指纹与取值）","q":[],"g":"AI主脑","gi":7},{"m":"POST","p":"/api/brain/run/{task_id}","d":"手动触发某个调度任务（market_survey / daily_loop / memory_distill）","q":[],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/brain/status","d":"主脑全景状态：调度任务表 / 洞察 / 经验 / LLM 配置","q":[],"g":"AI主脑","gi":7},{"m":"POST","p":"/api/brain/survey/refresh","d":"强制刷新一次动态市场调查（绕过 10 分钟缓存）","q":[],"g":"AI主脑","gi":7},{"m":"GET","p":"/api/quant/config","d":"读取回测默认参数（注意：该组接口为早期直返 JSON，未使用三键信封）","q":[],"g":"回测量化","gi":8},{"m":"POST","p":"/api/quant/config","d":"更新回测默认参数并落内存（同样为直返 JSON）","q":[],"g":"回测量化","gi":8},{"m":"GET","p":"/api/quant/logs/{task_id}","d":"回测任务日志流（SSE，边跑边推，避免长轮询）","q":[],"g":"回测量化","gi":8},{"m":"GET","p":"/api/quant/result/{task_id}","d":"取回回测结果（指标 + 净值曲线 + 交易明细）","q":[],"g":"回测量化","gi":8},{"m":"POST","p":"/api/quant/run","d":"提交一次回测任务，返回 task_id；后台线程执行，进度与结果另行轮询","q":[],"g":"回测量化","gi":8},{"m":"GET","p":"/api/quant/status/{task_id}","d":"查询回测任务进度（pending/running/done/failed + progress）","q":[],"g":"回测量化","gi":8},{"m":"GET","p":"/api/alerts","d":"获取最近告警","q":["limit"],"g":"预警监控","gi":9},{"m":"DELETE","p":"/api/alerts/watch/{code}","d":"移除监控股票","q":[],"g":"预警监控","gi":9},{"m":"POST","p":"/api/alerts/watch/{code}","d":"添加监控股票","q":[],"g":"预警监控","gi":9},{"m":"GET","p":"/api/admin/api-health","d":"API 健康检查：基于真实调用日志聚合，不生成估算或随机数据","q":[],"g":"后台管理","gi":10},{"m":"DELETE","p":"/api/admin/cache","d":"清空所有缓存","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/cache","d":"获取缓存列表（key, 大小估算, 创建时间, TTL剩余）","q":[],"g":"后台管理","gi":10},{"m":"POST","p":"/api/admin/cache/purge-expired","d":"手动回收过期缓存（后台任务每 30s 自动执行，此处供运维即时清理）","q":[],"g":"后台管理","gi":10},{"m":"DELETE","p":"/api/admin/cache/{key}","d":"删除单个缓存","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/calls","d":"API调用明细分页查询","q":["page","size","endpoint","start","end"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/dashboard","d":"后台仪表盘概览数据","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/error-ranking","d":"API调用错误率排行 TOP 10 — 按端点聚合","q":["start","end"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/export","d":"导出CSV文件","q":["type"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/logs","d":"操作日志列表（分页+筛选）","q":["page","size","action"],"g":"后台管理","gi":10},{"m":"POST","p":"/api/admin/logs","d":"手动记录操作日志","q":["action","detail","operator"],"g":"后台管理","gi":10},{"m":"DELETE","p":"/api/admin/notifications","d":"清空所有通知","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/notifications","d":"获取通知列表","q":[],"g":"后台管理","gi":10},{"m":"POST","p":"/api/admin/notifications/read","d":"标记通知已读（指定ID或全部）","q":["notification_id"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/orders","d":"订单列表（分页+筛选）","q":["page","size","status","gateway"],"g":"后台管理","gi":10},{"m":"POST","p":"/api/admin/orders/{order_id}/refund","d":"退款订单","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/revenue-trend","d":"近N天收入趋势","q":["days"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/sector-heatmap","d":"板块访问热力数据","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/stats","d":"API调用统计汇总 — 总调用/成功率/平均响应/错误数","q":["start","end"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/system","d":"系统运行状态","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/system-health","d":"系统健康总览：把本轮升级新增模块的真实状态汇总给后台","q":[],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/users","d":"用户列表（分页+筛选）","q":["page","size","status","plan"],"g":"后台管理","gi":10},{"m":"GET","p":"/api/admin/users/{user_id}","d":"获取单个用户详情","q":[],"g":"后台管理","gi":10},{"m":"POST","p":"/api/admin/users/{user_id}/toggle","d":"启用/禁用用户","q":[],"g":"后台管理","gi":10},{"m":"POST","p":"/api/payment/alipay/notify","d":"支付宝异步通知（正式验签接入前拒绝处理，避免伪造支付成功）","q":[],"g":"支付","gi":11},{"m":"GET","p":"/api/payment/alipay/return","d":"支付宝同步跳转（用户支付完成后跳回）","q":["out_trade_no","total_amount","sandbox"],"g":"支付","gi":11},{"m":"POST","p":"/api/payment/create","d":"创建支付订单 → 返回支付参数","q":["body"],"g":"支付","gi":11},{"m":"POST","p":"/api/payment/simulate-pay","d":"沙箱模式：模拟支付成功（仅开发测试用）","q":["body"],"g":"支付","gi":11},{"m":"GET","p":"/api/payment/status/{order_id}","d":"轮询订单支付状态","q":[],"g":"支付","gi":11},{"m":"POST","p":"/api/payment/wechat/notify","d":"微信支付异步通知（正式验签接入前拒绝处理，避免伪造支付成功）","q":[],"g":"支付","gi":11},{"m":"GET","p":"/api/health","d":"健康检查接口","q":[],"g":"系统","gi":12},{"m":"GET","p":"/api/data-sources/health","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/bus","d":"全局数据总线：资源图、依赖、刷新节拍、链路年龄、最近事件、订阅者数量","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/cache","d":"缓存治理状态：条目数/字节占用/命中率/淘汰与拒写计数/最大条目","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/coverage","d":"全 A 股行情/估值/基本面 + 全球指数/行业代理 + 宏观覆盖","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/coverage/stream","d":"SSE：持续推送同一份覆盖快照。前端只读缓存，不触发额外上游抓取","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/experts","d":"六专家独立意见和主脑聚合结果；相同 trace 在缓存窗内复用","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/scan","d":"market-scanner.v1：横截面扫描 / 板块轮动 / 资金流向（实测或显式代理）","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/sentiment","d":"sentiment.v1 六维情绪分；缺失维度重归一，覆盖不足不输出总分","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/sentiment/flow","d":"sentiment-flow.v1 情绪追踪：变化 / 分位 / 拐点 / 持续性 / 驱动归因","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/sentiment/flow/history","d":"","q":["limit"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/sentiment/history","d":"","q":["limit"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/snapshot","d":"一次决策周期的统一 MarketPacket（trace_id / as_of / coverage / quality）","q":["refresh"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/stream","d":"统一 SSE（事件驱动）：数据总线刷新即推送，无需等待轮询周期","q":["interval"],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/system","d":"决策系统总览：链路（bus）+ 缓存（cache）联合视图，供运维与页面角标使用","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/decision/universe","d":"全市场分页查询；仅返回已加载快照，不在请求线程里打上游","q":["limit","offset","sort"],"g":"其他","gi":13},{"m":"GET","p":"/api/etf/rotation","d":"ETF 双动量轮动：当前/目标持仓 + 动量排名 + 参数平原","q":["pool","lookback","top","cost_bps","rebalance_days","refresh","buffer_slots"],"g":"其他","gi":13},{"m":"GET","p":"/api/ict/history","d":"ICT 滚动回测统计：逐日滚动扫描 → 事件去重 → 收益分布 + 随机持有基准","q":["code","period","limit","horizons","swing_width","minimum_rr"],"g":"其他","gi":13},{"m":"GET","p":"/api/ict/scan","d":"ICT 九阶段证据链 + 六道机械门扫描（日线/分钟级）","q":["code","period","direction","limit","swing_width","minimum_rr"],"g":"其他","gi":13},{"m":"GET","p":"/api/ict/structure-stats","d":"ICT 结构级统计：FVG 填充率 / sweep 反转率 / OB 回踩率 + 波动率匹配基准","q":["code","period","limit","horizon","reversal_atr_mult","swing_width","sweep_lookback"],"g":"其他","gi":13},{"m":"GET","p":"/api/meta/capability","d":"统一能力元信息（只读缓存，不触发上游）","q":["keys"],"g":"其他","gi":13},{"m":"GET","p":"/api/risk/portfolio","d":"组合风险视图：β / R² / 特质风险 / 夏普 / 索提诺 / Omega / CVaR95","q":["benchmark","window","days","codes"],"g":"其他","gi":13},{"m":"POST","p":"/api/system/backup","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/system/integrity","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/system/status","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/tdx/kline","d":"","q":["code","period","limit"],"g":"其他","gi":13},{"m":"GET","p":"/api/tdx/status","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/themes/board/{code}","d":"","q":["limit"],"g":"其他","gi":13},{"m":"GET","p":"/api/themes/char/{char}","d":"","q":["limit"],"g":"其他","gi":13},{"m":"GET","p":"/api/themes/overview","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/api/timeshare","d":"当日分时走势（1 分钟粒度）","q":["code"],"g":"其他","gi":13},{"m":"GET","p":"/healthz","d":"","q":[],"g":"其他","gi":13},{"m":"GET","p":"/readyz","d":"","q":[],"g":"其他","gi":13}];
+(function () {
+  var rows = API_ROWS, activeGroup = '全部', keyword = '';
+  var body = document.getElementById('api-body');
+  var chips = document.getElementById('api-chips');
+  var countEl = document.getElementById('api-count');
+  var emptyEl = document.getElementById('api-empty');
+  var searchEl = document.getElementById('api-search');
+  var toast = document.getElementById('api-toast');
+
+  document.getElementById('api-total').textContent = rows.length;
+  document.getElementById('api-paths').textContent = new Set(rows.map(function (r) { return r.p; })).size;
+
+  // 分组 chip + 统计（按功能分组定义顺序，而非路径字母序）
+  var groupMap = {};
+  rows.forEach(function (r) { if (!groupMap[r.g]) groupMap[r.g] = r.gi; });
+  var groups = Object.keys(groupMap).sort(function (a, b) { return groupMap[a] - groupMap[b]; });
+  var stats = document.getElementById('api-stats');
+  var methods = {};
+  rows.forEach(function (r) { methods[r.m] = (methods[r.m] || 0) + 1; });
+  var statHtml = '';
+  Object.keys(methods).sort().forEach(function (m) {
+    statHtml += '<div class="api-stat"><b>' + methods[m] + '</b><span>' + m + '</span></div>';
+  });
+  statHtml += '<div class="api-stat"><b>' + groups.length + '</b><span>功能分组</span></div>';
+  stats.innerHTML = statHtml;
+
+  function buildChips() {
+    var html = '<div class="api-chip on" data-g="全部">全部<em>' + rows.length + '</em></div>';
+    groups.forEach(function (g) {
+      var n = rows.filter(function (r) { return r.g === g; }).length;
+      html += '<div class="api-chip" data-g="' + g + '">' + g + '<em>' + n + '</em></div>';
+    });
+    chips.innerHTML = html;
+    chips.querySelectorAll('.api-chip').forEach(function (el) {
+      el.addEventListener('click', function () {
+        chips.querySelectorAll('.api-chip').forEach(function (x) { x.classList.remove('on'); });
+        el.classList.add('on');
+        activeGroup = el.getAttribute('data-g');
+        render();
+      });
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function render() {
+    var kw = keyword.trim().toLowerCase();
+    var list = rows.filter(function (r) {
+      if (activeGroup !== '全部' && r.g !== activeGroup) return false;
+      if (!kw) return true;
+      return (r.p + ' ' + r.d + ' ' + r.q.join(' ')).toLowerCase().indexOf(kw) >= 0;
+    });
+    var html = list.map(function (r) {
+      var q = r.q && r.q.length ? esc(r.q.join(', ')) : '<span style="opacity:.35">—</span>';
+      var d = r.d ? esc(r.d) : '<span class="none">—（代码未提供描述）</span>';
+      return '<tr><td><span class="api-m ' + r.m + '">' + r.m + '</span></td>'
+        + '<td><span class="api-path" data-path="' + esc(r.p) + '" title="点击复制">' + esc(r.p) + '</span></td>'
+        + '<td class="api-desc">' + d + '</td>'
+        + '<td class="api-q">' + q + '</td></tr>';
+    }).join('');
+    body.innerHTML = html;
+    emptyEl.style.display = list.length ? 'none' : '';
+    countEl.textContent = '显示 ' + list.length + ' / ' + rows.length;
+    body.querySelectorAll('.api-path').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var p = el.getAttribute('data-path');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(p).then(showToast, function () { });
+        } else { showToast(); }
+      });
+    });
+  }
+
+  var t;
+  function showToast() {
+    toast.classList.add('on');
+    clearTimeout(t);
+    t = setTimeout(function () { toast.classList.remove('on'); }, 1200);
+  }
+
+  searchEl.addEventListener('input', function () { keyword = this.value; render(); });
+  buildChips();
+  render();
+})();
+</script>
+</body>
+</html>

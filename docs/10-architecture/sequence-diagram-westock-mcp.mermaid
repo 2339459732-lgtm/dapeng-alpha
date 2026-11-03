@@ -1,0 +1,130 @@
+sequenceDiagram
+    participant User as 用户
+    participant Frontend as 前端 (market-data.js)
+    participant API as api.js
+    participant Router as market_data.py
+    participant Cache as TTLCache
+    participant Client as WestockClient
+    participant CLI as westock-data CLI
+
+    User->>Frontend: 点击"资金流向"Tab
+    Frontend->>Frontend: switchTab('fund-flow', code)
+    Frontend->>API: fetchFundFlow(code)
+    API->>Router: GET /api/fund-flow?code=sh600519
+    
+    Router->>Cache: get_or_fetch("fund_flow:sh600519", ttl=60)
+    alt 缓存命中
+        Cache-->>Router: 返回缓存数据
+    else 缓存未命中
+        Router->>Client: await westock.fund_flow("sh600519")
+        Client->>Client: _run_cli_async(["asfund", "sh600519"])
+        Client->>CLI: node index.js asfund sh600519
+        CLI-->>Client: Markdown表格输出
+        Client->>Client: _parse_cli_output(stdout)
+        Client-->>Router: Dict {main_net_inflow, ...}
+        Router->>Cache: set("fund_flow:sh600519", data, 60)
+    end
+    
+    Router-->>API: {ok: true, data: {main_net_inflow: ...}}
+    API-->>Frontend: data object
+    
+    Frontend->>Frontend: renderFundFlow(data)
+    Frontend->>User: 显示资金流向柱状图 + 数字面板
+
+---
+
+sequenceDiagram
+    participant User as 用户
+    participant App as app.js
+    participant MD as market-data.js
+    participant API as api.js
+    participant Router as market_data.py
+    participant Cache as TTLCache
+    participant Client as WestockClient
+
+    User->>App: 点击"板块分析"按钮
+    App->>App: toggleSectorAnalysisPanel()
+    App->>MD: loadSectorAnalysisData(sector)
+    
+    par 并发请求4个P0数据
+        MD->>API: fetchSectorRanking('industry')
+        API->>Router: GET /api/sector-ranking
+        Router->>Cache: get_or_fetch("sector_rank:industry", 60)
+        Cache->>Client: westock.sector_ranking()
+        Client-->>Cache: parsed data
+        Cache-->>Router: data
+        Router-->>API: {ok, data}
+        API-->>MD: sector ranking data
+        MD->>MD: renderSectorRanking(data) → #sa-hot-sectors
+    and
+        MD->>API: fetchLHB('jg')
+        API->>Router: GET /api/lhb?tab=jg
+        Router->>Cache: get_or_fetch("lhb:jg", 300)
+        Cache->>Client: westock.lhb('jg')
+        Client-->>Cache: parsed data
+        Cache-->>Router: data
+        Router-->>API: {ok, data}
+        API-->>MD: LHB data
+        MD->>MD: renderLHBTop5(data) → #top-stocks-list
+    and
+        MD->>API: fetchMarketOverview()
+        API->>Router: GET /api/market-overview
+        Router->>Cache: get_or_fetch("market_overview", 60)
+        Cache->>Client: westock.market_overview()
+        Client-->>Cache: parsed data
+        Cache-->>Router: data
+        Router-->>API: {ok, data}
+        API-->>MD: overview data
+        MD->>MD: renderMarketOverview(data) → #mini-flow-val + KPI
+    and
+        MD->>API: fetchHotStocks('stock', 10)
+        API->>Router: GET /api/hot-stocks?type=stock&limit=10
+        Router->>Cache: get_or_fetch("hot:stock:10", 120)
+        Cache->>Client: westock.hot_stocks('stock', 10)
+        Client-->>Cache: parsed data
+        Cache-->>Router: data
+        Router-->>API: {ok, data}
+        API-->>MD: hot stocks data
+        MD->>MD: renderHotStocks(data) → 新增面板
+    end
+    
+    MD-->>App: all P0 data loaded
+    App->>User: 板块分析面板完整展示
+
+---
+
+sequenceDiagram
+    participant Main as main.py (lifespan)
+    participant Pool as StockPoolManager
+    participant Client as WestockClient
+    participant Cache as TTLCache
+    participant Config as config.py
+
+    Main->>Pool: initialize()
+    Pool->>Config: 读取 SECTORS (24板块, sector_code)
+    
+    loop 遍历24个板块
+        Pool->>Cache: get("sector_stocks:{sector_code}")
+        alt 缓存命中
+            Cache-->>Pool: 成分股列表
+        else 缓存未命中
+            Pool->>Client: sector_constituents(sector_code)
+            Client->>Client: _run_cli_async(["sector", sector_code, "--list"])
+            Client-->>Pool: List[Dict] (code, name)
+            Pool->>Cache: set("sector_stocks:{code}", stocks, 86400)
+        end
+        Pool->>Pool: 合并到 _sector_pool
+    end
+    
+    Pool->>Pool: 合并 base_pool + sector_pool
+    Pool-->>Main: 初始化完成, 股票数: 2000+
+    
+    Note over Pool: 后台定时任务: 每24小时刷新板块成分股
+    
+    loop 运行时动态加入
+        Pool->>Pool: add_dynamic_stocks(codes, "lhb")
+        Pool->>Pool: add_dynamic_stocks(codes, "hot")
+        Pool->>Pool: 更新 _dynamic_pool (TTL 3600s)
+    end
+    
+    Note over Pool: get_all_codes() 返回三层合并去重列表

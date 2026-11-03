@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大鹏水处理科技 | 智造纯净 · 高端工业流体数字集成专家</title>
+<meta name="description" content="大鹏水处理科技——半导体超纯水、生物制药纯化水、ZLD零排放系统。18.25MΩ·cm极致纯度，i-Touch AI智慧运维。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+<style>
+:root {
+  --primary: #0a5c8a;
+  --primary-light: #0d7ab5;
+  --primary-dark: #073f5e;
+  --accent: #00b4d8;
+  --gold: #c9a84c;
+  --bg-dark: #0a1628;
+  --bg-card: #0f1f38;
+  --text: #e0e8f0;
+  --text-muted: #8a9bb5;
+  --border: rgba(255,255,255,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ====== NAV ====== */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:1000;
+  background: rgba(10,22,40,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+}
+.nav-inner {
+  max-width: 1300px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+}
+.logo {
+  font-size: 1.25rem; font-weight: 700; letter-spacing: 2px;
+  color: #fff; text-decoration: none;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
+.nav-links a {
+  color: var(--text-muted); text-decoration: none; font-size: 0.9rem;
+  transition: color 0.3s; position: relative;
+}
+.nav-links a:hover, .nav-links a.active { color: #fff; }
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%) scaleX(0);
+  width: 20px; height: 2px; background: var(--accent);
+  transition: transform 0.3s;
+}
+.nav-links a:hover::after, .nav-links a.active::after { transform: translateX(-50%) scaleX(1); }
+.nav-cta {
+  background: linear-gradient(135deg, var(--accent), var(--primary-light));
+  color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 600; text-decoration: none;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,180,216,0.3); }
+
+/* ====== HERO ====== */
+.hero {
+  min-height: 100vh; display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding: 6rem 2rem 4rem;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(0,180,216,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 20%, rgba(10,92,138,0.15) 0%, transparent 50%);
+}
+.hero-inner {
+  max-width: 1300px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+  position: relative; z-index: 1;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(0,180,216,0.15); border: 1px solid rgba(0,180,216,0.3);
+  padding: 0.4rem 1rem; border-radius: 50px;
+  font-size: 0.85rem; color: var(--accent); margin-bottom: 1.5rem;
+}
+.hero-badge::before { content: '●'; color: #00ff88; animation: pulse-dot 2s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hero h1 {
+  font-size: 3.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.25rem;
+  background: linear-gradient(135deg, #fff 0%, #90d5ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin-bottom: 2rem; }
+.hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--primary-light));
+  color: #fff; padding: 0.85rem 2rem; border-radius: 8px;
+  font-size: 1rem; font-weight: 600; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,180,216,0.3); }
+.btn-outline {
+  border: 1px solid rgba(255,255,255,0.3); color: #fff;
+  padding: 0.85rem 2rem; border-radius: 8px;
+  font-size: 1rem; font-weight: 600; text-decoration: none;
+  transition: border-color 0.3s, background 0.3s;
+}
+.btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
+
+/* Hero Monitor */
+.hero-monitor {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; position: relative; overflow: hidden;
+}
+.hero-monitor::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.monitor-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted);
+}
+.monitor-title { color: var(--accent); font-weight: 600; }
+.monitor-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 0.5rem; }
+.monitor-stat {
+  display: flex; justify-content: space-between; padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.monitor-stat:last-child { border-bottom: none; }
+.monitor-label { color: var(--text-muted); font-size: 0.85rem; }
+.monitor-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
+.monitor-value small { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+.monitor-bar {
+  height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.5rem; overflow: hidden;
+}
+.monitor-bar-fill {
+  height: 100%; background: linear-gradient(90deg, #00ff88, var(--accent));
+  border-radius: 2px; transition: width 1.5s ease;
+}
+
+/* ====== TRUST BAR ====== */
+.trust-bar {
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem; display: flex; justify-content: center; gap: 3rem;
+  flex-wrap: wrap;
+}
+.trust-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--text-muted); font-size: 0.85rem;
+}
+.trust-item i { color: var(--accent); font-size: 1.1rem; }
+
+/* ====== SECTIONS ====== */
+section { padding: 6rem 2rem; }
+.section-inner { max-width: 1200px; margin: 0 auto; }
+.section-label {
+  color: var(--accent); font-size: 0.85rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;
+}
+.section-title {
+  font-size: 2.4rem; font-weight: 800; margin-bottom: 1rem;
+  line-height: 1.3;
+}
+.section-subtitle { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin-bottom: 3rem; }
+
+/* ====== SERVICE CARDS ====== */
+.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem 1.5rem;
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  position: relative; overflow: hidden;
+}
+.card:hover { transform: translateY(-4px); border-color: rgba(0,180,216,0.4); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--primary-light));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s;
+}
+.card:hover::before { transform: scaleX(1); }
+.card-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(0,180,216,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin-bottom: 1.25rem;
+}
+.card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #fff; }
+.card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }
+.card-stat {
+  margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  display: flex; gap: 1rem;
+}
+.card-stat-num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+.card-stat-label { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ====== STATS ====== */
+.stats { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 3rem 2rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
+.stat-item { padding: 1rem; }
+.stat-num { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+/* ====== PROCESS ====== */
+.process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.process-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; text-align: center;
+  position: relative;
+}
+.process-num {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem; font-weight: 700;
+}
+.process-card h3 { margin-bottom: 0.5rem; }
+.process-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+/* ====== CLIENTS ====== */
+.client-logos {
+  display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+  padding: 2rem 0;
+}
+.client-logo {
+  padding: 1rem 2rem; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 12px;
+  color: var(--text-muted); font-size: 0.9rem;
+  font-weight: 600; letter-spacing: 1px;
+  transition: border-color 0.3s, color 0.3s;
+}
+.client-logo:hover { border-color: var(--accent); color: #fff; }
+
+/* ====== CONTACT ====== */
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.contact-info h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+.contact-info p { color: var(--text-muted); margin-bottom: 2rem; }
+.contact-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; color: var(--text-muted); }
+.contact-item strong { color: #fff; display: block; font-size: 0.85rem; }
+.contact-form {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem;
+}
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.3rem; }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 8px; color: #fff; font-size: 0.95rem;
+  font-family: inherit; transition: border-color 0.3s;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none; border-color: var(--accent);
+}
+.form-submit {
+  width: 100%; padding: 0.85rem;
+  background: linear-gradient(135deg, var(--accent), var(--primary-light));
+  color: #fff; border: none; border-radius: 8px;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.form-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,180,216,0.3); }
+
+/* ====== FOOTER ====== */
+footer {
+  background: rgba(0,0,0,0.3); border-top: 1px solid var(--border);
+  padding: 4rem 2rem 2rem;
+}
+.footer-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem;
+}
+.footer-col h4 { color: #fff; margin-bottom: 1rem; font-size: 0.95rem; }
+.footer-col p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.footer-col a { display: block; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 0.5rem; transition: color 0.3s; }
+.footer-col a:hover { color: var(--accent); }
+.footer-bottom {
+  max-width: 1200px; margin: 3rem auto 0; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center; color: var(--text-muted); font-size: 0.8rem;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1024px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-inner { grid-template-columns: 1fr; text-align: center; }
+  .hero p { max-width: 100%; }
+  .hero-btns { justify-content: center; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .process-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .hero h1 { font-size: 2rem; }
+  .card-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .process-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .trust-bar { gap: 1rem; }
+  section { padding: 4rem 1rem; }
+}
+
+/* ====== ANIMATIONS ====== */
+.fade-up {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">DAPENG<span>科技</span></a>
+    <ul class="nav-links">
+      <li><a href="#home" class="active">首页</a></li>
+      <li><a href="#solutions">核心方案</a></li>
+      <li><a href="#technology">技术架构</a></li>
+      <li><a href="#cases">客户案例</a></li>
+      <li><a href="#contact">联系我们</a></li>
+      <li><a href="https://dgdpscl.1688.com/" target="_blank">🛒 1688旗舰店</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">预约专家勘察</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="fade-up">
+      <div class="hero-badge">i-Touch 系统运行中 · 产水电阻率 18.25 MΩ·cm</div>
+      <h1>智造至纯流体<br>成就先进制程</h1>
+      <p>大鹏水处理科技——通过 i-Touch 数字化全时监控与分子级过滤工艺，为半导体 7nm 及以下制程、生物制药 GMP 车间提供极致稳定的超纯水保障。</p>
+      <div class="hero-btns">
+        <a href="#contact" class="btn-primary">获取数字化集成方案 →</a>
+        <a href="#solutions" class="btn-outline">探索核心能力</a>
+      </div>
+    </div>
+    <div class="hero-monitor fade-up">
+      <div class="monitor-header">
+        <span><span class="monitor-dot"></span><span class="monitor-title">i-Touch 实时监测</span></span>
+        <span>25℃ · SEMI G4</span>
+      </div>
+      <div class="monitor-stat">
+        <div>
+          <div class="monitor-label">产水电阻率</div>
+          <div class="monitor-value">18.25 <small>MΩ·cm</small></div>
+          <div class="monitor-bar"><div class="monitor-bar-fill" style="width:98%"></div></div>
+        </div>
+      </div>
+      <div class="monitor-stat">
+        <div>
+          <div class="monitor-label">TOC 指标</div>
+          <div class="monitor-value">&lt; 1.0 <small>ppb</small></div>
+          <div class="monitor-bar"><div class="monitor-bar-fill" style="width:95%"></div></div>
+        </div>
+      </div>
+      <div class="monitor-stat">
+        <div>
+          <div class="monitor-label">系统负载</div>
+          <div class="monitor-value">86.5<small>%</small></div>
+          <div class="monitor-bar"><div class="monitor-bar-fill" style="width:86%"></div></div>
+        </div>
+      </div>
+      <div class="monitor-stat">
+        <div>
+          <div class="monitor-label">颗粒物 (≥0.05μm)</div>
+          <div class="monitor-value">0 <small>counts/ml</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item">✅ ISO 9001:2015 认证</div>
+  <div class="trust-item">✅ SEMI 国际标准</div>
+  <div class="trust-item">✅ FDA/GMP Ready</div>
+  <div class="trust-item">✅ CE 合规</div>
+  <div class="trust-item">✅ 服务 200+ 企业客户</div>
+</div>
+
+<!-- SOLUTIONS -->
+<section id="solutions">
+  <div class="section-inner">
+    <div class="section-label fade-up">核心方案</div>
+    <div class="section-title fade-up">四大水处理集成系统</div>
+    <div class="section-subtitle fade-up">从半导体超纯水到生物制药纯化水，从数字化运维到零排放——覆盖全场景工业水处理需求</div>
+    <div class="card-grid">
+      <div class="card fade-up">
+        <div class="card-icon">💧</div>
+        <h3>超纯水核心集成 (UPW)</h3>
+        <p>Dow 陶氏顶级膜组 × 核级精混床深度整合，稳定输出 18.25MΩ·cm 物理产水极限，专为半导体 7nm 及以下制程。</p>
+        <div class="card-stat">
+          <div><div class="card-stat-num">18.25</div><div class="card-stat-label">电阻率极值</div></div>
+          <div><div class="card-stat-num">&lt;1.0</div><div class="card-stat-label">TOC ppb</div></div>
+        </div>
+      </div>
+      <div class="card fade-up">
+        <div class="card-icon">🤖</div>
+        <h3>数字化智慧运维</h3>
+        <p>自研 AI 算法对流量、压力及水质进行毫秒级预判，实现"无人值守"式高效管理，降低运维成本 40%。</p>
+        <div class="card-stat">
+          <div><div class="card-stat-num">24/7</div><div class="card-stat-label">实时监控</div></div>
+          <div><div class="card-stat-num">-40%</div><div class="card-stat-label">运维成本</div></div>
+        </div>
+      </div>
+      <div class="card fade-up">
+        <div class="card-icon">♻️</div>
+        <h3>ZLD 零排放系统</h3>
+        <p>高比例水资源回收技术，回用率 >95%，助力企业实现绿色环保与经济效益的双赢，满足最严苛的环保法规。</p>
+        <div class="card-stat">
+          <div><div class="card-stat-num">>95%</div><div class="card-stat-label">水回收率</div></div>
+          <div><div class="card-stat-num">0</div><div class="card-stat-label">液体排放</div></div>
+        </div>
+      </div>
+      <div class="card fade-up">
+        <div class="card-icon">💊</div>
+        <h3>生物制药纯化水 (PW)</h3>
+        <p>完全遵循 GMP/FDA 标准，全套 4Q 验证支持。316L 卫生级管路 × 全自动热消毒系统，确保无菌环境。</p>
+        <div class="card-stat">
+          <div><div class="card-stat-num">4Q</div><div class="card-stat-label">验证体系</div></div>
+          <div><div class="card-stat-num">316L</div><div class="card-stat-label">卫生级材质</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section>
+  <div class="section-inner">
+    <div class="stats fade-up">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-num">200+</div>
+          <div class="stat-label">服务企业客户</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">50+</div>
+          <div class="stat-label">半导体/制药项目</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">18.25</div>
+          <div class="stat-label">MΩ·cm 产水极限</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">99.9%</div>
+          <div class="stat-label">系统稳定运行率</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGY -->
+<section id="technology">
+  <div class="section-inner">
+    <div class="section-label fade-up">技术架构</div>
+    <div class="section-title fade-up">从原水到极致纯度的全流程</div>
+    <div class="section-subtitle fade-up">7 级处理工艺，每一级都经过精密计算与实时监控</div>
+    <div class="process-grid">
+      <div class="process-card fade-up">
+        <div class="process-num">1</div>
+        <h3>多介质过滤</h3>
+        <p>去除悬浮物、胶体及大颗粒杂质，保护下游精密膜组件</p>
+      </div>
+      <div class="process-card fade-up">
+        <div class="process-num">2</div>
+        <h3>活性炭吸附</h3>
+        <p>去除余氯及有机物，防止RO膜氧化损伤</p>
+      </div>
+      <div class="process-card fade-up">
+        <div class="process-num">3</div>
+        <h3>软化/阻垢</h3>
+        <p>控制硬度离子，防止膜表面结垢，延长膜寿命</p>
+      </div>
+      <div class="process-card fade-up">
+        <div class="process-num">4</div>
+        <h3>两级 RO 反渗透</h3>
+        <p>Dow 陶氏膜组，去除 99%+ 溶解性固体及离子</p>
+      </div>
+      <div class="process-card fade-up">
+        <div class="process-num">5</div>
+        <h3>EDI 电去离子</h3>
+        <p>连续电除盐，无需化学再生，稳定产出高纯水</p>
+      </div>
+      <div class="process-card fade-up">
+        <div class="process-num">6</div>
+        <h3>核级精混床</h3>
+        <p>终极抛光，达到 18.25MΩ·cm 物理极限纯度</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CASES -->
+<section id="cases">
+  <div class="section-inner">
+    <div class="section-label fade-up">服务客户</div>
+    <div class="section-title fade-up">信赖大鹏科技的行业伙伴</div>
+    <div class="section-subtitle fade-up">覆盖半导体、生物制药、光伏、精细化工等高端制造领域</div>
+    <div class="client-logos fade-up">
+      <div class="client-logo">半导体晶圆厂</div>
+      <div class="client-logo">封装测试企业</div>
+      <div class="client-logo">生物制药GMP</div>
+      <div class="client-logo">光伏电池制造</div>
+      <div class="client-logo">精细化工企业</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-label fade-up">联系总部</div>
+    <div class="section-title fade-up">获取专属水处理集成方案</div>
+    <div class="section-subtitle fade-up">我们的工程师团队将在 24 小时内与您联系，提供免费技术咨询与现场勘察</div>
+    <div class="contact-grid">
+      <div class="contact-info fade-up">
+        <h3>东莞市大鹏水处理科技有限公司</h3>
+        <p>智造纯净，定义工业级流体数字集成新标准。以精密工艺与智慧数字，为中国高精尖产业提供稳固流体基础。</p>
+        <div class="contact-item">📞 <div><strong>电话</strong>186-8104-3142</div></div>
+        <div class="contact-item">📍 <div><strong>地址</strong>广东省东莞市石碣镇</div></div>
+        <div class="contact-item">📧 <div><strong>邮箱</strong>info@dapeng-water.com</div></div>
+        <div class="contact-item">🛒 <div><strong>1688旗舰店</strong><a href="https://dgdpscl.1688.com/" target="_blank" style="color:var(--accent)">dgdpscl.1688.com</a></div></div>
+      </div>
+      <div class="contact-form fade-up">
+        <form action="#" method="POST">
+          <div class="form-group">
+            <label>需求类型</label>
+            <select><option>半导体超纯水 (UPW)</option><option>生物制药纯化水 (PW)</option><option>ZLD 零排放系统</option><option>数字化智慧运维</option><option>其他工业水处理</option></select>
+          </div>
+          <div class="form-group">
+            <label>联系人</label>
+            <input type="text" placeholder="您的姓名" required>
+          </div>
+          <div class="form-group">
+            <label>联系电话</label>
+            <input type="tel" placeholder="您的手机号" required>
+          </div>
+          <div class="form-group">
+            <label>公司名称</label>
+            <input type="text" placeholder="贵公司全称">
+          </div>
+          <div class="form-group">
+            <label>补充说明</label>
+            <textarea rows="3" placeholder="用水量、水质要求、预算范围等"></textarea>
+          </div>
+          <button type="submit" class="form-submit">提交需求 · 24小时内回复</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>DAPENG 大鹏科技</h4>
+      <p>智造纯净，定义工业级流体数字集成新标准。我们以精密工艺与智慧数字，为中国高精尖产业提供稳固的流体基础。</p>
+    </div>
+    <div class="footer-col">
+      <h4>核心架构</h4>
+      <a href="#home">数字化首页</a>
+      <a href="#solutions">方案中心</a>
+      <a href="#technology">技术规格</a>
+      <a href="#cases">品牌故事</a>
+    </div>
+    <div class="footer-col">
+      <h4>核心能力</h4>
+      <a href="#">半导体超纯水</a>
+      <a href="#">生物制药纯化水</a>
+      <a href="#">零排放 (ZLD)</a>
+      <a href="https://dgdpscl.1688.com/" target="_blank">1688 官方旗舰店</a>
+    </div>
+    <div class="footer-col">
+      <h4>联系总部</h4>
+      <p>📞 186-8104-3142</p>
+      <p>📍 广东省东莞市石碣镇</p>
+      <p>📧 info@dapeng-water.com</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 东莞市大鹏水处理科技有限公司 | 极致流体数据集成领先者
+  </div>
+</footer>
+
+<script>
+// Fade-up on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Smooth nav highlight
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', function() {
+    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "version": "brain-config.v1",
+  "_comment": "主脑中心的唯一数据配置。改这里即可调整对证容差/阈值，不要在代码里硬编码。",
+  "crosscheck": {
+    "number_tolerance": 0.5,
+    "ratio_tolerance": 0.5,
+    "amount_tolerance_pct": 0.5,
+    "count_tolerance": 0,
+    "sector_top_n": 3,
+    "max_as_of_skew_s": 300,
+    "warn_factor": 2.0,
+    "cache_ttl_s": 60,
+    "min_comparable_ratio": 0.5,
+    "sector_taxonomy": {
+      "default": "em",
+      "labels": {
+        "em": "东财板块",
+        "sw": "申万行业"
+      }
+    }
+  },
+  "sentiment": {
+    "bands": {
+      "freezing": 0,
+      "cool": 20,
+      "neutral": 40,
+      "warm": 60,
+      "hot": 80
+    },
+    "min_coverage": 0.7
+  },
+  "layers": {
+    "fact": {
+      "label": "事实层",
+      "api": "/api/market-dashboard",
+      "scope": "行情 / 情绪 / 广度"
+    },
+    "survey": {
+      "label": "判断层",
+      "api": "/api/intelligent/market/survey",
+      "scope": "调查 / 轮动 / 异动"
+    },
+    "decision": {
+      "label": "决策层",
+      "api": "/api/decision/experts",
+      "scope": "共识 / 仓位 / 风控"
+    }
+  }
+}

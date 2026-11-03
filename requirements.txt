@@ -1,0 +1,20 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+numpy>=1.26.0
+httpx>=0.27.0
+psutil>=5.9.0
+aiofiles>=23.2.0
+
+# ---- 财务基本面数据链路（P0-1）硬依赖 ----
+# 上界与当前运行环境对齐（实测：Python 3.11 / akshare 1.18.59 / pandas 3.0.2 / numpy 2.4.4）。
+# 说明：此前 akshare 完全缺失、pandas 被注释掉，实际能跑是因为 start_server.py 的
+# 解释器候选列表第 4 顺位命中了已装好这两包的全局 Python311。换机部署会得到
+# 「代码全对但 import 失败」的环境，故提升为显式硬依赖并锁兼容上界。
+pandas>=2.0.0,<3.1
+akshare>=1.18.0,<2.0
+
+# 以下为量化回测模块(quant_core.py)依赖，按需安装：
+# lightgbm>=4.0.0
+# tushare>=1.4.0
+# yfinance>=0.2.0
+# ta>=0.11.0

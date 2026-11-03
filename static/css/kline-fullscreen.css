@@ -1,0 +1,283 @@
+/* ==========================================================
+   DAPENG Alpha · K线全屏展示 — 细节增强（M6）
+   ----------------------------------------------------------
+   本文件仅服务于 chart.js 在全屏模式下动态创建的元素：
+     #kline-fs-status       顶部状态栏（代码/名称/周期/数据源/更新时间/性质徽章）
+     #kline-signal-legend   买卖点图例 + 数据来源说明 + 无数据态
+     #kline-signal-tip      买卖点悬浮明细（买入价/数量，卖出价/净盈亏/平仓原因）
+   不修改 dashboard.css / ui-refinement.css，不依赖 dashboard.html 结构。
+   ========================================================== */
+
+/* ---------------------------------------------------------
+   ① 全屏状态栏
+   --------------------------------------------------------- */
+.kfs-status {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border2, rgba(80, 140, 255, 0.22));
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.10), rgba(6, 182, 212, 0.045));
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text2, #8b9ec2);
+  overflow: hidden;
+}
+#kline-card.kline-fullscreen-active .kfs-status,
+#kline-card:fullscreen .kfs-status { display: flex; }
+
+.kfs-status .kfs-code {
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--text, #eef2f7);
+}
+.kfs-status .kfs-name { font-weight: 600; color: var(--text, #eef2f7); max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kfs-status .kfs-period {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--blue, #3b82f6);
+  font-weight: 700;
+  font-size: 9px;
+}
+.kfs-status .kfs-sep { opacity: 0.38; user-select: none; }
+.kfs-status .kfs-src { color: var(--text2, #8b9ec2); }
+.kfs-status .kfs-time { color: var(--text2, #8b9ec2); font-family: 'SF Mono', 'Cascadia Code', monospace; }
+.kfs-status .kfs-unmatched {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 158, 194, 0.28);
+  background: rgba(139, 158, 194, 0.08);
+  color: var(--text2, #8b9ec2);
+  font-size: 9px;
+  cursor: help;
+}
+.kfs-status .kfs-unmatched.has {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--gold, #f59e0b);
+}
+.kfs-status .kfs-src-nature { display: inline-flex; align-items: center; gap: 4px; }
+
+.kfs-status .kfs-refresh {
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 1px solid var(--border, rgba(80, 140, 255, 0.1));
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text2, #8b9ec2);
+  font: inherit;
+  font-size: 9px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+.kfs-status .kfs-refresh:hover {
+  color: var(--text, #eef2f7);
+  border-color: var(--border2, rgba(80, 140, 255, 0.22));
+  background: rgba(59, 130, 246, 0.1);
+}
+.kfs-status .kfs-refresh:focus-visible { outline: 2px solid var(--cyan, #06b6d4); outline-offset: 2px; }
+
+/* ---------------------------------------------------------
+   ② 买卖点图例 / 来源说明 / 无数据态
+   --------------------------------------------------------- */
+.kline-signal-legend {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 5px 10px;
+  margin: 2px 0 4px;
+  border: 1px solid var(--border, rgba(80, 140, 255, 0.1));
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--text2, #8b9ec2);
+}
+#kline-card.kline-fullscreen-active .kline-signal-legend,
+#kline-card:fullscreen .kline-signal-legend { display: flex; }
+
+.kline-signal-legend .ksl-title {
+  font-weight: 700;
+  color: var(--text, #eef2f7);
+  letter-spacing: 0.4px;
+  padding-right: 8px;
+  border-right: 1px solid var(--border, rgba(80, 140, 255, 0.1));
+}
+.kline-signal-legend .ksl-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.kline-signal-legend .ksl-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  color: #04101f;
+  flex: 0 0 auto;
+}
+.kline-signal-legend .ksl-dot.ksl-buy { background: var(--blue, #3b82f6); color: #04101f; }
+.kline-signal-legend .ksl-dot.ksl-sell { background: var(--gold, #f59e0b); color: #04101f; }
+.kline-signal-legend .ksl-dot.ksl-drill {
+  background: transparent;
+  color: #9aa7bd;
+  border: 1.5px dashed #6b7280;
+}
+.kline-signal-legend .ksl-note { color: var(--text2, #8b9ec2); }
+.kline-signal-legend .ksl-note.ksl-warn { color: var(--gold, #f59e0b); }
+.kline-signal-legend .ksl-note.ksl-ok { color: var(--green, #00e96a); }
+.kline-signal-legend .ksl-toggle {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid var(--border, rgba(80, 140, 255, 0.1));
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text2, #8b9ec2);
+  font: inherit;
+  font-size: 9px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+.kline-signal-legend .ksl-toggle:hover {
+  color: var(--text, #eef2f7);
+  border-color: var(--border2, rgba(80, 140, 255, 0.22));
+  background: rgba(59, 130, 246, 0.1);
+}
+.kline-signal-legend .ksl-toggle[aria-pressed="true"] {
+  color: var(--blue, #3b82f6);
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+/* ---------------------------------------------------------
+   ③ 买卖点悬浮明细
+   --------------------------------------------------------- */
+.kline-signal-tip {
+  position: absolute;
+  z-index: 30;
+  min-width: 168px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  background: rgba(6, 12, 28, 0.97);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px);
+  color: #e2e8f0;
+  font-size: 11px;
+  line-height: 1.55;
+  pointer-events: none;
+}
+.kline-signal-tip[hidden] { display: none; }
+.kline-signal-tip .kft-row { padding: 4px 0; }
+.kline-signal-tip .kft-row + .kft-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+}
+.kline-signal-tip .kft-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.kline-signal-tip .kft-head b { font-weight: 700; }
+.kline-signal-tip .kft-buy .kft-head b { color: var(--blue, #3b82f6); }
+.kline-signal-tip .kft-sell .kft-head b { color: var(--gold, #f59e0b); }
+.kline-signal-tip .kft-ts {
+  margin-left: auto;
+  color: #8b9ec2;
+  font-size: 9px;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+.kline-signal-tip .kft-drill {
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px dashed #6b7280;
+  color: #9aa7bd;
+  font-size: 9px;
+}
+.kline-signal-tip .kft-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+.kline-signal-tip .kft-line > span { color: #8b9ec2; font-family: inherit; }
+.kline-signal-tip .kft-line > b { font-weight: 700; }
+.kline-signal-tip .kft-na { color: #8b9ec2; font-weight: 400; }
+/* 红涨绿跌（项目既有 .up=红 / .dn=绿，非欧美配色） */
+.kline-signal-tip .up { color: var(--red, #ff3d6a); }
+.kline-signal-tip .dn { color: var(--green, #00e96a); }
+
+/* ---------------------------------------------------------
+   ④ 响应式
+   --------------------------------------------------------- */
+@media (max-width: 720px) {
+  .kfs-status { padding: 5px 8px; gap: 6px; font-size: 9.5px; }
+  .kfs-status .kfs-refresh { margin-left: 0; }
+  .kline-signal-legend { padding: 4px 8px; gap: 5px 10px; }
+  .kline-signal-legend .ksl-toggle { margin-left: 0; }
+}
+@media (max-width: 420px) {
+  .kfs-status .kfs-name { max-width: 7em; }
+  .kfs-status .kfs-src { display: none; }
+}
+
+/* ---------------------------------------------------------
+   ⑤ 价格口径徽章（v20）—— 由 chart.js 注入 K 线头部动作区
+   --------------------------------------------------------- */
+.kline-adjust-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 29px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--border, rgba(80, 140, 255, 0.1));
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text2, #8b9ec2);
+  font-size: 9px;
+  white-space: nowrap;
+  cursor: help;
+  order: -1;
+}
+.kline-adjust-badge[data-adjust="qfq"] { color: var(--cyan, #06b6d4); border-color: rgba(6, 182, 212, 0.32); }
+.kline-adjust-badge[data-adjust="raw"] { color: var(--gold, #f59e0b); border-color: rgba(245, 158, 11, 0.32); }
+
+/* ---------------------------------------------------------
+   ⑥ 数据可用性提示（v20）—— 空数据 / 指标不足时显示，避免只留空图
+   --------------------------------------------------------- */
+.kline-data-notice {
+  flex: 0 0 auto;
+  margin: 2px 0 4px;
+  padding: 6px 10px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--gold, #f59e0b);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.kline-data-notice[hidden] { display: none; }
+

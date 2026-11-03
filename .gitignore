@@ -1,0 +1,64 @@
+# DAPENG Alpha — Git 忽略规则
+#
+# 原则：**白名单式**管理 data/。运行期产生的数据（行情快照、复盘结果、交易库、
+# 用户表、支付单）一律不入库；只有纯配置（可公开、无个人信息）才放行。
+# 这样新增任何 data 文件默认是「忽略」，不会因为忘记加规则而泄露。
+
+# ---------- 密钥 ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# ---------- Python ----------
+*.pyc
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+
+# ---------- 运行期数据（默认全忽略，只放行下列配置） ----------
+data/*
+!data/lhb_config.json
+!data/brain_config.json
+!data/decision_config.json
+!data/decision_routing.json
+
+# ---------- 日志 / 备份 / 产物 ----------
+logs/
+backups/
+artifacts/
+shots/
+reports/
+_archive/
+*.log
+server_output.log
+server.log
+.cache/
+
+# ---------- 开发期临时产物 ----------
+_routes_*.txt
+_chk.json
+_e.json
+_backup/
+.playwright-cli/
+.docs-anchor-check.js
+idx*.yaml
+.workbuddy/
+verify-scatter.png
+test_agents_response.json
+.current_port
+
+# ---------- 与本项目无关的抓取页面 ----------
+1688-detail-*.html
+
+# ---------- OS 产物 ----------
+Thumbs.db
+.DS_Store
+nul
+
+# 本机自启脚本（含个人路径，不随仓库分发）
+start-dapeng.vbs
+start_autorun.vbs

@@ -1,0 +1,62 @@
+%% 类图 — 核心函数关系
+%% DAPENG Alpha Sidebar 5 工具架构设计
+
+classDiagram
+    class APIWrapper {
+        +fetchHotStocks(type, limit) Promise
+        +fetchLHB(tab, date) Promise
+        +fetchSectorRanking(type) Promise
+        +fetchScreen(minScore, minChg, sector, limit) Promise
+        -request(url, options) Promise
+        -_pendingRequests Map
+    }
+
+    class MarketDataRenderer {
+        +showHotStocksPanel() void
+        +showLHBPanel() void
+        +closeHotStocksPanel() void
+        +closeLHBPanel() void
+        +switchHotTab(type) void
+        +switchLHBTab(tab) void
+        +loadHotStocksFull(type, limit, containerId) Promise
+        +loadLHBFull(tab, containerId) Promise
+        +renderHotStocksFull(data) void
+        +renderLHBFull(data, tab) void
+        -_renderTableSkeleton(containerId, rows) void
+        -_renderTableError(containerId, retryFn) void
+        -_renderTableEmpty(containerId, msg) void
+        -_fmtAmount(val) String
+        -_fmtPct(val) String
+    }
+
+    class AppController {
+        +doScreenStocks() Promise
+        +clearScreenFilter() void
+        +renderRealSectorAnalysis() Promise
+        +renderHotSectorList(sectorStats) void
+        +renderSectorRankingFromAPI(data) void
+        +renderScanResults(data) void
+        +toggleScanSortOrder() void
+        +startScan() Promise
+        +selectStock(code, name) Promise
+        +closeScanPanel() void
+        +onScanCardClick(code, name) void
+        +showStockListSkeleton() void
+    }
+
+    class AppState {
+        +activeSector String
+        +activeCode String
+        +screenMode Boolean
+        +scanSortOrder String
+        +priceMin Number
+        +priceMax Number
+        +stocks Array
+        +stockMap Map
+    }
+
+    APIWrapper --> MarketDataRenderer : 提供 API 数据
+    APIWrapper --> AppController : 提供 API 数据
+    MarketDataRenderer --> AppState : 读写状态
+    AppController --> AppState : 读写状态
+    AppController --> MarketDataRenderer : 调用 loadSectorAnalysisData

@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAPENG Alpha · 策略选股系统</title>
+<script src="js/echarts.min.js?v=5"></script>
+<link rel="stylesheet" href="css/dashboard.css?v=70">
+<link rel="stylesheet" href="css/ui-refinement.css?v=36">
+<link rel="stylesheet" href="css/brain-layout.css?v=3">
+<link rel="stylesheet" href="css/market-overview.css?v=6">
+<link rel="stylesheet" href="css/decision-desk.css?v=101">
+<link rel="stylesheet" href="css/kline-fullscreen.css?v=2">
+<meta name="theme-color" content="#020510">
+<!-- T09: 基本面 6 卡 + 估值分位条（样式就近内联，避免与 dashboard.css 并行改动冲突） -->
+<style id="fundamental-styles">
+  #tab-fundamental { padding: 10px 12px; }
+  .fund-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .fund-title { font-size:14px; font-weight:600; color:var(--text); }
+  .fund-code { font-size:10px; color:var(--muted); font-family:'Courier New',monospace; margin-left:4px; }
+  .fund-head-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:10px; color:var(--text2); }
+  .fund-meta-item { color:var(--text2); }
+  .fund-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; }
+  .fund-card { padding:9px 11px; background:rgba(0,0,0,0.22); border:1px solid var(--border); border-radius:9px; min-height:106px; }
+  .fund-card-head { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .fund-card-label { font-size:10px; color:var(--muted); letter-spacing:.2px; }
+  .fund-card-value-row { display:flex; align-items:baseline; gap:4px; margin:5px 0 3px; }
+  .fund-value { font-size:20px; font-weight:700; font-family:'Courier New',monospace; line-height:1.1; }
+  .fund-value-missing { font-size:13px; font-weight:600; color:var(--gold); }
+  .fund-unit { font-size:10px; color:var(--text2); }
+  .fund-card-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:10px; color:var(--text2); margin-bottom:2px; }
+  .fund-card-period { font-family:'Courier New',monospace; }
+  .fund-card-src { display:block; font-size:9px; color:var(--muted); line-height:1.45; word-break:break-all; }
+  .fund-card-src-none { color:var(--gold); }
+  .fund-card-pct { display:block; font-size:9px; color:var(--cyan); margin-top:2px; }
+  .fund-card-unavail { margin-top:4px; font-size:10px; color:var(--gold); line-height:1.5; }
+  .fund-fresh { color:var(--green); font-size:9px; border:1px solid rgba(0,233,106,0.28); border-radius:4px; padding:0 4px; }
+  .fund-warn { color:var(--gold); font-size:9px; border:1px solid rgba(245,158,11,0.38); background:rgba(245,158,11,0.08); border-radius:4px; padding:0 4px; white-space:nowrap; }
+  .fund-stale-banner { font-size:10px; color:var(--text2); background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.25); border-radius:7px; padding:6px 9px; margin-bottom:8px; line-height:1.6; }
+  .fund-badge { display:inline-flex; align-items:center; gap:4px; font-size:9px; padding:1px 6px; border-radius:9px; border:1px solid var(--border2); color:var(--text2); white-space:nowrap; }
+  .fund-badge-mark { font-size:8px; line-height:1; }
+  .fund-badge-realtime { color:var(--green); border-color:rgba(0,233,106,0.4); }
+  .fund-badge-cached { color:var(--gold); border-color:rgba(245,158,11,0.4); }
+  .fund-badge-closed { color:var(--text2); border-color:var(--border2); }
+  .fund-badge-stale { color:var(--gold); border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.08); }
+  .fund-badge-unavail { color:var(--red); border-color:rgba(255,61,106,0.42); background:rgba(255,61,106,0.07); }
+  .fund-loading-tag { color:var(--cyan); font-size:10px; }
+  .fund-skeleton-line { height:8px; border-radius:4px; margin-top:8px; background:linear-gradient(90deg,rgba(59,130,246,0.05),rgba(59,130,246,0.16),rgba(59,130,246,0.05)); background-size:200% 100%; animation:shimmerSlide 1.6s linear infinite; }
+  .fund-skeleton-line.short { width:55%; }
+  .fund-error { text-align:center; padding:16px 12px; border:1px dashed rgba(255,61,106,0.3); border-radius:9px; margin-bottom:8px; }
+  .fund-error-title { font-size:12px; color:var(--red); margin-bottom:4px; font-weight:600; }
+  .fund-error-reason { font-size:10px; color:var(--text2); line-height:1.6; word-break:break-word; }
+  .fund-retry { margin-top:8px; font-size:10px; padding:3px 12px; border-radius:6px; cursor:pointer; background:rgba(59,130,246,0.12); border:1px solid var(--border2); color:var(--text); }
+  .fund-retry:hover { background:rgba(59,130,246,0.22); }
+  .fund-empty { font-size:11px; color:var(--muted); text-align:center; padding:18px; }
+  .fund-note { font-size:9px; color:var(--muted); line-height:1.6; margin-top:8px; }
+  .fund-details { margin-top:10px; font-size:10px; color:var(--text2); }
+  .fund-details summary { cursor:pointer; color:var(--cyan); font-size:10px; padding:3px 0; }
+  .fund-detail-row { display:flex; justify-content:space-between; gap:12px; padding:2px 0; border-bottom:1px dashed var(--border); }
+  .fund-detail-row b { color:var(--text); font-family:'Courier New',monospace; font-weight:600; }
+  .fund-val-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; font-weight:600; color:var(--text); margin:4px 0 8px; }
+  .fund-val-hint { font-size:9px; font-weight:400; color:var(--muted); }
+  .fund-val-row { display:flex; gap:10px; align-items:flex-start; margin-bottom:12px; }
+  .fund-val-name { width:96px; flex-shrink:0; font-size:10px; color:var(--text2); padding-top:5px; }
+  .fund-val-body { flex:1; min-width:0; }
+  .fund-val-track { position:relative; height:9px; border-radius:5px; background:rgba(80,140,255,0.10); border:1px solid var(--border); }
+  .fund-val-track-empty { background:rgba(255,61,106,0.06); }
+  .fund-val-zone-low { position:absolute; left:0; top:0; bottom:0; width:30%; border-radius:5px 0 0 5px; background:linear-gradient(90deg,rgba(0,233,106,0.16),rgba(0,233,106,0)); }
+  .fund-val-tick { position:absolute; top:-2px; width:1px; height:13px; background:rgba(238,242,247,0.28); }
+  .fund-val-marker { position:absolute; top:50%; width:9px; height:9px; margin-left:-4px; border-radius:50%; transform:translateY(-50%); background:var(--cyan); box-shadow:0 0 7px rgba(6,182,212,0.75); }
+  .fund-val-foot { display:flex; gap:10px; flex-wrap:wrap; align-items:baseline; margin-top:4px; font-size:9px; color:var(--muted); }
+  .fund-val-pct { color:var(--cyan); font-size:11px; font-family:'Courier New',monospace; }
+  .fund-val-sample { color:var(--text2); }
+  .fund-val-window { color:var(--muted); }
+</style>
+<link rel="stylesheet" href="css/automation-cockpit.css?v=7">
+<link rel="stylesheet" href="css/panel-consistency.css?v=1">
+<style>body.anim-idle *, body.anim-idle { animation-play-state: paused !important; }</style></head>
+<script>
+/* v81 · 全局动画治理：空闲 10s 暂停所有 CSS 动画（省电防卡），交互即恢复 */
+(function () {
+  var t;
+  function idle() { document.body.classList.add('anim-idle'); }
+  function wake() { document.body.classList.remove('anim-idle'); clearTimeout(t); t = setTimeout(idle, 10000); }
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'scroll'].forEach(function (ev) {
+    window.addEventListener(ev, wake, { passive: true });
+  });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) idle(); else wake(); });
+  setTimeout(wake, 100);
+})();
+</script>
+
+<body>
+
+<!-- Aurora dynamic background -->
+<div id="aurora-bg">
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+</div>
+
+<!-- Mouse glow -->
+<div id="mouse-glow"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">正在连接行情数据...</div>
+</div>
+
+<!-- Signal toast -->
+<div class="signal-toast" id="signal-toast">
+  <div class="signal-toast-title" id="toast-title"></div>
+  <div class="signal-toast-body" id="toast-body"></div>
+</div>
+
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo"><div class="logo-dot"></div>DAPENG Alpha<span style="font-size:11px;color:var(--text2);font-weight:400;margin-left:6px">策略选股</span></div>
+    <div class="header-indices" id="idx-bar">
+      <div class="idx-chip"><span class="idx-name">上证</span><span class="idx-price" id="sh-p">--</span><span class="idx-chg" id="sh-c">--</span></div>
+      <div class="idx-chip"><span class="idx-name">创业板</span><span class="idx-price" id="cy-p">--</span><span class="idx-chg" id="cy-c">--</span></div>
+      <div class="idx-chip"><span class="idx-name">深成</span><span class="idx-price" id="sc-p">--</span><span class="idx-chg" id="sc-c">--</span></div>
+      <div class="idx-chip" style="border-color:rgba(245,158,11,0.12)"><span class="idx-name">纳指</span><span class="idx-price" id="nd-p">--</span><span class="idx-chg" id="nd-c">--</span></div>
+      <div class="idx-chip" style="border-color:rgba(245,158,11,0.12)"><span class="idx-name">黄金</span><span class="idx-price" id="gc-p">--</span><span class="idx-chg" id="gc-c">--</span></div>
+    </div>
+    <div class="header-actions">
+      <a href="/index.html" class="header-action-btn" title="返回首页" style="color:var(--text2);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);transition:all .15s">🏠 首页</a>
+      <a href="/quant.html" class="header-action-btn" title="量化回测" style="color:var(--blue);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(59,130,246,0.2);transition:all .15s;margin-left:4px">🔬 量化回测</a>
+      <a href="/admin.html" class="header-action-btn" title="管理后台" style="color:var(--gold);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,158,11,0.2);transition:all .15s;margin-left:4px">⚙️ 后台</a>
+      <a href="/project-docs.html" class="header-action-btn" title="项目文档" style="color:var(--cyan);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(6,182,212,0.2);transition:all .15s;margin-left:4px">📖 项目文档</a>
+      <a href="/api-reference.html" class="header-action-btn" title="接口目录（可搜索，141 个端点）" style="color:var(--cyan);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(6,182,212,0.2);transition:all .15s;margin-left:6px">🔌 接口</a>
+      <a href="/dashboard.html#market" class="header-action-btn" id="hdr-link-sentiment" title="市场情绪（已并入大盘纵览：统一情绪分 / 六维 / 情绪追踪 / 三锚点）—— 会自动带上当前板块" style="color:var(--purple);text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(168,85,247,0.2);transition:all .15s;margin-left:4px">📈 情绪</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" title="切换白天/黑夜模式">
+        <span class="theme-toggle-icon">
+          <!-- Sun icon -->
+          <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <!-- Moon icon (hidden by default) -->
+          <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </span>
+      </button>
+      <span class="notif-bell" id="notif-bell" onclick="toggleNotificationCenter()" title="通知中心（自动化信号）" style="opacity:1;font-size:15px;cursor:pointer;padding:5px 9px;border:1px solid rgba(214,176,132,.35);border-radius:6px;background:rgba(214,176,132,.08);transition:all .15s;margin-left:4px">&#x1F514;<span class="notif-badge" id="notif-badge" style="display:none">0</span></span>
+      <button class="header-tool-btn" onclick="toggleSignalHistory()" title="信号历史 (H)">📋</button>
+    </div>
+    <div class="header-status">
+      <span class="data-timestamp" id="data-ts" title="数据最后更新时间"><span class="refresh-timer-dot"></span>--</span>
+      <div class="status-dot" id="status-dot"></div><span id="clock">--:--:--</span>
+      <button class="btn-refresh" onclick="refreshAll()">&#x21BB; 刷新</button>
+    <button class="btn-compare" onclick="toggleComparePanel()" title="股票对比" style="color:#7ee0d0;text-decoration:none;font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid rgba(126,224,208,.28);transition:all .15s;margin-left:4px;cursor:pointer;background:transparent">&#x21C4; 对比</button>
+    </div>
+  </div>
+
+  <!-- TICKER TAPE -->
+  <div id="ticker-tape"><div class="ticker-track" id="ticker-track"></div></div>
+
+  <!-- Primary workspace navigation: remains available on desktop and mobile -->
+  <nav id="workspace-switcher" class="workspace-switcher" role="tablist" aria-label="页面视图">
+    <div class="workspace-switcher-brand"><span class="workspace-live-dot"></span>工作台</div>
+    <button class="workspace-tab active" id="workspace-stock-tab" onclick="switchWorkspace('stocks')" role="tab" aria-selected="true">策略选股</button>
+    <button class="workspace-tab" id="workspace-qlib-tab" onclick="switchWorkspace('qlib')" role="tab" aria-selected="false" style="color:var(--cyan);border-color:rgba(6,182,212,0.3)">&#x1F9EA; Qlib AI 因子挖掘</button>
+    <button class="workspace-tab" id="workspace-decision-tab" onclick="switchWorkspace('decision')" role="tab" aria-selected="false" style="color:var(--gold);border-color:rgba(245,158,11,0.35)">&#x1F9ED; 决策台</button>
+    <span class="workspace-switcher-hint">决策台 = 主脑中心 &bull; 事实层（行情）→ 判断层（调查）→ 决策层（结论 / 风控 / 复盘）</span>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- LEFT SIDEBAR NAV -->
+    <div id="sidebar-nav">
+      <div class="sidebar-title">板块</div>
+      <div id="sidebar-sectors"></div>
+      <div style="margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)">
+        <div class="sidebar-tool" onclick="toggleScreenPanel()" title="条件选股">&#x1F50D; 选股器</div>
+        <div class="sidebar-tool" onclick="showScanPanel()" title="智能选股" style="margin-top:4px">&#x1F916; 智能选股</div>
+        <div class="sidebar-tool" onclick="toggleStockAgentPanel()" title="AI每日筛股执行驾驶舱" style="margin-top:4px;color:var(--cyan);border-color:rgba(6,182,212,0.3)">&#x26A1; AI 每日筛股</div>
+        <div class="sidebar-tool" onclick="toggleSectorAnalysisPanel()" title="板块分析" style="margin-top:4px">&#x1F4CA; 板块分析</div>
+        <div class="sidebar-tool" onclick="showHotStocksPanel()" title="热门股" style="margin-top:4px">&#x1F525; 热门股</div>
+        <div class="sidebar-tool" onclick="showLHBPanel()" title="龙虎榜原始数据（营业部买卖明细 / 机构席位）" style="margin-top:4px">&#x1F4DC; 龙虎榜</div>
+        <a class="sidebar-tool" href="/lhb-review.html" title="龙虎榜复盘：优质席位动向 + 买卖动因归因 + 推演逻辑" style="margin-top:4px;display:block;text-decoration:none;color:var(--gold);border-color:rgba(245,158,11,0.32)">&#x1F4CA; 龙虎榜复盘</a>
+        <div class="sidebar-tool" id="automation-entry" onclick="toggleAutomationPanel()" title="自动化交易" style="margin-top:4px"><span class="auto-status-dot dot-gray" id="automation-status-dot"></span>&#x2699;&#xFE0F; 自动化</div>
+      </div>
+    </div>
+
+    <!-- PANEL RESIZER -->
+    <div id="panel-resizer"></div>
+
+    <!-- LEFT PANEL: Stock List -->
+      <div id="left-panel">
+        <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;margin-bottom:6px">
+          <div class="card-header">
+            <div class="card-title"><div class="card-title-bar"></div><span id="sector-title-name">半导体</span>股池</div>
+            <div class="list-toolbar">
+              <div class="tab-bar">
+                <div class="tab active" data-filter="all" onclick="switchListTab(this,'all')">全部</div>
+                <div class="tab" data-filter="up" onclick="switchListTab(this,'up')">涨</div>
+                <div class="tab" data-filter="dn" onclick="switchListTab(this,'dn')">跌</div>
+                <div class="tab" data-filter="fav" onclick="switchListTab(this,'fav')">自选</div>
+              </div>
+              <div class="sort-wrap" id="sort-wrap">
+                <button class="sort-trigger" id="sort-trigger" onclick="toggleSortMenu(event)" title="排序方式（再次点击同一项可切换升降序）">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v13M7 16l-3-3M7 16l3-3"/><path d="M17 21V8M17 8l-3 3M17 8l3 3"/></svg>
+                  <span id="sort-label">评分</span><span class="sort-dir" id="sort-dir">↓</span>
+                </button>
+                <div class="sort-menu" id="sort-menu">
+                  <div class="sort-menu-item active" data-key="score" onclick="setListSort('score')"><span class="smi-ico">🎯</span>按评分<span class="smi-check">✓</span></div>
+                  <div class="sort-menu-item" data-key="chg" onclick="setListSort('chg')"><span class="smi-ico">📈</span>按涨跌幅<span class="smi-check">✓</span></div>
+                  <div class="sort-menu-item" data-key="turnover" onclick="setListSort('turnover')"><span class="smi-ico">🔁</span>按换手率<span class="smi-check">✓</span></div>
+                  <div class="sort-menu-item" data-key="volume_ratio" onclick="setListSort('volume_ratio')"><span class="smi-ico">📊</span>按量比<span class="smi-check">✓</span></div>
+                  <div class="sort-menu-item" data-key="code" onclick="setListSort('code')"><span class="smi-ico">🔢</span>按代码<span class="smi-check">✓</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="search-box"><span class="search-icon">&#x1F50D;</span><input type="text" id="search-input" placeholder="搜索股票名称/代码（回车跨板块搜索）"></div>
+          <div class="dist-bar" id="dist-bar" title="当前列表涨跌分布（悬停查看明细）"></div>
+          <div id="screen-panel" class="screen-panel" style="display:none">
+            <div class="screen-input-group">
+              <div class="screen-input-item"><div class="screen-input-label">最低评分</div><input type="number" id="screen-score" value="70" min="0" max="100" step="5" class="screen-input"></div>
+              <div class="screen-input-item"><div class="screen-input-label">最低涨幅%</div><input type="number" id="screen-chg" value="" placeholder="不限" step="0.5" class="screen-input"></div>
+              <div class="screen-input-item"><div class="screen-input-label">换手率≥%</div><input type="number" id="screen-turnover" value="" placeholder="不限" step="0.5" class="screen-input"></div>
+              <div class="screen-input-item"><div class="screen-input-label">量比≥</div><input type="number" id="screen-vol" value="" placeholder="不限" step="0.1" class="screen-input"></div>
+              <div class="screen-input-item"><div class="screen-input-label">PE≤</div><input type="number" id="screen-pe" value="" placeholder="不限" step="5" class="screen-input"></div>
+              <div class="screen-input-actions">
+                <button class="screen-go-btn" onclick="doScreenStocks()">选股</button>
+                <button class="screen-clear-btn" onclick="clearScreenFilter()">清除</button>
+              </div>
+            </div>
+          </div>
+          <div class="stock-list" id="stock-list"></div>
+        </div>
+
+        <!-- MINI SECTOR ANALYSIS (Bottom Left) — v6.0 Advanced Redesign -->
+        <div class="card mini-analysis-card" id="mini-sector-analysis">
+          <div class="card-header" style="margin-bottom:6px">
+            <div class="card-title"><div class="card-title-bar"></div>板块行情摘要</div>
+            <div class="mini-refresh-btn" onclick="renderRealSectorAnalysis()" title="刷新分析">↻</div>
+          </div>
+          <div class="mini-analysis-body">
+            <!-- 市场情绪：渐变进度条 + 数值徽章 + 光晕指示器 -->
+            <div class="sentiment-section">
+              <div class="sentiment-header">
+                <span class="sentiment-label">市场情绪</span>
+                <span class="sentiment-badge" id="mini-sentiment-badge">--</span>
+              </div>
+              <div class="sentiment-meter">
+                <div class="sentiment-fill" id="mini-sentiment-fill"></div>
+                <div class="sentiment-glow" id="mini-sentiment-glow"></div>
+              </div>
+            </div>
+            <!-- 涨跌平三列统计卡片：数值 + 占比百分比 + 悬浮微动效 -->
+            <div class="mini-dist-grid" id="mini-dist-grid">
+              <div class="mini-dist-item up-card">
+                <div class="dist-count" id="mini-up-count">--</div>
+                <div class="dist-pct" id="mini-up-pct">--</div>
+                <div class="dist-label">涨</div>
+              </div>
+              <div class="mini-dist-item dn-card">
+                <div class="dist-count" id="mini-dn-count">--</div>
+                <div class="dist-pct" id="mini-dn-pct">--</div>
+                <div class="dist-label">跌</div>
+              </div>
+              <div class="mini-dist-item flat-card">
+                <div class="dist-count" id="mini-flat-count">--</div>
+                <div class="dist-pct" id="mini-flat-pct">--</div>
+                <div class="dist-label">平</div>
+              </div>
+            </div>
+            <!-- 资金流向：方向箭头 + 金额 + 流入/流出比例条 -->
+            <div class="mini-flow-section">
+              <div class="flow-header">
+                <span class="flow-label">资金流向</span>
+                <span class="flow-val" id="mini-flow-val">--</span>
+              </div>
+              <div class="flow-bar-wrap">
+                <div class="flow-bar-inflow" id="mini-flow-inflow-bar" style="width:50%"></div>
+                <div class="flow-bar-outflow" id="mini-flow-outflow-bar" style="width:50%"></div>
+              </div>
+              <div class="flow-detail">
+                <span class="flow-inflow-label">
+                  <span class="flow-dot inflow-dot"></span>流入 <span id="mini-inflow-amt">--</span>
+                </span>
+                <span class="flow-outflow-label">
+                  <span id="mini-outflow-amt">--</span> 流出<span class="flow-dot outflow-dot"></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- SCAN PANEL (overlay) -->
+    <div id="scan-panel" class="scan-panel" style="display:none;">
+      <div class="scan-header">
+        <h2 class="scan-title">&#x1F916; 智能选股</h2><span class="scan-subtitle" id="scan-subtitle">扫描全市场股票</span>
+        <div class="scan-price-filter">
+          <span class="scan-filter-label">价格</span>
+          <input type="number" id="scan-price-min" value="0" min="0" step="1" class="scan-price-input">
+          <span class="scan-filter-sep">~</span>
+          <input type="number" id="scan-price-max" value="200" min="0" step="1" class="scan-price-input">
+          <span class="scan-filter-unit">元</span>
+        </div>
+        <div class="scan-actions">
+          <button id="btn-agent-view" class="scan-btn" onclick="toggleStockAgentPanel()" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(59,130,246,0.2));border:1px solid rgba(6,182,212,0.4);color:var(--cyan);margin-right:6px">&#x26A1; 极客看板</button>
+          <button id="btn-start-scan" class="scan-btn" onclick="startScan()">&#x25B6; 开始扫描</button>
+          <button class="scan-close-btn" onclick="closeScanPanel()">&#x2715;</button>
+        </div>
+      </div>
+      <!-- v5.4: 行业 checkbox 组 -->
+      <div class="scan-industry-section">
+        <div class="scan-industry-label">行业筛选（不选=全市场）</div>
+        <div class="sector-checkbox-group" id="scan-industry-group"></div>
+      </div>
+      <div id="scan-progress" class="scan-progress" style="display:none;">
+        <div class="scan-progress-bar"><div class="scan-progress-fill" id="scan-progress-fill"></div></div>
+        <div class="scan-progress-text" id="scan-progress-text">准备扫描...</div>
+      </div>
+      <div class="scan-probability-notice">上涨概率为未来 1–5 个交易日的启发式估算，基于行情快照因子，未经历史概率校准，不代表收益保证。完成后会显示行情覆盖率；覆盖偏低时不宜将结果视为全样本结论。</div>
+      <div id="scan-result-area" class="scan-result-area">
+        <div class="scan-empty"><div class="scan-empty-icon">&#x1F50D;</div><div class="scan-empty-text">点击"开始扫描"即可全市场选股</div><div class="scan-empty-hint">预计耗时 25-30 秒</div></div>
+      </div>
+    </div>
+
+    <!-- STOCK AGENT DASHBOARD (Cyberpunk Terminal Workflow Panel) -->
+    <div id="stock-agent-panel" class="stock-agent-panel" style="display:none;">
+      <div class="agent-panel-head">
+        <div class="agent-brand">
+          <span class="agent-icon">&#x26A1;</span>
+          <span class="agent-title">AI 每日筛股</span>
+          <span class="agent-badge">AI AGENT</span>
+          <span class="agent-date" id="agent-current-date">2026-09-30</span>
+        </div>
+        <div class="agent-status-pill" id="agent-status-pill">
+          <span class="agent-status-dot"></span>
+          <span id="agent-status-text">AI-STOCK-ANALYZER &bull; STANDBY</span>
+          <span class="agent-time-badge" id="agent-time-badge">0s</span>
+        </div>
+        <div class="agent-header-actions">
+          <button class="agent-action-btn" onclick="startAgentScan()" id="btn-agent-trigger">&#x21BB; 开始运行</button>
+          <button class="agent-action-btn" onclick="showAgentHistory()">&#x1F552; 历史</button>
+          <button class="agent-close-btn" onclick="toggleStockAgentPanel()">&times; 关闭</button>
+        </div>
+      </div>
+
+      <!-- Pipeline Phase Step Indicator -->
+      <div class="agent-pipeline-bar">
+        <div class="agent-pipeline-step active" id="pipe-step-1">
+          <span class="step-check">&#x2713;</span>
+          <span class="step-name">NEWS-CRAWLER</span>
+          <span class="step-sub">资讯与研报抓取</span>
+        </div>
+        <div class="agent-pipeline-line"></div>
+        <div class="agent-pipeline-step" id="pipe-step-2">
+          <span class="step-check">&#x2713;</span>
+          <span class="step-name">SECTOR-ANALYZER</span>
+          <span class="step-sub">板块热度与资金流</span>
+        </div>
+        <div class="agent-pipeline-line"></div>
+        <div class="agent-pipeline-step" id="pipe-step-3">
+          <span class="step-check">&#x2713;</span>
+          <span class="step-name">STOCK-SCREENER</span>
+          <span class="step-sub">多因子实时初筛</span>
+        </div>
+        <div class="agent-pipeline-line"></div>
+        <div class="agent-pipeline-step" id="pipe-step-4">
+          <span class="step-check">&#x2713;</span>
+          <span class="step-name">REPORT-FORMATTER</span>
+          <span class="step-sub">DeepSeek 综合研判</span>
+        </div>
+      </div>
+
+      <!-- Main Body: Terminal Log Stream (Left) + Stats & Tool Usage (Right) -->
+      <div class="agent-panel-main">
+        <!-- Terminal Stream -->
+        <div class="agent-terminal-card">
+          <div class="terminal-card-header">
+            <div class="terminal-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="terminal-title">AI-STOCK-ANALYZER &mdash; ANALYSIS PROCESS LOG</div>
+            <div class="terminal-log-filter">
+              <span class="filter-chip active" onclick="filterAgentLogs('all')">ALL</span>
+              <span class="filter-chip" onclick="filterAgentLogs('screener')">SCREENER</span>
+              <span class="filter-chip" onclick="filterAgentLogs('ai')">AI-DECISION</span>
+            </div>
+          </div>
+          <div class="agent-terminal-logs" id="agent-terminal-logs">
+            <div class="agent-log-row placeholder">
+              <span class="log-time">00:00:00</span>
+              <span class="log-tag tag-system">[SYSTEM]</span>
+              <span class="log-status status-ready">READY</span>
+              <span class="log-msg">AI Stock-Agent 进程处于就绪状态，点击右上角【开始运行】启动多阶段自主筛股...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Metrics & Usage Sidebar -->
+        <div class="agent-metrics-sidebar">
+          <div class="agent-sub-title">// STATISTICS</div>
+          <div class="agent-stat-grid">
+            <div class="agent-stat-box">
+              <div class="stat-number" id="agent-stat-toolcalls">0</div>
+              <div class="stat-label">TOOL CALLS</div>
+            </div>
+            <div class="agent-stat-box">
+              <div class="stat-number" id="agent-stat-aioutput">0</div>
+              <div class="stat-label">AI OUTPUT</div>
+            </div>
+            <div class="agent-stat-box">
+              <div class="stat-number" id="agent-stat-searches">0</div>
+              <div class="stat-label">SEARCHES</div>
+            </div>
+            <div class="agent-stat-box">
+              <div class="stat-number" id="agent-stat-elapsed">0s</div>
+              <div class="stat-label">ELAPSED</div>
+            </div>
+          </div>
+
+          <div class="agent-sub-title" style="margin-top:14px">// PHASE BREAKDOWN</div>
+          <div class="agent-phase-list" id="agent-phase-breakdown">
+            <div class="phase-item">
+              <div class="phase-header"><span>新闻搜索 (News)</span><span id="pb-news-val">0 calls &bull; 0 chars</span></div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-header"><span>板块分析 (Sector)</span><span id="pb-sector-val">0 calls &bull; 0 chars</span></div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-header"><span>个股初筛 (Screener)</span><span id="pb-screen-val">0 calls &bull; 0 chars</span></div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-header"><span>研报生成 (Report)</span><span id="pb-report-val">0 calls &bull; 0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="agent-sub-title" style="margin-top:14px">// TOOL USAGE</div>
+          <div class="agent-tool-usage-list" id="agent-tool-usage-list">
+            <div class="tool-usage-row">
+              <span class="tool-name">实时行情 (Realtime)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-realtime" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-realtime">0</span>
+            </div>
+            <div class="tool-usage-row">
+              <span class="tool-name">网页搜索 (WebSearch)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-search" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-search">0</span>
+            </div>
+            <div class="tool-usage-row">
+              <span class="tool-name">板块成分 (SectorStock)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-sector" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-sector">0</span>
+            </div>
+            <div class="tool-usage-row">
+              <span class="tool-name">实时筛选 (Screener)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-screener" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-screener">0</span>
+            </div>
+            <div class="tool-usage-row">
+              <span class="tool-name">涨停池 (LimitUp)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-limitup" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-limitup">0</span>
+            </div>
+            <div class="tool-usage-row">
+              <span class="tool-name">大盘指数 (IndexQuotes)</span>
+              <div class="tool-bar-track"><div class="tool-bar-fill" id="tb-index" style="width:0%"></div></div>
+              <span class="tool-count" id="tc-index">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div id="right-panel">
+      <!-- Global sentiment mini bar -->
+      <div id="global-panel" style="display:flex;gap:8px;flex-shrink:0"></div>
+
+      <!-- Market Overview Bar (v5.0) -->
+      <div id="market-overview-bar"></div>
+
+      <!-- KPI Row -->
+      <div id="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">&#x1F4CA; 涨跌比</div><div class="kpi-value" id="kpi-updn">--/--</div><div class="kpi-sub" id="kpi-updn-pct">--</div></div>
+        <div class="kpi-card"><div class="kpi-label">&#x1F4B0; 板块成交额</div><div class="kpi-value" id="kpi-amount">--</div><div class="kpi-sub" id="kpi-amount-chg">--</div></div>
+        <div class="kpi-card"><div class="kpi-label">&#x1F4C8; 平均换手率</div><div class="kpi-value" id="kpi-turnover">--</div><div class="kpi-sub" id="kpi-turnover-desc">--</div></div>
+        <div class="kpi-card"><div class="kpi-label">&#x1F7E2; 最强个股</div><div class="kpi-value up" id="kpi-best">--</div><div class="kpi-sub" id="kpi-best-chg">--</div></div>
+        <div class="kpi-card"><div class="kpi-label">&#x1F534; 最弱个股</div><div class="kpi-value dn" id="kpi-worst">--</div><div class="kpi-sub" id="kpi-worst-chg">--</div></div>
+      </div>
+
+      <!-- K-Line Chart -->
+      <div class="card" id="kline-card">
+        <div class="kline-header">
+          <div class="kline-identity">
+            <div class="kline-name" id="k-name">--</div>
+            <div class="kline-quote-line">
+              <div class="kline-price up" id="k-price">--</div><div class="kline-chg-badge chg-up" id="k-chg">--</div>
+              <div class="ai-decision-mini" id="ai-decision-mini" style="display:none"></div>
+            </div>
+          </div>
+          <div class="kline-stats" aria-label="行情统计">
+            <div class="kstat"><div class="kstat-label">最高</div><div class="kstat-val up" id="k-high">--</div></div>
+            <div class="kstat"><div class="kstat-label">最低</div><div class="kstat-val dn" id="k-low">--</div></div>
+            <div class="kstat"><div class="kstat-label">昨收</div><div class="kstat-val" id="k-yc">--</div></div>
+            <div class="kstat"><div class="kstat-label">振幅</div><div class="kstat-val" id="k-amp">--</div></div>
+            <div class="kstat"><div class="kstat-label">成交量</div><div class="kstat-val" id="k-vol">--</div></div>
+            <div class="kstat"><div class="kstat-label">换手</div><div class="kstat-val" id="k-turnover">--</div></div>
+            <div class="kstat"><div class="kstat-label">量比</div><div class="kstat-val" id="k-vol-ratio">--</div></div>
+          </div>
+          <div class="period-btns" role="group" aria-label="K线周期">
+            <button class="pbtn" data-kline-period="min" aria-pressed="false" onclick="setPeriod(this,'min')" title="当日分时走势（1 分钟，实时更新）">分时</button>
+            <button class="pbtn active" data-kline-period="day" aria-pressed="true" onclick="setPeriod(this,'day')">日K</button>
+            <button class="pbtn" data-kline-period="week" aria-pressed="false" onclick="setPeriod(this,'week')">周K</button>
+            <button class="pbtn" data-kline-period="month" aria-pressed="false" onclick="setPeriod(this,'month')">月K</button>
+            <button class="pbtn" data-kline-period="60" aria-pressed="false" onclick="setPeriod(this,'60')">60分</button>
+            <button class="pbtn" data-kline-period="30" aria-pressed="false" onclick="setPeriod(this,'30')">30分</button>
+            <button class="pbtn" data-kline-period="15" aria-pressed="false" onclick="setPeriod(this,'15')">15分</button>
+            <button class="pbtn" data-kline-period="5" aria-pressed="false" onclick="setPeriod(this,'5')">5分</button>
+          </div>
+          <div class="kline-chart-actions">
+            <button class="kline-chart-action" type="button" onclick="resetKlineZoom()" title="恢复默认图表缩放">重置缩放</button>
+            <button class="kline-chart-action kline-fullscreen-btn" id="kline-fullscreen-btn" type="button" onclick="toggleKlineFullscreen()" aria-pressed="false" title="全屏查看K线" aria-label="全屏查看K线"><span id="kline-fullscreen-icon" aria-hidden="true">⛶</span><span id="kline-fullscreen-label">全屏</span></button>
+          </div>
+        </div>
+        <!-- v6.0: 指标切换工具栏 -->
+        <div class="indicator-bar" id="indicator-bar" role="group" aria-label="技术指标">
+          <span class="ind-bar-label">显示</span>
+          <button class="ibt active" id="ibt-volume" aria-pressed="true" onclick="window.toggleIndicator('VOLUME')">成交量</button>
+          <span class="ind-bar-sep"></span>
+          <span class="ind-bar-label">均线</span>
+          <button class="ibt active" id="ibt-ma5" aria-pressed="true" onclick="window.toggleIndicator('MA5')">MA5</button>
+          <button class="ibt active" id="ibt-ma10" aria-pressed="true" onclick="window.toggleIndicator('MA10')">MA10</button>
+          <button class="ibt active" id="ibt-ma20" aria-pressed="true" onclick="window.toggleIndicator('MA20')">MA20</button>
+          <button class="ibt" id="ibt-ma60" aria-pressed="false" onclick="window.toggleIndicator('MA60')">MA60</button>
+          <span class="ind-bar-sep"></span>
+          <button class="ibt" id="ibt-boll" aria-pressed="false" onclick="window.toggleIndicator('BOLL')">BOLL</button>
+          <button class="ibt" id="ibt-sr" aria-pressed="false" onclick="window.toggleIndicator('SupportResistance')">支撑/压力</button>
+          <span class="ind-bar-sep"></span>
+          <!-- v36: ICT 结构标注开关（默认关闭：46 个结构框默认开会让主图糊掉） -->
+          <button class="ibt" id="ibt-ict" aria-pressed="false" onclick="window.toggleIct()" title="ICT 结构：FVG 缺口 / OB 订单块 / 流动性扫单（默认关闭）">ICT 结构</button>
+          <span class="ind-bar-sep"></span>
+          <span class="ind-bar-label">副图</span>
+          <button class="ibt active" id="ibt-macd" data-sub-indicator="macd" aria-pressed="true" onclick="window.setSubIndicator('macd')">MACD</button>
+          <button class="ibt" id="ibt-kdj" data-sub-indicator="kdj" aria-pressed="false" onclick="window.setSubIndicator('kdj')">KDJ</button>
+          <button class="ibt" id="ibt-rsi" data-sub-indicator="rsi" aria-pressed="false" onclick="window.setSubIndicator('rsi')">RSI</button>
+          <span class="ind-bar-sep"></span>
+          <!-- v35 (T10): 12 类技术指标 —— 前 5 个叠主图（overlay），后 7 个为独立副图 -->
+          <span class="ind-bar-label" id="dp-ind-label-overlay" title="主图叠加：叠加在主图上，不改变主图刻度">叠加</span>
+          <span id="dp-ind-group-overlay" style="display:contents">
+          <button class="ibt" id="ibt-supertrend" data-sub-indicator="supertrend" data-ind-overlay="true" aria-pressed="false" onclick="window.setSubIndicator('supertrend')" title="SuperTrend（ATR 通道趋势线，叠主图）">SuperTrend</button>
+          <button class="ibt" id="ibt-ichimoku" data-sub-indicator="ichimoku" data-ind-overlay="true" aria-pressed="false" onclick="window.setSubIndicator('ichimoku')" title="一目均衡表（转换/基准线+云带+迟行线，叠主图）">一目均衡</button>
+          <button class="ibt" id="ibt-donchian" data-sub-indicator="donchian" data-ind-overlay="true" aria-pressed="false" onclick="window.setSubIndicator('donchian')" title="唐奇安通道（N 日最高/最低，叠主图）">唐奇安</button>
+          <button class="ibt" id="ibt-keltner" data-sub-indicator="keltner" data-ind-overlay="true" aria-pressed="false" onclick="window.setSubIndicator('keltner')" title="肯特纳通道（EMA±ATR，叠主图）">肯特纳</button>
+          <button class="ibt" id="ibt-vwap" data-sub-indicator="vwap" data-ind-overlay="true" aria-pressed="false" onclick="window.setSubIndicator('vwap')" title="成交量加权均价（典型价加权，盘中按自然日重置，叠主图）">VWAP</button>
+          </span>
+          <span class="ind-bar-sep"></span>
+          <span class="ind-bar-label" id="dp-ind-label-osc">振荡</span>
+          <span id="dp-ind-group-osc" style="display:contents">
+          <button class="ibt" id="ibt-adx" data-sub-indicator="adx" aria-pressed="false" onclick="window.setSubIndicator('adx')" title="ADX 趋势强度 + DI+/DI-（副图 0-100）">ADX</button>
+          <button class="ibt" id="ibt-aroon" data-sub-indicator="aroon" aria-pressed="false" onclick="window.setSubIndicator('aroon')" title="Aroon 新高/新低距离（副图 0-100）">Aroon</button>
+          <button class="ibt" id="ibt-obv" data-sub-indicator="obv" aria-pressed="false" onclick="window.setSubIndicator('obv')" title="能量潮 OBV（副图，累计成交量）">OBV</button>
+          <button class="ibt" id="ibt-mfi" data-sub-indicator="mfi" aria-pressed="false" onclick="window.setSubIndicator('mfi')" title="资金流量指标 MFI（副图 0-100）">MFI</button>
+          <button class="ibt" id="ibt-atr" data-sub-indicator="atr" aria-pressed="false" onclick="window.setSubIndicator('atr')" title="真实波幅 ATR（副图）">ATR</button>
+          <button class="ibt" id="ibt-stoch" data-sub-indicator="stoch" aria-pressed="false" onclick="window.setSubIndicator('stoch')" title="随机指标 K/D/J（副图 0-100）">Stoch</button>
+          <button class="ibt" id="ibt-cci" data-sub-indicator="cci" aria-pressed="false" onclick="window.setSubIndicator('cci')" title="顺势指标 CCI（副图，±100 强弱分界）">CCI</button>
+          </span>
+          <span class="ind-bar-sep"></span>
+          <button class="ibt" id="ibt-params" aria-pressed="false" onclick="window.toggleIndicatorParams()" title="自定义指标参数">参数</button>
+        </div>
+        <!-- v16: 指标参数自定义弹层 -->
+        <div class="indicator-params-pop" id="indicator-params-pop" hidden>
+          <div class="ipp-row"><span class="ipp-name">MACD</span><label>快线<input id="ipp-macd-fast" type="number" value="12" min="2" max="60" step="1"></label><label>慢线<input id="ipp-macd-slow" type="number" value="26" min="5" max="120" step="1"></label><label>信号<input id="ipp-macd-signal" type="number" value="9" min="2" max="60" step="1"></label></div>
+          <div class="ipp-row"><span class="ipp-name">KDJ</span><label>N<input id="ipp-kdj-n" type="number" value="9" min="2" max="60" step="1"></label><label>M1<input id="ipp-kdj-m1" type="number" value="3" min="1" max="30" step="1"></label><label>M2<input id="ipp-kdj-m2" type="number" value="3" min="1" max="30" step="1"></label></div>
+          <div class="ipp-row"><span class="ipp-name">RSI</span><label>周期<input id="ipp-rsi-period" type="number" value="14" min="2" max="60" step="1"></label><span class="ipp-name" style="margin-left:12px">BOLL</span><label>周期<input id="ipp-boll-period" type="number" value="20" min="5" max="120" step="1"></label><label>倍数<input id="ipp-boll-mult" type="number" value="2" min="0.5" max="4" step="0.5"></label></div>
+          <div class="ipp-actions"><button class="ipp-btn primary" onclick="window.applyIndicatorParams()">应用参数</button><button class="ipp-btn" onclick="window.resetIndicatorParams()">重置默认</button><span class="ipp-hint">应用于副图指标与 BOLL 主图叠加</span></div>
+          <!-- v35 (T10): 12 类技术指标参数（行由 catalog 渲染，schema 含 type/min/max/unit/desc） -->
+          <div aria-hidden="true" style="height:1px;margin:2px 0;background:linear-gradient(90deg,rgba(59,130,246,.28),rgba(59,130,246,0))"></div>
+          <div id="ipp-dp-rows"></div>
+          <div class="ipp-actions"><button class="ipp-btn primary" onclick="window.applyDpIndicatorParams()">应用 12 类指标参数</button><button class="ipp-btn" onclick="window.resetDpIndicatorParams()">重置 12 类默认</button><span class="ipp-hint">参数越界自动夹取；改动后切回该指标会按新参数重新取数</span></div>
+        </div>
+        <!-- v16: K线+震荡指标自动分析总结条 -->
+        <div class="chart-analysis-strip" id="chart-analysis-strip" hidden>
+          <div class="cas-head">
+            <span class="cas-state" id="cas-state">--</span>
+            <span class="cas-meta" id="cas-meta"></span>
+            <button class="cas-toggle" type="button" onclick="document.getElementById('cas-reasons').classList.toggle('open')">成因</button>
+          </div>
+          <div class="cas-summary" id="cas-summary">分析加载中…</div>
+          <div class="cas-reasons" id="cas-reasons"></div>
+        </div>
+        <div id="kline-chart"></div>
+        <div class="kline-tabs" id="kline-tabs">
+          <button class="ktab active" data-tab="strategy" onclick="switchKlineTab('strategy')">策略评分</button>
+          <button class="ktab" data-tab="fund-flow" onclick="switchKlineTab('fund-flow')">资金流向</button>
+          <button class="ktab" data-tab="profile" onclick="switchKlineTab('profile')">个股简况</button>
+          <button class="ktab" data-tab="fundamental" onclick="switchKlineTab('fundamental')">基本面</button>
+          <button class="ktab" data-tab="report" onclick="switchKlineTab('report')">研报</button>
+          <button class="ktab" data-tab="north" onclick="switchKlineTab('north')">北向资金</button>
+          <button class="ktab" data-tab="news" onclick="switchKlineTab('news')">资讯</button>
+          <button class="ktab" data-tab="strategy-lab" onclick="switchKlineTab('strategy-lab')">策略实验室</button>
+          <button class="ktab" data-tab="portfolio" onclick="switchKlineTab('portfolio')">模拟持仓</button>
+        </div>
+        <!-- v5.1: Tab浮层容器 — 绝对定位覆盖K线图 -->
+        <div class="kline-overlay" id="kline-overlay">
+          <div class="kline-overlay-header">
+            <div class="kline-overlay-title" id="kline-overlay-title">详情</div>
+            <button class="kline-overlay-close" onclick="hideKlineOverlay()" aria-label="关闭">&times;</button>
+          </div>
+          <div class="kline-overlay-body" id="kline-overlay-body"></div>
+          <!-- 面板出口：9 个 Tab 共用，href 由 app.js 的 _syncContextLinks() 按当前板块/标的刷新 -->
+          <div class="kline-overlay-links" id="kline-overlay-links">
+            <span class="kol-label">相关信息</span>
+            <a class="kol-link" id="kol-sentiment" href="/dashboard.html#market">📈 该板块市场情绪</a>
+            <a class="kol-link" id="kol-quant" href="/quant.html">🔬 量化回测</a>
+            <a class="kol-link" id="kol-docs" href="/project-docs.html">📖 项目文档</a>
+            <a class="kol-link" id="kol-api" href="/api-reference.html">🔌 数据接口</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Strategy (wraps existing bottom-row) -->
+      <div class="kline-tab-content" id="tab-strategy">
+
+      <!-- Bottom Row -->
+      <div id="bottom-row">
+        <div id="bottom-row-1">
+          <!-- Strategy Scores + Radar -->
+          <div class="mini-card" style="flex:2;display:flex;gap:8px">
+            <div style="flex:1"><div class="mini-title">&#x1F3AF; 策略评分</div>
+              <div id="strategy-panel">
+                <div class="strategy-item">
+                  <div class="strategy-icon" style="background:rgba(245,158,11,0.1)">&#x1F4C8;</div>
+                  <div class="strategy-content"><div class="strategy-name">动量策略</div><div class="strategy-desc" id="s-momentum-desc">计算中...</div><div class="score-bar"><div class="score-fill" id="s-m-bar"></div></div></div>
+                  <div class="strategy-score"><div class="score-num" id="s-momentum">--</div></div>
+                </div>
+                <div class="strategy-item">
+                  <div class="strategy-icon" style="background:rgba(6,182,212,0.1)">&#x1F680;</div>
+                  <div class="strategy-content"><div class="strategy-name">突破策略</div><div class="strategy-desc" id="s-break-desc">计算中...</div><div class="score-bar"><div class="score-fill" id="s-b-bar" style="background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div></div>
+                  <div class="strategy-score"><div class="score-num" id="s-break">--</div></div>
+                </div>
+                <div class="strategy-item">
+                  <div class="strategy-icon" style="background:rgba(168,85,247,0.1)">&#x1F4C9;</div>
+                  <div class="strategy-content"><div class="strategy-name">量价背离</div><div class="strategy-desc" id="s-vol-desc">计算中...</div><div class="score-bar"><div class="score-fill" id="s-v-bar" style="background:linear-gradient(90deg,var(--purple),var(--pink))"></div></div></div>
+                  <div class="strategy-score"><div class="score-num" id="s-vol">--</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="width:160px;flex-shrink:0"><div class="mini-title">&#x1F3AF; 因子雷达</div><div id="radar-chart" style="width:100%;height:140px"></div></div>
+          </div>
+          <div class="mini-card" id="tech-indicator-card">
+            <div class="mini-title">📈 技术指标</div>
+            <div class="tech-row">
+              <span class="tech-label">MACD</span>
+              <span class="tech-val" id="macd-val">--</span>
+              <span class="tech-signal neutral" id="macd-signal-tag">--</span>
+            </div>
+            <div class="tech-row">
+              <span class="tech-label">DIF</span>
+              <span class="tech-val-sm" id="macd-dif">--</span>
+              <span class="tech-label">DEA</span>
+              <span class="tech-val-sm" id="macd-dea">--</span>
+            </div>
+            <div class="tech-divider"></div>
+            <div class="tech-row">
+              <span class="tech-label">建议仓位</span>
+              <span class="tech-val" id="pos-pct">--</span>
+            </div>
+            <div class="tech-progress"><div id="pos-bar"></div></div>
+            <div class="tech-sub" id="pos-desc">基于ATR止损</div>
+          </div>
+        </div>
+        <div id="bottom-row-2">
+          <div class="mini-card"><div class="mini-title">&#x1F4CA; 多周期共振</div><div id="resonance-grid"><span style="font-size:10px;color:var(--muted)">等待数据</span></div></div>
+          <div class="mini-card"><div class="mini-title">&#x1F56F;&#xFE0F; K线形态</div><div id="pattern-panel"><span style="font-size:10px;color:var(--muted)">等待数据</span></div></div>
+          <div class="mini-card" style="flex:3"><div class="mini-title" style="display:flex;align-items:center;justify-content:space-between"><span>&#x1F916; AI 实时分析 (DeepSeek V4)</span><div class="ai-zoom-controls"><button class="ai-zoom-btn" id="ai-zoom-out" aria-label="缩小 AI 分析区域" title="缩小">−</button><span class="ai-zoom-label" id="ai-zoom-label">100%</span><button class="ai-zoom-btn" id="ai-zoom-in" aria-label="放大 AI 分析区域" title="放大">+</button><button class="ai-zoom-reset" id="ai-zoom-reset" aria-label="重置缩放" title="重置">↺</button></div></div><div id="analysis-panel"><span style="font-size:10px;color:var(--muted)">选中股票后自动生成分析</span></div></div>
+        </div>
+      </div>
+
+      </div><!-- end #tab-strategy -->
+
+      <!-- 非默认 Tab 暂存区：打开时将目标面板移动到 K 线浮层，关闭后移回此处 -->
+      <div id="kline-tab-stash" style="display:none">
+        <div class="kline-tab-content" id="tab-fund-flow"><div id="fund-flow-panel"><div class="loading-shimmer">选择股票后查看资金流向</div></div></div>
+        <div class="kline-tab-content" id="tab-profile"><div id="profile-panel"><div class="loading-shimmer">选择股票后查看个股简况</div></div></div>
+
+        <!-- T09: 基本面 6 卡 + 估值分位条（数据源 /api/finance、/api/finance/valuation） -->
+        <div class="kline-tab-content" id="tab-fundamental">
+          <div id="fundamental-block"><div class="loading-shimmer">选择股票后查看基本面 6 卡</div></div>
+          <div id="valuation-bar"></div>
+        </div>
+        <div class="kline-tab-content" id="tab-report"><div id="report-panel"><div class="loading-shimmer">选择股票后查看研报</div></div></div>
+        <div class="kline-tab-content" id="tab-north"><div id="north-panel"><div class="loading-shimmer">选择股票后查看北向资金</div></div></div>
+        <div class="kline-tab-content" id="tab-news"><div id="news-panel"><div class="loading-shimmer">选择股票后查看资讯</div></div></div>
+
+        <div class="kline-tab-content" id="tab-strategy-lab">
+          <div id="strategy-lab-panel" class="osl-module"><div class="loading-shimmer">选择股票后评估策略</div></div>
+        </div>
+
+        <div class="kline-tab-content" id="tab-portfolio">
+          <div class="portfolio-module osl-module">
+            <div class="osl-toolbar">
+              <div><div class="osl-heading">模拟持仓中心</div><div class="osl-subheading">本地模拟 · 不连接真实交易账户</div></div>
+              <div class="osl-actions">
+                <button class="osl-btn primary" onclick="portfolioTrade('buy')">买入当前股</button>
+                <button class="osl-btn" onclick="exportPortfolioCsv()">导出记录</button>
+                <button class="osl-btn danger" onclick="clearPortfolio()">清空</button>
+              </div>
+            </div>
+            <div class="portfolio-stats">
+              <div class="portfolio-stat"><span>总资产</span><strong id="p-assets">--</strong></div>
+              <div class="portfolio-stat"><span>持仓市值</span><strong id="p-total">--</strong></div>
+              <div class="portfolio-stat"><span>可用现金</span><strong id="p-cash">--</strong></div>
+              <div class="portfolio-stat"><span>今日盈亏</span><strong id="p-daily">--</strong></div>
+              <div class="portfolio-stat"><span>累计盈亏</span><strong id="p-profit">--</strong></div>
+            </div>
+            <div id="portfolio-risk" class="portfolio-risk"></div>
+            <div class="portfolio-layout">
+              <div><div class="osl-section-title">当前持仓</div><div id="portfolio-list"></div></div>
+              <div><div class="osl-section-title">最近交易</div><div id="portfolio-trades" class="portfolio-trades"></div></div>
+            </div>
+            <div class="osl-disclaimer">模拟结果未计入手续费、滑点、涨跌停和流动性约束，仅用于功能研究。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal Table -->
+      <div id="signal-table-wrap" style="display:none;flex-shrink:0">
+        <div class="card" style="padding:8px 12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="mini-title" style="margin-bottom:0">&#x1F4CA; 选股信号排行</div>
+            <div style="display:flex;gap:6px">
+              <button class="pbtn" onclick="sortSignalTable('score')">按评分</button>
+              <button class="pbtn" onclick="sortSignalTable('chg')">按涨跌</button>
+              <button class="pbtn" onclick="toggleSignalTable()">收起 &#x25B2;</button>
+            </div>
+          </div>
+          <div style="max-height:200px;overflow-y:auto">
+            <table class="signal-table"><thead><tr><th>#</th><th>名称</th><th>代码</th><th>评分</th><th>信号</th><th>涨跌幅</th><th>现价</th></tr></thead><tbody id="signal-table-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div id="signal-table-toggle" onclick="toggleSignalTable()" class="card" style="padding:6px 12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0">
+        <span style="font-size:11px;color:var(--text2)">&#x1F4CA; 展开选股信号排行</span><span style="font-size:10px;color:var(--muted)">&#x25BC;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKET DASHBOARD VIEW -->
+  <section id="qlib-dashboard-view" aria-label="Qlib AI 因子挖掘与回测" style="display:none;flex-direction:column;gap:12px;padding:10px 12px;overflow-y:auto;height:calc(100vh - 120px)">
+    <div class="market-page-head">
+      <div>
+        <div class="market-page-title">&#x1F9EA; Qlib AI 因子挖掘与组合回测实验室</div>
+        <div class="market-page-sub">动态因子缠论 &bull; 真实行情实时选股 + 缠论结构买卖点 &bull; 真实回测</div>
+      </div>
+      <div class="market-head-actions">
+        <button class="market-link-btn" onclick="loadDynamicFactor()">&#x1F504; 刷新动态缠论</button>
+        <button class="market-refresh-btn" onclick="runQlibBacktest()" id="btn-run-qlib">&#x25B6; 运行因子回测</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Factor + Chan Theory Real-time Screening -->
+    <article class="market-panel">
+      <div class="market-panel-head">
+        <div><strong>&#x1F4E1; 动态因子缠论实时选股</strong><span id="dynamic-factor-meta">真实行情 + 四维因子得分 + 缠论结构（分型/笔/中枢/背驰）买卖点，随行情实时更新</span></div>
+        <span class="agent-badge" style="background:rgba(168,85,247,0.15);color:var(--purple);border-color:rgba(168,85,247,0.3)">Chan Theory Live</span>
+      </div>
+      <div id="dynamic-factor-strip" class="dfc-strip">
+        <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
+        <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
+        <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
+      </div>
+    </article>
+
+    <!-- Factor Selection Grid -->
+    <div class="market-panel" style="padding:12px">
+      <div class="market-panel-head">
+        <div><strong>选择 AI 挖掘因子</strong><span>支持动量、波动率反转、换手流动性、盈利价值、成长质量与资金流微观因子</span></div>
+        <span class="agent-badge" style="background:rgba(6,182,212,0.15);color:var(--cyan);border-color:rgba(6,182,212,0.3)">Qlib Model Engine</span></div>
+      <div id="qlib-factor-chips" class="qlib-factor-grid">
+        <!-- Factor Item Cards will be rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Key Metrics KPI Cards -->
+    <div class="market-kpi-grid" id="qlib-kpi-grid">
+      <article class="market-kpi"><span>累计超额收益 (Alpha)</span><strong class="up" id="qlib-kpi-excess">+0.00%</strong><small id="qlib-kpi-annual">年化收益: --</small></article>
+      <article class="market-kpi"><span>夏普比率 (Sharpe)</span><strong class="up" id="qlib-kpi-sharpe">0.00</strong><small id="qlib-kpi-calmar">卡玛比率: --</small></article>
+      <article class="market-kpi"><span>最大回撤 (MaxDD)</span><strong class="dn" id="qlib-kpi-drawdown">0.00%</strong><small id="qlib-kpi-vol">年化波动率: --</small></article>
+      <article class="market-kpi"><span>胜率与交易天数</span><strong class="up" id="qlib-kpi-winrate">0.0%</strong><small id="qlib-kpi-days">样本天数: 250 天</small></article>
+      <article class="market-kpi"><span>组合综合 IC / IR</span><strong style="color:var(--purple)" id="qlib-kpi-ic">0.000</strong><small id="qlib-kpi-ir">信息比率 IR: --</small></article>
+    </div>
+
+    <!-- Charts & Monotonicity Breakdown -->
+    <div class="qlib-grid-charts">
+      <article class="market-panel" style="min-height:360px">
+        <div class="market-panel-head">
+          <div><strong>累计收益曲线对比 (NAV Curve)</strong><span>策略组合 vs 沪深300基准 vs 纯 Alpha 超额 · 支持区间缩放</span></div>
+        </div>
+        <div id="qlib-nav-chart" style="height:280px;width:100%"></div>
+      </article>
+
+      <article class="market-panel" style="min-height:360px">
+        <div class="market-panel-head">
+          <div><strong>多空五分位数分层 (Quantiles)</strong><span>红涨绿跌 · 验证因子单调性与头尾部分离度</span></div>
+        </div>
+        <div id="qlib-quantile-list" class="qlib-quantile-wrap">
+          <div class="skeleton skel-chart"></div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Top Alpha Stocks Table -->
+    <article class="market-panel">
+      <div class="market-panel-head">
+        <div><strong>Qlib 因子加权推荐多头组合 Top 标的</strong><span>综合因子得分由高到低排序，叠加缠论结构买卖点 · 点击表头可排序</span></div>
+      </div>
+      <div class="data-table-wrap" style="margin-top:6px">
+        <table class="data-table" id="qlib-top-table" style="width:100%">
+          <thead>
+            <tr>
+              <th>排名</th><th>代码</th><th>名称</th><th class="th-sortable" id="qlib-sort-score" onclick="sortQlibTop('score')" title="按综合评分排序">综合评分 <span class="sort-ind on" id="qlib-sort-ind-score">&#9660;</span></th><th>四维因子（动量/突破/量价/均线）</th><th>缠论结构</th><th class="th-sortable" id="qlib-sort-signal" onclick="sortQlibTop('signal')" title="按操作信号排序">操作信号 <span class="sort-ind" id="qlib-sort-ind-signal">&#8645;</span></th>
+            </tr>
+          </thead>
+          <tbody id="qlib-top-stocks-tbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <!-- MARKET DYNAMIC SURVEY & ROTATION VIEW -->
+  <section id="decision-dashboard-view" aria-label="决策台：主脑中心（事实 / 判断 / 决策）" style="display:none">
+    <div class="dd-hub-bar" role="tablist" aria-label="决策台分层">
+      <div class="dd-hub-brand"><span class="dd-hub-dot"></span>主脑中心</div>
+      <button class="dd-hub-tab" type="button" role="tab" data-hub="fact" aria-selected="false" onclick="switchHubSegment('fact')">
+        <b>事实层</b><span>指数 · 广度 · 资金 · 板块</span>
+      </button>
+      <button class="dd-hub-tab" type="button" role="tab" data-hub="survey" aria-selected="false" onclick="switchHubSegment('survey')">
+        <b>判断层</b><span>市场调查 · 轮动 · 异动</span>
+      </button>
+      <button class="dd-hub-tab is-active" type="button" role="tab" data-hub="decision" aria-selected="true" onclick="switchHubSegment('decision')">
+        <b>决策层</b><span>结论 · 专家 · 风险 · 复盘</span>
+      </button>
+      <span class="dd-hub-hint" id="dd-hub-hint">三层共用同一份市场快照与 trace</span>
+    </div>
+    <div class="dd-hub-body">
+      <div class="dd-hub-seg" data-hub-panel="fact">  <section id="market-dashboard-view" aria-label="事实层：大盘纵览">
+    <div class="market-page-head">
+      <div><div class="market-page-sub" id="market-scope">事实层 · 真实行情聚合 · 数据加载中</div></div>
+      <div class="market-head-actions"><span id="market-updated">--</span><button class="market-refresh-btn" onclick="loadMarketDashboard(true)">↻ 刷新</button></div>
+    </div>
+    <div class="market-data-quality-notice" id="market-data-quality-notice" role="status" hidden></div>
+    <!-- ① 一行结论：今天市场什么状态 -->
+    <div class="mo-conclusion" id="market-conclusion-bar" aria-live="polite">
+      <div class="mo-conclusion-main">
+        <span class="mo-conclusion-tag">今日市场</span>
+        <strong id="market-conclusion-text">数据加载中…</strong>
+        <span class="mn-nature-badge" id="market-conclusion-badge" data-nature="snapshot" title="数据性质：历史快照 —— 上游停更或本次取数失败，沿用上一次成功结果。">历史快照</span>
+      </div>
+      <div class="mo-conclusion-score"><span>情绪分</span><b id="market-conclusion-score">--</b><em id="market-conclusion-regime">--</em></div>
+    </div>
+
+    <!-- ② 三块体征：情绪 / 市场广度 / 资金面（资金面为新增） -->
+    <div class="mo-vitals-grid">
+      <article class="market-panel mo-vital" id="market-vital-sentiment" aria-label="市场情绪体征">
+        <div class="market-panel-head"><div><strong>市场情绪</strong><span>统一口径 sentiment.v1 · 六维加权 · 点击分布联动排行</span></div><div class="mo-head-side"><span class="mn-nature-badge" id="market-vital-badge-sentiment" data-nature="aggregated" title="数据性质：统一情绪口径 —— 由 sentiment.v1 六维加权，缺失维度按剩余权重重归一。">统一口径</span><div class="market-regime" id="market-regime">--</div></div></div>
+        <div class="market-gauge"><div class="market-gauge-ring" id="market-gauge-ring"><span id="market-gauge-score">--</span><small>情绪分</small></div><div class="market-gauge-copy"><strong id="market-judgment">数据加载中</strong><p id="market-judgment-text">--</p></div></div>
+        <div id="market-sent-dims" class="mo-sent-dims" aria-label="情绪六维"></div>
+
+        <!-- 情绪追踪（sentiment-flow.v1）：与「此刻多少分」互补——回答「往哪走、谁在推」 -->
+        <div class="mo-flow" id="market-sent-flow" aria-live="polite">
+          <div class="mo-flow-head">
+            <span class="mo-flow-tag" id="market-flow-tag" data-tone="muted">追踪</span>
+            <span class="mo-flow-note" id="market-flow-note">情绪追踪加载中…</span>
+          </div>
+          <div class="mo-flow-metrics" id="market-flow-metrics"></div>
+          <div class="mo-flow-drivers" id="market-flow-drivers"></div>
+        </div>
+      </article>
+
+      <article class="market-panel mo-vital" id="market-vital-breadth" aria-label="市场广度体征">
+        <div class="market-panel-head"><div><strong>市场广度</strong><span>上涨 / 平盘 / 下跌家数分布</span></div><span class="mn-nature-badge" id="market-vital-badge-breadth" data-nature="aggregated" title="数据性质：聚合口径 —— 由第三方行情或系统样本池聚合推导。">聚合口径</span></div>
+        <div class="market-breadth-bar"><i id="market-up-bar"></i><i id="market-flat-bar"></i><i id="market-down-bar"></i></div>
+        <div class="market-breadth-legend" id="market-breadth-legend"></div>
+        <!-- 6 档分布：比「上涨/平盘/下跌」更细，与筛选联动；归入广度卡而非情绪卡 -->
+        <div id="market-distribution" class="market-distribution"></div>
+      </article>
+
+      <article class="market-panel mo-vital mo-capital" id="market-vital-capital" aria-label="资金面体征">
+        <div class="market-panel-head"><div><strong>资金面</strong><span>成交额 / 沪深港通 / 指数资金流</span></div><span class="mn-nature-badge" id="market-vital-badge-capital" data-nature="aggregated" title="数据性质：聚合口径 —— 由第三方行情或系统样本池聚合推导。">聚合口径</span></div>
+        <div id="market-capital-vitals" class="mo-capital-vitals" aria-live="polite"><div class="mo-capital-skel"></div></div>
+      </article>
+    </div>
+
+    <!-- 三锚点信号：把「事实带」的量能/均线/情绪压成三个可判读的灯 -->
+    <div class="mo-anchors" id="market-anchors" aria-label="三锚点信号" aria-live="polite"></div>
+
+    <!-- ③ 外部环境入口：全球金融市场对 A 股的传导（上游 /api/global/linkage 就绪后自动接入，未就绪则如实占位） -->
+    <div class="mo-external" id="market-external-env" aria-label="外部环境">
+      <div class="mo-external-head"><strong>🌐 外部环境</strong><span class="mo-external-sub">全球金融市场对 A 股的传导影响</span><span class="mn-nature-badge" id="market-external-badge" data-nature="snapshot" title="数据性质：历史快照 —— 上游接口未就绪，占位呈现。">历史快照</span></div>
+      <div id="market-external-body" class="mo-external-body">正在探测全球联动接口…</div>
+    </div>
+
+    <!-- ④ 指数与趋势 -->
+    <div class="mo-section-head"><strong>指数与趋势</strong><span class="mn-nature-badge" id="market-vital-badge-index" data-nature="real" title="数据性质：真实 —— 实时直采，未经二次加工。">真实</span><span class="mo-section-sub">腾讯财经实时直采 · 基准归一化</span></div>
+    <div class="market-index-grid" id="market-index-grid"><div class="market-skeleton"></div><div class="market-skeleton"></div><div class="market-skeleton"></div></div>
+    <div class="global-assets-strip" id="global-assets-strip" aria-label="全球市场"></div>
+    <article class="market-panel market-trend-panel"><div class="market-panel-head"><div><strong>指数趋势</strong><span id="market-trend-caption">指数表现 · 基准归一化</span></div><div class="market-chart-legend" id="market-chart-legend"></div></div><div class="market-chart-toolbar"><div class="market-chart-segments" role="group" aria-label="趋势窗口"><button data-trend-window="12" aria-pressed="false" onclick="setMarketTrendWindow(12)">12点</button><button data-trend-window="24" aria-pressed="false" onclick="setMarketTrendWindow(24)">24点</button><button class="active" data-trend-window="48" aria-pressed="true" onclick="setMarketTrendWindow(48)">48点</button><button data-trend-window="all" aria-pressed="false" onclick="setMarketTrendWindow('all')">全部</button></div><label class="market-chart-range"><span>时间窗</span><input id="market-trend-range" type="range" min="12" max="48" step="1" value="48" aria-label="图表显示点数" oninput="setMarketTrendWindow(this.value)"></label><div class="market-chart-segments" role="group" aria-label="趋势显示方式"><button class="active" data-trend-mode="percent" aria-pressed="true" onclick="setMarketTrendMode('percent')">涨跌%</button><button data-trend-mode="index" aria-pressed="false" onclick="setMarketTrendMode('index')">指数点位</button></div><button class="market-chart-expand" onclick="toggleMarketChartFocus()" title="放大图表" aria-label="放大图表">⛶</button></div><div id="market-index-chart"></div></article>
+
+    <article class="market-panel market-account-panel">
+      <div class="market-panel-head"><div><strong>模拟交易账户</strong><span>本地存储 · 初始资金 <span id="acct-initial">¥2,000</span></span> <span class="mn-nature-badge" id="market-account-badge" data-nature="local" title="数据性质：本地样本 —— 浏览器本地存储 / 本地样本兜底数据。">本地样本</span></div><button class="market-link-btn" onclick="resetMarketAccount()">重置</button></div>
+      <div class="acct-hero">
+        <div class="acct-hero-main">
+          <span class="acct-hero-label">总资产</span>
+          <strong id="market-account-assets">--</strong>
+          <em id="market-account-pnl" class="flat">--</em>
+        </div>
+        <div class="acct-hero-side">
+          <div class="acct-chip"><span>今日盈亏</span><strong id="acct-day-pnl">--</strong></div>
+          <div class="acct-chip"><span>累计收益率</span><strong id="market-account-return">--</strong></div>
+        </div>
+      </div>
+      <div class="acct-kpi-grid">
+        <div><span>可用现金</span><strong id="market-account-cash">--</strong></div>
+        <div><span>持仓市值</span><strong id="market-account-value">--</strong></div>
+        <div><span>仓位占比</span><strong id="acct-position-pct">--</strong></div>
+        <div><span>已实现盈亏</span><strong id="acct-realized">--</strong></div>
+        <div><span>胜率 <small id="acct-closed-count"></small></span><strong id="acct-winrate">--</strong></div>
+        <div><span>盈亏比</span><strong id="acct-pf">--</strong></div>
+      </div>
+      <div class="acct-charts">
+        <div class="acct-chart-box"><div class="acct-chart-title">收益曲线<span>每日快照 · 随交易更新</span></div><div id="acct-equity-chart" class="acct-equity-chart" role="img" aria-label="账户收益曲线"></div></div>
+        <div class="acct-chart-box"><div class="acct-chart-title">持仓分布</div><div id="market-account-chart" class="market-account-chart" role="img" aria-label="模拟账户资产配置"></div></div>
+      </div>
+      <div class="market-trade-form"><select id="market-trade-symbol" aria-label="模拟交易股票"></select><input id="market-trade-qty" type="number" min="100" step="100" value="100" aria-label="模拟交易数量（100股一手）"><button onclick="executeMarketTrade('buy')">买入</button><button class="sell" onclick="executeMarketTrade('sell')">卖出</button></div>
+      <div class="acct-bottom-grid">
+        <div>
+          <div class="acct-section-head"><span>当前持仓</span><small id="acct-holdings-count"></small></div>
+          <div id="market-account-holdings" class="market-account-holdings"></div>
+        </div>
+        <div>
+          <div class="market-trade-history-head"><div class="market-trade-history-title">最近模拟交易</div><button class="market-link-btn" onclick="exportMarketTrades()" title="导出全部模拟交易记录">导出 CSV</button></div>
+          <div id="market-account-trades" class="market-account-trades"></div>
+        </div>
+      </div>
+    </article>
+    <div class="market-kpi-grid" id="market-kpi-grid" aria-live="polite"></div>
+    <div class="market-explore-toolbar"><div class="market-explore-context"><strong id="market-filter-summary">全样本视图</strong><span>板块和涨跌区间可联动筛选 · 60 秒快照更新</span></div><label class="market-explore-search"><span aria-hidden="true">⌕</span><input id="market-symbol-search" type="search" placeholder="搜名称或代码" autocomplete="off" aria-label="筛选股票名称或代码"></label><select id="market-mover-sort" class="market-sector-sort" aria-label="排行排序方式" onchange="setMarketMoverSort(this.value)"><option value="chg">按涨跌幅</option><option value="amount">按成交额</option><option value="turnover">按换手率</option></select><button class="market-link-btn" id="market-filter-clear" onclick="clearMarketFilters()" disabled>清除筛选</button></div>
+    <div class="market-detail-grid">
+      <article class="market-panel"><div class="market-panel-head"><div><strong>板块强弱热力</strong><span id="market-sector-caption">按样本股平均涨跌幅排序</span></div><select id="market-sector-sort" class="market-sector-sort" aria-label="板块排序指标" onchange="setMarketSectorSort(this.value)"><option value="avg_chg">平均涨跌</option><option value="up_ratio">上涨占比</option><option value="amount">成交额</option></select></div><div id="market-sector-heatmap" class="market-sector-heatmap"></div></article>
+      <article class="market-panel"><div class="market-panel-head"><div><strong>领涨 / 领跌排行</strong><span>点击个股可切回策略选股查看详情</span></div><div class="market-list-tabs"><button class="active" data-market-list="leaders" onclick="switchMarketList('leaders')">领涨</button><button data-market-list="laggards" onclick="switchMarketList('laggards')">领跌</button></div></div><div id="market-movers-list" class="market-movers-list"></div><div class="market-mover-footer" id="market-mover-footer"></div></article>
+      <article class="market-panel"><div class="market-panel-head"><div><strong>指数资金流与风险</strong><span>展示上游原始分类值，不推断主力/大单口径</span></div></div><div id="market-capital-flow" class="market-capital-flow"></div><div class="market-risk-title">风险标签</div><div id="market-risk-tags" class="market-risk-tags"></div><div class="market-risk-title">机会板块</div><div id="market-opportunities" class="market-opportunities"></div></article>
+    </div>
+    <div class="market-disclaimer" id="market-disclaimer">市场统计基于系统覆盖样本，不构成投资建议。</div>
+  </section>
+
+  <!-- QLIB AI FACTOR BACKTEST VIEW --></div>
+      <div class="dd-hub-seg" data-hub-panel="survey">  <section id="survey-dashboard-view" aria-label="判断层：动态市场调查">
+    <div class="market-page-head">
+      <div>
+        <div class="market-page-sub">判断层 · AkShare 宏观 &bull; 板块轮动 &bull; 盘中异动 &bull; AI 综合研判</div>
+      </div>
+      <div class="market-head-actions">
+        <span id="survey-update-time">--</span>
+        <span class="survey-countdown" id="survey-countdown" aria-live="off"></span>
+        <div class="settings-toggle survey-refresh-toggle" title="开启后每 60 秒自动轮询市场调查数据">
+          <span class="settings-toggle-label">自动轮询</span>
+          <div class="toggle-switch on" id="survey-autorefresh-toggle" role="switch" aria-checked="true" onclick="toggleSurveyAutorefresh()"></div>
+        </div>
+        <button class="market-refresh-btn" onclick="loadMarketSurveyData()">&#x21BB; 刷新调查</button>
+      </div>
+    </div>
+
+    <!-- 指数实时条（接入 /api/intelligent/ak/index，此前后端可用但前端未接线） -->
+    <div id="survey-index-strip" class="index-strip" aria-label="主要指数实时行情">
+      <div class="skeleton ix-item" style="height:58px"></div>
+      <div class="skeleton ix-item" style="height:58px"></div>
+      <div class="skeleton ix-item" style="height:58px"></div>
+      <div class="skeleton ix-item" style="height:58px"></div>
+    </div>
+
+    <!-- P0 市场状态总览 Hero -->
+    <article class="market-panel survey-hero" id="survey-hero">
+      <div class="survey-hero-main">
+        <div class="survey-hero-state-wrap">
+          <span class="survey-hero-state" id="survey-hero-state">状态识别：--</span>
+          <span class="survey-hero-score" id="survey-hero-score">情绪分 --</span>
+        </div>
+        <div class="survey-hero-risk-wrap">
+          <span class="survey-hero-risk" id="survey-hero-risk">情报风险 --</span>
+          <span class="survey-hero-badge" id="survey-hero-source">--</span>
+        </div>
+      </div>
+      <div class="survey-hero-meta" id="survey-hero-meta">正在采集全市场实时数据…</div>
+    </article>
+
+    <!-- P1 AI 主脑（研判为主视觉，任务调度可折叠） -->
+    <article class="market-panel brain-panel" id="brain-panel">
+      <div class="market-panel-head">
+        <div><strong>&#x1F9E0; 研判摘要 · AI 综合</strong><span>调查结论 / 环境舆情 / 资金与政策 · 由主脑调度生成</span></div>
+        <div class="market-head-actions">
+          <span class="brain-llm-badge" id="brain-llm-badge">LLM 检测中…</span>
+          <button class="market-link-btn" onclick="brainRunTask('market_survey')">立即调查</button>
+          <button class="market-link-btn" onclick="brainRunTask('daily_loop')">跑一轮闭环</button>
+        </div>
+      </div>
+      <div class="brain-body">
+        <div class="brain-main">
+          <div class="brain-insight">
+            <div class="brain-insight-head">&#x1F4A1; 最新策略研判<span id="brain-insight-ts"></span></div>
+            <div class="brain-insight-text" id="brain-insight-text">主脑尚未生成研判，完成首次市场调查后自动产出。</div>
+            <div class="brain-lessons" id="brain-lessons"></div>
+          </div>
+        </div>
+        <div class="brain-side">
+          <div class="brain-intel-card">
+            <div class="brain-intel-head">&#x1F30D; 全球情报评估</div>
+            <div class="brain-intel" id="brain-intel"></div>
+          </div>
+          <div class="brain-kernel">
+            <div class="brain-kernel-head">内核运行态</div>
+            <div class="brain-kernel-meta" id="brain-kernel">主脑初始化中…</div>
+          </div>
+        </div>
+      </div>
+      <div class="brain-scheduler">
+        <button class="brain-scheduler-toggle" onclick="toggleBrainTasks()" aria-expanded="false">&#x2699;&#xFE0F; 任务调度 <span class="brain-scheduler-arrow">&#9662;</span></button>
+        <div class="brain-tasks" id="brain-tasks" hidden><div class="market-account-empty">主脑状态加载中…</div></div>
+      </div>
+    </article>
+
+    <!-- P2 宏观环境 + AI 综合评述（合并面板） -->
+    <article class="market-panel macro-panel">
+      <div class="market-panel-head">
+        <div><strong>&#x1F30F; 宏观环境与 AI 综合评述</strong><span id="survey-regime-status">状态识别：--</span></div>
+        <span class="agent-badge" style="background:rgba(0,233,106,0.15);color:var(--green);border-color:rgba(0,233,106,0.3)">DeepSeek Synthesis</span>
+      </div>
+      <div class="macro-body">
+        <div id="survey-macro-grid" class="macro-grid">
+          <div class="skeleton skel-block"></div><div class="skeleton skel-block"></div>
+          <div class="skeleton skel-block"></div><div class="skeleton skel-block"></div>
+          <div class="skeleton skel-block"></div>
+          <!-- Macro indicators rendered here -->
+        </div>
+        <div id="survey-ai-synthesis" class="macro-synthesis">
+          正在拉取最新宏观与全市场调查数据...
+        </div>
+      </div>
+    </article>
+
+    <!-- Sector Rotation & Anomaly Alert Split -->
+    <div class="survey-grid-split">
+      <!-- Sector Rotation Stages -->
+      <article class="market-panel">
+        <div class="market-panel-head">
+          <div><strong>行业板块轮动与热点驱动追踪</strong><span>按资金流入速率与阶段周期排序 · 点击阶段图例可高亮同类板块</span></div>
+        </div>
+        <div id="survey-rotation-legend" class="rot-stage-legend" aria-label="阶段图例（点击高亮同阶段板块）"></div>
+        <div id="survey-rotation-scatter" class="rotation-scatter" aria-label="板块轮动散点图（横轴平均涨跌，纵轴上涨家数占比，气泡大小为成交额）">
+          <!-- ECharts 板块轮动散点图 -->
+        </div>
+        <div id="survey-rotation-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+          <div class="skeleton skel-block" style="height:64px"></div>
+          <div class="skeleton skel-block" style="height:64px"></div>
+          <div class="skeleton skel-block" style="height:64px"></div>
+          <!-- Rotation items -->
+        </div>
+      </article>
+
+      <!-- Realtime Anomaly Alerts -->
+      <article class="market-panel">
+        <div class="market-panel-head">
+          <div><strong>盘中大单与结构性异动预警 (Live Alerts)</strong><span>异动类型、级别与驱动要素 · 点击筛选</span></div>
+          <span class="sv-count-badge" id="survey-alert-count">0 条</span>
+        </div>
+        <div id="survey-alert-filters" class="filter-chips" role="tablist" aria-label="异动预警筛选"></div>
+        <div id="survey-alerts-list" class="sv-alert-list">
+          <div class="skeleton skel-block" style="height:52px"></div>
+          <div class="skeleton skel-block" style="height:52px"></div>
+          <div class="skeleton skel-block" style="height:52px"></div>
+          <!-- Live alerts -->
+        </div>
+      </article>
+    </div>
+
+    <!-- 板块资金迁移粒子图 + 自动总结（V58） -->
+    <article class="market-panel" id="rot-flow-panel">
+      <div class="market-panel-head">
+        <div><strong>&#x1F30A; 板块资金迁移粒子图</strong><span>粒子流向 = 资金相对强弱迁移（以榜内净流入中位数为界）· 悬停节点高亮其关联资金流 · 点击节点可聚焦 · 滚轮缩放低值区</span></div>
+        <div class="market-head-actions">
+          <span class="sv-count-badge" id="rot-flow-count">--</span>
+          <button class="market-link-btn" id="rot-flow-replay" onclick="replayRotationFlow()" title="重播粒子动画">&#x21BB; 重播粒子</button>
+          <button class="market-link-btn" id="rot-flow-clear" onclick="clearRotationFlowFocus()" hidden title="退出聚焦，显示全部粒子流">&#x2715; 清除聚焦</button>
+        </div>
+      </div>
+      <div class="rot-flow-legend" id="rot-flow-legend" aria-label="节点配色图例（按轮动阶段）"></div>
+      <div id="rotation-flow-chart" class="rot-flow-chart" aria-label="板块资金迁移粒子图（横轴净流入，纵轴涨跌幅）"></div>
+      <div id="rotation-summary" class="rot-summary">
+        <div class="rs-title">自动总结</div>
+        <div class="skeleton skel-line" style="width:88%"></div>
+        <div class="skeleton skel-line" style="width:72%"></div>
+        <div class="skeleton skel-line" style="width:80%"></div>
+      </div>
+    </article>
+
+    <!-- Realtime News and Announcements -->
+    <article class="market-panel">
+      <div class="market-panel-head">
+        <div><strong>AkShare 财经要闻、政策法规与重要公告</strong><span>全网财经权威新闻流 · 点击标签筛选</span></div>
+      </div>
+      <div id="survey-news-tabs" class="filter-chips" role="tablist" aria-label="新闻标签筛选"></div>
+      <div id="survey-news-list" class="sv-news-list">
+        <div class="skeleton skel-block" style="height:76px"></div>
+        <div class="skeleton skel-block" style="height:76px"></div>
+        <div class="skeleton skel-block" style="height:76px"></div>
+        <div class="skeleton skel-block" style="height:76px"></div>
+        <!-- News items -->
+      </div>
+    </article>
+  </section>
+
+  <!-- DECISION DESK VIEW · 盘前决策 / 盘后复盘 --></div>
+      <div class="dd-hub-seg is-active" data-hub-panel="decision">
+        <!-- 三层对证：同一指标在三层的取值是否对得上（缺数据/冲突都显式标注） -->
+        <div id="dd-crosscheck" class="dd-crosscheck" aria-live="polite"></div>
+        <div id="decision-mount"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOCUS MODE EXIT -->
+<button class="focus-exit-btn" id="focus-exit-btn" onclick="toggleFocusMode()">&#x2715; 退出焦点模式</button>
+
+<!-- COMMAND PALETTE -->
+<div id="cmd-palette-overlay" onclick="if(event.target===this)closeCmdPalette()">
+  <div id="cmd-palette">
+    <div class="cmd-input-wrap">
+      <span class="cmd-icon">&#x1F50D;</span>
+      <input class="cmd-input" id="cmd-input" placeholder="搜索股票、切换板块、执行命令..." autocomplete="off">
+      <span class="cmd-hint">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATION CENTER -->
+<div id="notification-center">
+  <div class="notif-header">
+    <div class="notif-title">&#x1F514; 通知中心 <span class="notif-count" id="notif-count">0</span></div>
+    <button class="notif-close" onclick="toggleNotificationCenter()">&#x2715;</button>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">暂无通知</div>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div id="settings-panel">
+  <div class="notif-header" style="margin-bottom:12px">
+    <div class="notif-title">&#x2699;&#xFE0F; 系统设置</div>
+    <button class="notif-close" onclick="toggleSettingsPanel()">&#x2715;</button>
+  </div>
+  <div class="settings-group">
+    <div class="settings-group-label">数据与刷新</div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">自动刷新</span>
+      <div class="toggle-switch on" id="toggle-autorefresh" onclick="toggleSetting('autorefresh')"></div>
+    </div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">声音提醒</span>
+      <div class="toggle-switch on" id="toggle-sound" onclick="toggleSetting('sound')"></div>
+    </div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">跑马灯</span>
+      <div class="toggle-switch on" id="toggle-ticker" onclick="toggleSetting('ticker')"></div>
+    </div>
+  </div>
+  <div class="settings-group">
+    <div class="settings-group-label">外观</div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">白天模式</span>
+      <div class="toggle-switch" id="toggle-theme" onclick="toggleTheme()"></div>
+    </div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">粒子特效</span>
+      <div class="toggle-switch on" id="toggle-particles" onclick="toggleSetting('particles')"></div>
+    </div>
+    <div class="settings-toggle">
+      <span class="settings-toggle-label">动态背景</span>
+      <div class="toggle-switch on" id="toggle-aurora" onclick="toggleSetting('aurora')"></div>
+    </div>
+  </div>
+  <div class="settings-group">
+    <div class="settings-group-label">🎨 主题配色</div>
+    <div class="theme-picker">
+      <button class="theme-btn active" data-theme="aurora" title="极光暗夜" style="background:linear-gradient(135deg,#3b82f6,#06b6d4,#a855f7)"></button>
+      <button class="theme-btn" data-theme="ocean" title="海洋蓝" style="background:linear-gradient(135deg,#0099ff,#00d4ff,#004488)"></button>
+      <button class="theme-btn" data-theme="forest" title="绿色交易" style="background:linear-gradient(135deg,#2db84d,#3de070,#0a3020)"></button>
+      <button class="theme-btn" data-theme="sunset" title="暖阳" style="background:linear-gradient(135deg,#ff8c00,#ffc107,#3a1a08)"></button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px" id="theme-name-display">当前: 极光暗夜</div>
+  </div>
+</div>
+
+<!-- SIGNAL HISTORY PANEL -->
+<div id="signal-history-panel">
+  <div class="sh-header">
+    <span class="sh-title">📋 信号历史</span>
+    <button class="sh-close-btn" onclick="toggleSignalHistory()">✕</button>
+  </div>
+  <div class="sh-toolbar">
+    <button class="sh-filter-btn active" data-filter="all" onclick="renderSignalHistory('all')">全部</button>
+    <button class="sh-filter-btn" data-filter="buy" onclick="renderSignalHistory('buy')">买入</button>
+    <button class="sh-filter-btn" data-filter="sell" onclick="renderSignalHistory('sell')">卖出</button>
+    <button class="sh-clear-btn" onclick="clearSignalHistory()">清空</button>
+  </div>
+  <div id="signal-history-list"></div>
+</div>
+
+<!-- COMPARE PANEL -->
+<div id="compare-panel" style="display:none;">
+  <div class="compare-header">
+    <h2 class="compare-title">&#x1F44D; 股票对比</h2>
+    <button class="compare-close-btn" onclick="toggleComparePanel()">&#x2715;</button>
+  </div>
+  <div class="compare-stocks" id="compare-stocks"></div>
+  <div class="compare-empty" id="compare-empty">
+    <div class="compare-empty-icon">&#x1F50D;</div>
+    <div class="compare-empty-text">点击股票列表旁的 + 按钮添加到对比</div>
+  </div>
+  <div class="compare-table" id="compare-table" style="display:none;">
+    <table>
+      <thead>
+        <tr>
+          <th>指标</th>
+        </tr>
+      </thead>
+      <tbody id="compare-body"></tbody>
+    </table>
+  </div>
+  <div class="compare-actions">
+    <button class="compare-export-btn" onclick="exportCompareData()">&#x2398; 导出对比数据</button>
+    <button class="compare-clear-btn" onclick="clearCompare()">&#x1F5D1; 清空对比</button>
+  </div>
+</div>
+
+<!-- AI 实时分析 · 全屏大屏模式（v5.0）：内联摘要点击"大屏查看"进入，ESC 关闭 -->
+<div id="ai-fullscreen-panel" class="full-overlay-panel ai-fs-panel" style="display:none;" role="dialog" aria-modal="true" aria-label="AI 实时分析大屏" aria-hidden="true">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title">🤖 AI 实时分析 · 大屏</h2>
+    <span class="ai-fs-meta" id="ai-fs-meta"></span>
+    <button class="full-overlay-close" onclick="closeAIFullscreen()" aria-label="关闭大屏" title="关闭（ESC）">✕</button>
+  </div>
+  <div class="full-overlay-body ai-fs-body" id="ai-fs-body">
+    <div class="ai-fs-empty">暂无分析数据，请先选择股票</div>
+  </div>
+  <div class="ai-fs-footer">本系统仅为个人量化工具，AI 分析不构成投资建议，据此操作风险自负</div>
+</div>
+
+<!-- SECTOR ANALYSIS PANEL (v5.4 完全重写) -->
+<div id="sector-analysis-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title">📊 板块分析</h2>
+    <div class="sector-period-tabs">
+      <div class="full-overlay-tab sector-period-tab active" data-period="5" onclick="switchSectorPeriod('5')">5日</div>
+      <div class="full-overlay-tab sector-period-tab" data-period="20" onclick="switchSectorPeriod('20')">20日</div>
+      <div class="full-overlay-tab sector-period-tab" data-period="60" onclick="switchSectorPeriod('60')">60日</div>
+      <div class="full-overlay-tab sector-period-tab" data-period="120" onclick="switchSectorPeriod('120')">120日</div>
+      <div class="full-overlay-tab sector-period-tab" data-period="250" onclick="switchSectorPeriod('250')">250日</div>
+    </div>
+    <button class="full-overlay-close" onclick="closeSectorPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body">
+    <!-- 板块排行表格 -->
+    <div class="data-table-wrap">
+      <table class="data-table sector-ranking-table">
+        <thead>
+          <tr>
+            <th class="col-rank">排名</th>
+            <th>板块名称</th>
+            <th class="col-code">代码</th>
+            <th class="col-num" style="cursor:pointer;" onclick="toggleSectorSort()">涨跌幅 <span id="sa-sort-arrow">▼</span></th>
+            <th>领涨股</th>
+          </tr>
+        </thead>
+        <tbody id="sa-ranking-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- 选中板块详情区（默认隐藏） -->
+    <div class="sa-detail-section" id="sa-detail-section" style="display:none;">
+      <div class="sa-detail-header">
+        <h3 id="sa-detail-title">板块详情</h3>
+      </div>
+      <!-- 统计栏 -->
+      <div class="sa-stats-bar" id="sa-stats-bar"></div>
+      <!-- 龙头股 TOP 5 -->
+      <div class="sa-leaders">
+        <div class="sa-leaders-title">🏆 龙头股 TOP 5</div>
+        <div class="sa-leaders-list" id="sa-leaders"></div>
+      </div>
+      <!-- 资金流向 -->
+      <div class="sa-fundflow-section">
+        <div class="sa-fundflow-title">💰 资金流向</div>
+        <div class="sa-fundflow" id="sa-fundflow"></div>
+      </div>
+      <!-- 查看成分股按钮 -->
+      <div class="sa-view-stocks-wrap">
+        <button class="sa-view-stocks-btn" onclick="showSectorStocks()">📋 查看成分股</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 板块成分股全屏面板 (v5.4 新增) -->
+<div id="sector-stocks-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title" id="sector-stocks-title">成分股</h2>
+    <button class="full-overlay-close" onclick="closeSectorStocksPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body">
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="col-rank">排名</th>
+            <th class="col-code">代码</th>
+            <th>名称</th>
+            <th class="col-num">涨跌幅</th>
+            <th class="col-num">换手率</th>
+            <th class="col-num">市值</th>
+            <th class="col-num">PE</th>
+          </tr>
+        </thead>
+        <tbody id="sector-stocks-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 选股结果全屏面板 (v5.4 新增) -->
+<div id="screen-result-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title" id="screen-result-title">选股结果</h2>
+    <button class="full-overlay-close" onclick="closeScreenResultPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body">
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="col-rank">排名</th>
+            <th class="col-code">代码</th>
+            <th>名称</th>
+            <th class="col-num">评分</th>
+            <th class="col-num">涨跌幅</th>
+            <th class="col-num">现价</th>
+            <th class="col-num">换手率</th>
+            <th class="col-num">PE</th>
+          </tr>
+        </thead>
+        <tbody id="screen-result-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 热门股全屏覆盖面板 -->
+<div id="hot-stocks-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title">🔥 热门股排行</h2>
+    <div class="full-overlay-tabs">
+      <div class="full-overlay-tab active" data-type="stock" onclick="switchHotTab('stock')">股票</div>
+      <div class="full-overlay-tab" data-type="fund" onclick="switchHotTab('fund')">基金</div>
+    </div>
+    <button class="full-overlay-close" onclick="closeHotStocksPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body">
+    <div id="hot-stocks-table" class="data-table-wrap"></div>
+  </div>
+</div>
+
+<!-- 龙虎榜全屏覆盖面板 -->
+<div id="lhb-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title">📜 龙虎榜</h2>
+    <div class="full-overlay-tabs">
+      <div class="full-overlay-tab active" data-tab="jg" onclick="switchLHBTab('jg')">机构席位</div>
+      <div class="full-overlay-tab" data-tab="yzb" onclick="switchLHBTab('yzb')">一日榜</div>
+      <div class="full-overlay-tab" data-tab="yyb" onclick="switchLHBTab('yyb')">营业部</div>
+      <div class="full-overlay-tab" data-tab="gslmr" onclick="switchLHBTab('gslmr')">个股买卖</div>
+      <div class="full-overlay-tab" data-tab="gslxw" onclick="switchLHBTab('gslxw')">龙虎新闻</div>
+    </div>
+    <input type="date" id="lhb-date-picker" class="lhb-date-picker" onchange="switchLHBTab(document.querySelector('#lhb-panel .full-overlay-tab.active')?.getAttribute('data-tab') || 'jg')">
+    <button class="full-overlay-close" onclick="closeLHBPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body">
+    <div id="lhb-table" class="data-table-wrap"></div>
+  </div>
+</div>
+
+<!-- AUTOMATION PANEL (M4 自动交易中心) -->
+<div id="automation-panel" class="full-overlay-panel" style="display:none;">
+  <div class="full-overlay-header">
+    <h2 class="full-overlay-title">&#x2699;&#xFE0F; 自动化中心</h2>
+    <div class="full-overlay-tabs">
+      <div class="full-overlay-tab active" data-tab="config" onclick="switchAutomationTab('config')">配置</div>
+      <div class="full-overlay-tab" data-tab="signals" onclick="switchAutomationTab('signals')">信号历史</div>
+      <div class="full-overlay-tab" data-tab="orders" onclick="switchAutomationTab('orders')">订单流水</div>
+      <div class="full-overlay-tab" data-tab="positions" onclick="switchAutomationTab('positions')">模拟持仓</div>
+      <div class="full-overlay-tab" data-tab="review" onclick="switchAutomationTab('review')">复盘</div>
+      <div class="full-overlay-tab" data-tab="audit" onclick="switchAutomationTab('audit')">留痕</div>
+    </div>
+    <button class="full-overlay-close" onclick="toggleAutomationPanel()">✕</button>
+  </div>
+  <div class="full-overlay-body" id="automation-body">
+    <div id="auto-tab-config" class="auto-tab-page"></div>
+    <div id="auto-tab-signals" class="auto-tab-page" style="display:none"></div>
+    <div id="auto-tab-orders" class="auto-tab-page" style="display:none"></div>
+    <div id="auto-tab-positions" class="auto-tab-page" style="display:none"></div>
+    <div id="auto-tab-review" class="auto-tab-page" style="display:none"></div>
+    <div id="auto-tab-audit" class="auto-tab-page" style="display:none"></div>
+  </div>
+  <div class="auto-footer">本系统仅为个人量化工具，信号不构成投资建议，据此操作风险自负</div>
+</div>
+
+<!-- ALERT PANEL -->
+<div id="alert-panel" style="display:none;">  <div class="alert-header">
+    <h2 class="alert-title">&#x26A0;&#xFE0F; 价格预警</h2>
+    <button class="alert-close-btn" onclick="toggleAlertPanel()">&#x2715;</button>
+  </div>
+  <div class="alert-list" id="alert-list"></div>
+  <div class="alert-empty" id="alert-empty">
+    <div class="alert-empty-icon">&#x23F0;</div>
+    <div class="alert-empty-text">暂无预警设置</div>
+  </div>
+  <div class="alert-form">
+    <div class="alert-form-row">
+      <input type="text" id="alert-code" placeholder="股票代码" class="alert-input">
+      <input type="text" id="alert-name" placeholder="股票名称" class="alert-input">
+    </div>
+    <div class="alert-form-row">
+      <select id="alert-type" class="alert-select">
+        <option value="above">价格高于</option>
+        <option value="below">价格低于</option>
+      </select>
+      <input type="number" id="alert-price" placeholder="目标价格" class="alert-input">
+    </div>
+    <button class="alert-add-btn" onclick="addAlert()">&#x271A; 添加预警</button>
+  </div>
+</div>
+
+<!-- KEYBOARD SHORTCUT HELP -->
+<div id="shortcuts-overlay" onclick="if(event.target===this)closeShortcuts()">
+  <div id="shortcuts-modal">
+    <div class="shortcuts-title">&#x2328;&#xFE0F; 键盘快捷键</div>
+    <div class="shortcuts-group">
+      <div class="shortcuts-group-title">导航</div>
+      <div class="shortcut-row"><span class="shortcut-label">切换股票</span><span class="shortcut-keys"><span class="shortcut-key">&#x2191;</span><span class="shortcut-key">&#x2193;</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">选中当前股票</span><span class="shortcut-keys"><span class="shortcut-key">Enter</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">命令面板</span><span class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">K</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">快捷搜索</span><span class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">F</span></span></div>
+    </div>
+    <div class="shortcuts-group">
+      <div class="shortcuts-group-title">功能</div>
+      <div class="shortcut-row"><span class="shortcut-label">全部刷新</span><span class="shortcut-keys"><span class="shortcut-key">R</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">焦点模式</span><span class="shortcut-keys"><span class="shortcut-key">F</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">通知中心</span><span class="shortcut-keys"><span class="shortcut-key">N</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">信号排行</span><span class="shortcut-keys"><span class="shortcut-key">T</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">设置面板</span><span class="shortcut-keys"><span class="shortcut-key">S</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">股票对比</span><span class="shortcut-keys"><span class="shortcut-key">C</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">价格预警</span><span class="shortcut-keys"><span class="shortcut-key">W</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">信号历史</span><span class="shortcut-keys"><span class="shortcut-key">H</span></span></div>
+    </div>
+    <div class="shortcuts-group">
+      <div class="shortcuts-group-title">筛选</div>
+      <div class="shortcut-row"><span class="shortcut-label">全部</span><span class="shortcut-keys"><span class="shortcut-key">1</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">涨</span><span class="shortcut-keys"><span class="shortcut-key">2</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">跌</span><span class="shortcut-keys"><span class="shortcut-key">3</span></span></div>
+      <div class="shortcut-row"><span class="shortcut-label">快捷键帮助</span><span class="shortcut-keys"><span class="shortcut-key">?</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=11"></script>
+<script src="js/fundamental.js?v=2"></script>
+<script src="js/vendor/klinecharts.umd.js"></script>
+<script src="js/chart-analysis.js?v=1"></script>
+<script src="js/chart.js?v=38"></script>
+<script src="js/market-data.js?v=13"></script>
+<script src="js/strategies-ui.js?v=11"></script>
+<script src="js/strategy-lab.js?v=2"></script>
+<script src="js/portfolio.js?v=14"></script>
+<script src="js/dashboard-stream.js?v=3"></script>
+<script src="js/market-dashboard.js?v=104"></script>
+<script src="js/decision-desk.js?v=106"></script>
+<script src="js/stock-agent.js?v=2"></script>
+<script src="js/intelligent-analysis.js?v=33"></script>
+<script src="js/app.js?v=42"></script>
+<script src="js/automation.js?v=8"></script>
+<!-- 交易台（阶段三）：手动下单/撤单/条件单/决策质量，独立脚本，不动 automation.js -->
+<div id="trade-desk-root"></div>
+<script src="js/automation-trade.js?v=3"></script>
+<script src="js/automation-cockpit.js?v=5"></script>
+<script src="js/panel-consistency.js?v=1"></script>
+
+<script>
+/* v70-fix · 对比面板开合兜底：原函数内部条件可能导致面板不显示，此处保证开合语义 */
+(function () {
+  var orig = window.toggleComparePanel;
+  window.toggleComparePanel = function () {
+    var el = document.getElementById('compare-panel');
+    var willOpen = !el || el.style.display === 'none' || getComputedStyle(el).display === 'none';
+    if (typeof orig === 'function') { try { orig(); } catch (e) {} }
+    if (el) el.style.display = willOpen ? 'block' : 'none';
+    if (willOpen && el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+})();
+</script>
+
+
+
+</body>
+</html>

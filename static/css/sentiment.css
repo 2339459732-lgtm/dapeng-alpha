@@ -1,0 +1,422 @@
+/* ================================================================
+   市场情绪追踪系统 — 样式表 v1
+   暗色玻璃态 + CSS Grid 布局
+   ================================================================ */
+
+/* ---- Reset & Base ---- */
+.sentiment-body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---- Header ---- */
+.sentiment-header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.sh-left { display: flex; align-items: center; gap: 12px; }
+.sh-left h1 { font-size: 18px; font-weight: 700; margin: 0; letter-spacing: .5px; }
+.nav-back {
+  text-decoration: none; font-size: 20px; color: var(--blue);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: background .2s;
+}
+.nav-back:hover { background: rgba(59, 130, 246, 0.1); }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 6px;
+  background: rgba(0, 233, 106, 0.1); border: 1px solid rgba(0, 233, 106, 0.2);
+  color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 1px;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.3 } }
+
+.sh-right { display: flex; align-items: center; gap: 12px; }
+.header-clock {
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+  font-size: 13px; color: var(--text2);
+}
+.refresh-btn {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: rgba(59, 130, 246, 0.08); color: var(--blue);
+  cursor: pointer; font-size: 12px; transition: all .2s;
+}
+.refresh-btn:hover { background: rgba(59, 130, 246, 0.15); }
+
+/* ---- 站内导航（本页此前为孤立页面：全站无任何入链，仅有一个返回看板箭头）---- */
+.sh-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sh-nav-link {
+  text-decoration: none; font-size: 12px; color: var(--text2);
+  padding: 5px 10px; border-radius: 7px; border: 1px solid var(--border);
+  transition: all .18s; white-space: nowrap;
+}
+.sh-nav-link:hover {
+  color: var(--text); border-color: rgba(59, 130, 246, .35);
+  background: rgba(59, 130, 246, .08);
+}
+.sh-nav-link.is-primary {
+  color: var(--blue); border-color: rgba(59, 130, 246, .25);
+  background: rgba(59, 130, 246, .08);
+}
+.sh-nav-link.is-gold { color: var(--gold); border-color: rgba(245, 158, 11, .25); }
+@media (max-width: 900px) {
+  .sentiment-header { flex-wrap: wrap; gap: 8px; }
+  .sh-nav { order: 3; width: 100%; overflow-x: auto; padding-bottom: 2px; }
+  .sh-nav-link { font-size: 11px; padding: 4px 8px; }
+}
+
+/* ---- 榜单行可点击（跳转策略看板并选中该标的）---- */
+.s-table tbody tr[data-href] { cursor: pointer; transition: background .15s; }
+.s-table tbody tr[data-href]:hover { background: rgba(59, 130, 246, .07); }
+.s-table tbody tr[data-href] .stock-name { color: var(--blue); }
+
+/* ---- 板块数据空态（原实现失败时静默留白/永久「加载中」）---- */
+.hm-empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 120px; padding: 16px; text-align: center;
+  color: var(--muted); font-size: 12px; line-height: 1.7;
+}
+
+/* ---- Market Status Badge ---- */
+.market-status-badge {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 8px;
+  font-size: 10px; font-weight: 600;
+  background: rgba(0, 233, 106, 0.08); border: 1px solid rgba(0, 233, 106, 0.15);
+  color: var(--green); transition: all .3s;
+}
+.market-status-badge.closed {
+  background: rgba(255, 61, 106, 0.06); border-color: rgba(255, 61, 106, 0.12); color: var(--text2);
+}
+.ms-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+.market-status-badge.closed .ms-dot { animation: none; opacity: 0.5; }
+
+/* ---- Main Grid Layout ---- */
+.sentiment-main {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 10px;
+  padding: 12px;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+.span12 { grid-column: span 12; }
+.span6  { grid-column: span 6; }
+.span4  { grid-column: span 4; }
+
+/* ---- Card Base ---- */
+.s-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color .3s, box-shadow .3s;
+}
+.s-card:hover {
+  border-color: rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+.s-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.015);
+}
+.s-card-head h2 { font-size: 13px; font-weight: 700; margin: 0; letter-spacing: .3px; }
+.live-tag {
+  font-size: 9px; font-weight: 700; color: var(--green);
+  background: rgba(0, 233, 106, 0.08); padding: 2px 6px; border-radius: 4px;
+}
+/* 数据降级 / 未接入：角标不能继续冒充 LIVE */
+.live-tag.is-off {
+  color: var(--gold);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+}
+.s-card-body { padding: 12px 16px; }
+
+/* ---- Loading Skeleton ---- */
+.loading-skeleton {
+  text-align: center; color: var(--muted); font-size: 11px; padding: 20px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.04), transparent);
+  background-size: 200% 100%; animation: shimmerSlide 2s linear infinite;
+}
+@keyframes shimmerSlide { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+.loading-cell { text-align: center; color: var(--muted); font-size: 11px; padding: 16px; }
+
+/* ---- Section 1: Global Index Grid ---- */
+.index-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+.idx-card {
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all .3s; cursor: pointer;
+}
+.idx-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+.idx-name { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.idx-price {
+  font-size: 18px; font-weight: 700;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+}
+.idx-chg { font-size: 11px; font-weight: 600; margin-top: 2px; }
+.idx-card.up .idx-price, .idx-card.up .idx-chg { color: var(--red); }
+.idx-card.down .idx-price, .idx-card.down .idx-chg { color: var(--green); }
+
+/* ---- Section 2: Gauge Stats ---- */
+.gauge-stats {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px;
+}
+.gs-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02); font-size: 11px;
+}
+.gs-label { color: var(--muted); }
+.gs-val { font-weight: 700; font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace; }
+.gs-val.up { color: var(--red); }
+.gs-val.down { color: var(--green); }
+
+/* ---- Section 5/6: Fund Flow Stats ---- */
+.ff-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.ff-item {
+  padding: 12px 16px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.ff-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.ff-val { font-size: 16px; font-weight: 700; font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace; }
+/* A 股惯例：红涨绿跌 —— 本文件已全部统一为 up=红 / down=绿（idx-card / gs-val / s-table / ff-val 一致） */
+.ff-val.up { color: var(--red); }
+.ff-val.down { color: var(--green); }
+.ff-val.flat { color: var(--muted); }
+
+/* ---- Section 7: Heatmap Grid ---- */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 4px;
+}
+.hm-cell {
+  padding: 10px 8px; border-radius: 8px; text-align: center;
+  /* 默认不是可点元素：只有能映射到仪表盘自选板块的格子才给手型，
+     否则整片格子都是 pointer、点下去却没反应，是误导。 */
+  cursor: default; transition: transform .2s, box-shadow .2s, outline-color .2s;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  outline: 1px solid transparent; outline-offset: 1px;
+}
+.hm-cell.is-linked { cursor: pointer; }
+.hm-cell.is-linked:hover { transform: scale(1.05); z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+/* 从仪表盘带 ?sector= 跳进来时高亮该板块对应的行业格 */
+.hm-cell.is-focus {
+  outline-color: var(--gold, #d6b084);
+  box-shadow: 0 0 0 1px var(--gold, #d6b084) inset, 0 0 14px rgba(214, 176, 132, .28);
+  z-index: 4;
+}
+.hm-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+.hm-pct { font-size: 14px; font-weight: 700; font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace; }
+.hm-vol { font-size: 9px; color: var(--muted); margin-top: 2px; }
+.hm-link-dot { margin-left: 3px; opacity: .55; font-size: 9px; }
+.hm-cell.is-linked:hover .hm-link-dot { opacity: 1; color: var(--gold, #d6b084); }
+
+/* 聚焦条：显示当前 ?sector= 与命中数，可一键清除 */
+.hm-focus {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 10px; padding: 8px 12px; border-radius: 8px;
+  background: rgba(214, 176, 132, .07);
+  border: 1px solid rgba(214, 176, 132, .22);
+  font-size: 12px; color: var(--text2, #8b9ec2);
+}
+.hm-focus b { color: var(--gold, #d6b084); font-size: 13px; }
+.hm-focus-tag {
+  font-size: 10px; padding: 1px 7px; border-radius: 999px;
+  background: rgba(214, 176, 132, .16); color: var(--gold, #d6b084);
+  border: 1px solid rgba(214, 176, 132, .28);
+}
+.hm-focus-sub { color: var(--muted); font-size: 11px; }
+.hm-focus-act {
+  margin-left: auto; color: var(--gold, #d6b084); text-decoration: none;
+  font-size: 11px; padding: 2px 8px; border-radius: 6px;
+  border: 1px solid rgba(214, 176, 132, .28);
+}
+.hm-focus-act:hover { background: rgba(214, 176, 132, .12); }
+.hm-focus-x {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 16px; line-height: 1; padding: 0 2px;
+}
+.hm-focus-x:hover { color: var(--red, #ff3d6a); }
+
+/* ---- Section 9/10: Tables ---- */
+.table-wrap { max-height: 400px; overflow-y: auto; }
+.s-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.s-table thead {
+  position: sticky; top: 0; z-index: 2;
+  background: rgba(10, 14, 26, 0.95); backdrop-filter: blur(8px);
+}
+.s-table th {
+  padding: 6px 8px; text-align: left; font-weight: 600;
+  color: var(--muted); border-bottom: 1px solid var(--border); font-size: 10px;
+}
+.s-table td {
+  padding: 5px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+.s-table tbody tr:hover { background: rgba(59, 130, 246, 0.04); }
+.s-table .rank { color: var(--muted); width: 24px; text-align: center; }
+.s-table .stock-name { font-weight: 600; }
+.s-table .stock-code { color: var(--muted); font-family: monospace; }
+.s-table .up { color: var(--red); font-weight: 700; }
+.s-table .down { color: var(--green); font-weight: 700; }
+.s-table .mono { font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace; }
+
+/* ---- Section 11: Anchor Grid ---- */
+.anchor-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+.anchor-item {
+  padding: 16px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  text-align: center;
+}
+.anchor-icon { font-size: 28px; margin-bottom: 6px; }
+.anchor-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.anchor-status {
+  display: inline-block; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; margin-bottom: 6px;
+}
+.anchor-status.pass { background: rgba(0, 233, 106, 0.1); color: var(--green); }
+.anchor-status.warn { background: rgba(245, 158, 11, 0.1); color: var(--gold); }
+.anchor-status.fail { background: rgba(255, 61, 106, 0.1); color: var(--red); }
+.anchor-desc { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+/* ---- Section 12: Prediction Grid ---- */
+.predict-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.predict-item {
+  padding: 12px; border-radius: 10px; text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all .3s;
+}
+.predict-item.bull { background: rgba(0, 233, 106, 0.04); }
+.predict-item.neutral { background: rgba(59, 130, 246, 0.04); }
+.predict-item.bear { background: rgba(255, 61, 106, 0.04); }
+.predict-icon { font-size: 24px; margin-bottom: 4px; }
+.predict-name { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.predict-pct {
+  font-size: 22px; font-weight: 800;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+}
+.predict-item.bull .predict-pct { color: var(--green); }
+.predict-item.neutral .predict-pct { color: var(--blue); }
+.predict-item.bear .predict-pct { color: var(--red); }
+.predict-desc { font-size: 9px; color: var(--muted); margin-top: 4px; }
+
+/* ---- Section 13: Calculator ---- */
+.calc-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+.calc-label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 10px; color: var(--muted);
+}
+.calc-label input {
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(255, 255, 255, 0.03);
+  color: var(--text); font-size: 13px; font-family: monospace;
+  outline: none; transition: border-color .2s;
+}
+.calc-label input:focus { border-color: rgba(59, 130, 246, 0.4); }
+.calc-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.cr-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02); font-size: 11px;
+}
+.cr-label { color: var(--muted); }
+.cr-val { font-weight: 700; font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace; }
+
+/* ---- Section 14: Rules Grid ---- */
+.rules-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rule-item {
+  padding: 12px 14px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all .3s;
+}
+.rule-item:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(245, 158, 11, 0.15); }
+.rule-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(245, 158, 11, 0.1); color: var(--gold);
+  font-size: 11px; font-weight: 700; margin-bottom: 6px;
+}
+.rule-text { font-size: 10px; color: var(--text2); line-height: 1.6; }
+
+/* ---- Scrollbar ---- */
+.table-wrap::-webkit-scrollbar { width: 4px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(80, 140, 255, 0.12); border-radius: 2px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(80, 140, 255, 0.12) transparent; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1200px) {
+  .index-grid { grid-template-columns: repeat(4, 1fr); }
+  .span6 { grid-column: span 12; }
+  .span4 { grid-column: span 6; }
+  .rules-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .index-grid { grid-template-columns: repeat(2, 1fr); }
+  .span4, .span6, .span12 { grid-column: span 12; }
+  .anchor-grid, .predict-grid { grid-template-columns: 1fr; }
+  .rules-grid { grid-template-columns: 1fr; }
+  .calc-row { grid-template-columns: 1fr; }
+  .sh-left h1 { font-size: 14px; }
+}
+
+/* ================================================================
+   数据源标识 & 图表不可用空态
+   —— 拿不到数据时显示「暂不可用 + 原因」，绝不以 0 冒充真实值
+   ================================================================ */
+.ss-src-chip {
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #8b9ec2;
+  background: rgba(139, 158, 194, 0.1);
+  border: 1px solid rgba(139, 158, 194, 0.22);
+  white-space: nowrap;
+  align-self: center;
+}
+.s-card-head { display: flex; align-items: center; gap: 8px; }
+.ss-unavailable {
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8b9ec2;
+  border: 1px dashed rgba(139, 158, 194, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.015);
+}

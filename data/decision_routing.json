@@ -1,0 +1,101 @@
+{
+  "version": "decision-routing.v1",
+  "_comment": "决策分流规则：指标 → 条件 → 路由 → 动作上限。改这里即改分流，不要在代码里硬编码阈值。metric 取值见 server/decision_metrics.py 的 id；field 取 score(归一化 -1~1) 或 value(原始值)。",
+  "updated_at": "2026-11-03T10:55:00",
+  "weights": {
+    "trend.index": 0.20,
+    "trend.breadth": 0.16,
+    "trend.limit": 0.10,
+    "flow.main": 0.20,
+    "flow.north": 0.08,
+    "buyratio.market": 0.16,
+    "sentiment.score": 0.10
+  },
+  "thresholds": {
+    "risk_on": 0.30,
+    "risk_off": -0.30,
+    "min_coverage": 0.5,
+    "min_available": 4
+  },
+  "routes": [
+    {
+      "id": "risk_off",
+      "label": "系统性风险收缩",
+      "priority": 100,
+      "match": "all",
+      "conditions": [
+        { "metric": "trend.breadth", "field": "score", "op": "<=", "value": -0.45 },
+        { "metric": "flow.main", "field": "score", "op": "<", "value": -0.20 }
+      ],
+      "action": { "stance": "defend", "cap_max": 10, "note": "广度与主力资金同时转负：只保留防御性暴露" }
+    },
+    {
+      "id": "buy_squeeze",
+      "label": "买盘枯竭",
+      "priority": 90,
+      "match": "all",
+      "conditions": [
+        { "metric": "buyratio.market", "field": "score", "op": "<=", "value": -0.40 },
+        { "metric": "flow.main", "field": "score", "op": "<", "value": -0.10, "optional": true }
+      ],
+      "action": { "stance": "defend", "cap_max": 20, "note": "主动买盘明显弱于卖盘：反弹不做，等买手率回到 50% 上方" }
+    },
+    {
+      "id": "risk_on",
+      "label": "风险偏好上行",
+      "priority": 80,
+      "match": "all",
+      "conditions": [
+        { "metric": "trend.breadth", "field": "score", "op": ">=", "value": 0.45 },
+        { "metric": "buyratio.market", "field": "score", "op": ">=", "value": 0.20 },
+        { "metric": "flow.main", "field": "score", "op": ">=", "value": 0 }
+      ],
+      "action": { "stance": "attack", "cap_max": 60, "note": "广度、买盘、资金三者同向：可放开进攻上限" }
+    },
+    {
+      "id": "trend_follow",
+      "label": "趋势跟随",
+      "priority": 70,
+      "match": "all",
+      "conditions": [
+        { "metric": "trend.index", "field": "score", "op": ">=", "value": 0.35 },
+        { "metric": "trend.breadth", "field": "score", "op": ">=", "value": 0.20 }
+      ],
+      "action": { "stance": "attack", "cap_max": 50, "note": "指数与广度同步走强：顺势但不追高" }
+    },
+    {
+      "id": "index_breadth_split",
+      "label": "指数与个股背离",
+      "priority": 60,
+      "match": "all",
+      "conditions": [
+        { "metric": "trend.index", "field": "score", "op": "<=", "value": -0.25 },
+        { "metric": "trend.breadth", "field": "score", "op": ">=", "value": 0.25 }
+      ],
+      "action": { "stance": "neutral", "cap_max": 35, "note": "指数被权重拖累但个股普涨：结构行情，控节奏不加杠杆" }
+    },
+    {
+      "id": "neutral_range",
+      "label": "区间震荡",
+      "priority": 10,
+      "match": "any",
+      "conditions": [
+        { "metric": "trend.breadth", "field": "score", "op": ">", "value": -1 }
+      ],
+      "action": { "stance": "neutral", "cap_max": 40, "note": "无明确共振，按中性处理" }
+    }
+  ],
+  "fallback": {
+    "id": "observe",
+    "label": "数据不足·观察",
+    "stance": "neutral",
+    "cap_max": 0,
+    "note": "可用指标不足或覆盖过低：不做方向性暴露，等数据恢复"
+  },
+  "degrade": {
+    "min_available": 4,
+    "min_coverage": 0.5,
+    "allow_stale": true,
+    "stale_confidence_penalty": 0.6
+  }
+}

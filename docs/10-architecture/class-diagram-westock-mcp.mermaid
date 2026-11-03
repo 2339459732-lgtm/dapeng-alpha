@@ -1,0 +1,118 @@
+classDiagram
+    class WestockClient {
+        -Semaphore _semaphore
+        -str _node_path
+        -str _script_path
+        +async _run_cli_async(args: List~str~) Optional~str~
+        +_parse_markdown_table(text: str) List~Dict~
+        +_parse_cli_output(text: str) Any
+        +async quote(code: str) Optional~Dict~
+        +async batch_quotes(codes: List~str~) List~Dict~
+        +async kline(code: str, period: str, limit: int) Optional~List~
+        +async batch_klines(codes: List~str~, period: str) Dict
+        +async search(keyword: str) Optional~List~
+        +async sector_search(keyword: str) Optional~List~
+        +async sector_stocks(sector_code: str) Optional~List~
+        +async stock_profile(code: str) Optional~Dict~
+        +async get_news(code: str, limit: int) Optional~List~
+        +async fetch_kline(code: str, period: str, limit: int) Optional~List~
+        %% === 新增方法 (P0) ===
+        +async fund_flow(code: str) Optional~Dict~
+        +async market_overview() Optional~Dict~
+        +async hot_stocks(stype: str, limit: int) Optional~List~
+        +async lhb(tab: str, date: str) Optional~Dict~
+        +async sector_ranking() Optional~Dict~
+        +async sector_constituents(sector_code: str) Optional~List~
+        %% === 新增方法 (P1) ===
+        +async finance(code: str, ftype: str, num: int) Optional~List~
+        +async report(code: str, limit: int) Optional~List~
+        +async rating(code: str) Optional~Dict~
+        +async consensus(code: str) Optional~Dict~
+        +async north_holding(market: str) Optional~List~
+        +async market_news(code: str, limit: int) Optional~List~
+        +async notice(code: str, ntype: str, limit: int) Optional~List~
+        +async shareholder(code: str) Optional~Dict~
+        +async dividend(code: str, years: int) Optional~List~
+    }
+
+    class StockPoolManager {
+        -Dict _base_pool
+        -Dict _sector_pool
+        -Dict _dynamic_pool
+        -TTLCache _cache
+        -float _last_refresh
+        +async initialize() None
+        +async refresh_sector_stocks() None
+        +async add_dynamic_stocks(codes: List~str~, source: str) None
+        +get_all_codes() List~str~
+        +get_stock_name(code: str) str
+        +get_stock_sector(code: str) str
+        +is_dynamic(code: str) bool
+        +get_pool_stats() Dict
+    }
+
+    class MarketDataRouter {
+        +APIRouter router
+        +async get_fund_flow(code: str) Response
+        +async get_sector_fund_flow(sector: str) Response
+        +async get_sector_ranking(stype: str) Response
+        +async get_lhb(tab: str, date: str) Response
+        +async get_market_overview() Response
+        +async get_hot_stocks(stype: str, limit: int) Response
+        +async get_profile(code: str) Response
+        +async get_finance(code: str, ftype: str) Response
+        +async get_report(code: str, limit: int) Response
+        +async get_consensus(code: str) Response
+        +async get_north_holding(code: str) Response
+        +async get_news(code: str, limit: int) Response
+        +async get_market_news(limit: int) Response
+        +async get_sector_stocks_dynamic(sector: str) Response
+    }
+
+    class TTLCache {
+        -OrderedDict _store
+        -int _max_size
+        -Dict _pending
+        +get(key: str) Optional~Any~
+        +set(key: str, data: Any, ttl: float) None
+        +async get_or_fetch(key: str, fetch_fn, ttl: float) Any
+        +delete(key: str) None
+        +clear() None
+        +size int
+    }
+
+    class Config {
+        +Dict SECTORS
+        +Dict GLOBAL_INDICES
+        +str WESTOCK_NODE
+        +str WESTOCK_SCRIPT
+        +int WESTOCK_TIMEOUT
+        +int KLINE_LIMIT
+        +int CACHE_TTL_QUOTES
+        +int CACHE_TTL_KLINE
+        +int CACHE_TTL_FUND_FLOW
+        +int CACHE_TTL_SECTOR_RANK
+        +int CACHE_TTL_LHB
+        +int CACHE_TTL_MARKET_OVERVIEW
+        +int CACHE_TTL_HOT
+        +int CACHE_TTL_PROFILE
+        +int CACHE_TTL_FINANCE
+        +int CACHE_TTL_REPORT
+        +int CACHE_TTL_NORTH
+        +int CACHE_TTL_NEWS
+        +int CACHE_TTL_SECTOR_STOCKS
+        +get_sector_stocks(sector_key: str) List
+        +get_all_stock_codes() List
+        +find_stock_name(code: str) str
+        +get_sector_name(sector_key: str) str
+    }
+
+    WestockClient --> TTLCache : uses cache (via router)
+    WestockClient --> Config : reads CLI path + timeout
+    StockPoolManager --> WestockClient : calls sector_constituents
+    StockPoolManager --> TTLCache : caches pool data
+    StockPoolManager --> Config : reads SECTORS base config
+    MarketDataRouter --> WestockClient : calls CLI methods
+    MarketDataRouter --> TTLCache : caches API responses
+    MarketDataRouter --> StockPoolManager : uses dynamic pool
+    MarketDataRouter --> Config : reads TTL constants

@@ -1,0 +1,2699 @@
+{
+  "generated_at": "2026-11-03T11:32:43+08:00",
+  "stats": {
+    "nodes": 58,
+    "links": 137,
+    "missing": 0,
+    "dangling": 0,
+    "groups": {
+      "root": 2,
+      "00-strategy": 8,
+      "10-architecture": 29,
+      "20-prd": 6,
+      "30-data": 2,
+      "40-ops": 8,
+      "90-archive": 3
+    }
+  },
+  "groups": [
+    {
+      "key": "root",
+      "label": "根目录"
+    },
+    {
+      "key": "00-strategy",
+      "label": "战略与计划"
+    },
+    {
+      "key": "10-architecture",
+      "label": "架构与设计"
+    },
+    {
+      "key": "20-prd",
+      "label": "产品需求"
+    },
+    {
+      "key": "30-data",
+      "label": "数据字典"
+    },
+    {
+      "key": "40-ops",
+      "label": "运维与交付"
+    },
+    {
+      "key": "90-archive",
+      "label": "归档"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "CHANGELOG.md",
+      "name": "CHANGELOG.md",
+      "group": "root",
+      "group_label": "根目录",
+      "kind": "entry",
+      "registered": true,
+      "label": "CHANGELOG.md",
+      "title": "DAPENG Alpha 更新日志",
+      "bytes": 201425,
+      "lines": 2315,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "背景 ：需要每天收盘后自动回答「优质席位在哪些票上做了什么、为什么」。",
+      "x": 632.22,
+      "y": 129.64,
+      "degree": 2,
+      "pagerank": 0.009863,
+      "betweenness": 0.001713,
+      "community": 2,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "README.md",
+      "name": "README.md",
+      "group": "root",
+      "group_label": "根目录",
+      "kind": "entry",
+      "registered": true,
+      "label": "README.md",
+      "title": "DAPENG Alpha · 策略选股量化系统",
+      "bytes": 6290,
+      "lines": 100,
+      "updated": "2026-11-01",
+      "missing": false,
+      "summary": "个人量化工具，不构成投资建议。系统只做研究与纸面验证， 不接真实券商通道 。",
+      "x": 523.09,
+      "y": 49.21,
+      "degree": 9,
+      "pagerank": 0.031484,
+      "betweenness": 0.087367,
+      "community": 2,
+      "bridge": true,
+      "size": 24.8
+    },
+    {
+      "id": "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "name": "DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": true,
+      "label": "DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "title": "DAPENG Alpha · 决策闭环整体规划",
+      "bytes": 35505,
+      "lines": 508,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "本文补齐动态市场调查、主脑研判、市场情绪追踪三套机制的精细化设计，并把三者与决策台、复盘校准接成一条可审计闭环。 现状与目标必须分开看 ：文中标记「已实现」的内容可在现有代码中找到；标记「目标 / 待建」的内容不得在 UI 或验收中冒充已交",
+      "x": 367.46,
+      "y": 113.04,
+      "degree": 3,
+      "pagerank": 0.010986,
+      "betweenness": 0.0,
+      "community": 2,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "name": "MASTER-PLAN-2026Q4.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": true,
+      "label": "MASTER-PLAN-2026Q4.md",
+      "title": "DAPENG Alpha · 系统设计与开发总体规划",
+      "bytes": 33864,
+      "lines": 480,
+      "updated": "2026-11-01",
+      "missing": false,
+      "summary": "DAPENG Alpha 是一套面向 A 股的「可解释决策辅助系统」 —— 它把行情、板块、资金、全球市场、因子与策略信号收敛成 可追溯的决策依据 ，再由自动化交易中心在 严格风控 下执行，并用复盘闭环反哺策略。",
+      "x": 200.63,
+      "y": 353.52,
+      "degree": 18,
+      "pagerank": 0.05517,
+      "betweenness": 0.041325,
+      "community": 1,
+      "bridge": false,
+      "size": 29.5
+    },
+    {
+      "id": "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "name": "OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": true,
+      "label": "OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "title": "DAPENG Alpha 开源能力融合规划",
+      "bytes": 8331,
+      "lines": 137,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "更新时间：2026-09-29 目标页面： http://localhost:8900/dashboard.html 实际项目： dapeng-water/\",
+      "x": 310.62,
+      "y": 207.67,
+      "degree": 4,
+      "pagerank": 0.013496,
+      "betweenness": 0.000687,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md",
+      "name": "PRODUCT-STRATEGY-2026Q4.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": false,
+      "label": "PRODUCT-STRATEGY-2026Q4",
+      "title": "DAPENG Alpha 产品战略与路线图（2026 Q4 版）",
+      "bytes": 8182,
+      "lines": 140,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "DAPENG Alpha = 个人 A 股「决策操作系统」：把盘前计划、盘中纪律、盘后复盘串成一条可执行的闭环，用可信数据和可解释规则替代盯盘焦虑。",
+      "x": 472.77,
+      "y": 636.0,
+      "degree": 2,
+      "pagerank": 0.008314,
+      "betweenness": 0.0,
+      "community": 3,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/00-strategy/README.md",
+      "name": "README.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "readme",
+      "registered": true,
+      "label": "docs/00-strategy/README.md",
+      "title": "文档地图（Document Map）",
+      "bytes": 7132,
+      "lines": 98,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "- architecture-v54-sidebar-pro.md （v5.4） - architecture-sidebar-tools.md （v5.3） - architecture-tab-admin.md （v5.1） - arc",
+      "x": 496.53,
+      "y": 540.8,
+      "degree": 34,
+      "pagerank": 0.112836,
+      "betweenness": 0.448654,
+      "community": 3,
+      "bridge": true,
+      "size": 36.0
+    },
+    {
+      "id": "docs/00-strategy/REFERENCE-AI1FOO.md",
+      "name": "REFERENCE-AI1FOO.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": false,
+      "label": "REFERENCE-AI1FOO",
+      "title": "竞品参考：ai1foo「股先生」（2026-10-30 实测）",
+      "bytes": 3081,
+      "lines": 47,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "「把投资想法交给 AI 执行」的通用投研 Agent 平台：自然语言对话 → 选择工具/专家 → 输出报告 → 可设为定时任务；同时提供选股、财务分析、回测、盯盘、通知、大盘云图、AI 每日筛股等模块。",
+      "x": 491.33,
+      "y": 421.51,
+      "degree": 1,
+      "pagerank": 0.005407,
+      "betweenness": 0.0,
+      "community": 3,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/00-strategy/capability-evolution-plan-2026.md",
+      "name": "capability-evolution-plan-2026.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": true,
+      "label": "capability-evolution-plan-2026.md",
+      "title": "DAPENG Alpha 能力进化规划",
+      "bytes": 21442,
+      "lines": 276,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "规划不另起炉灶，全部锚定在已上线并通过验证的模块上：",
+      "x": 219.0,
+      "y": 493.83,
+      "degree": 3,
+      "pagerank": 0.010699,
+      "betweenness": 0.0,
+      "community": 1,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/00-strategy/product-roadmap-2026.md",
+      "name": "product-roadmap-2026.md",
+      "group": "00-strategy",
+      "group_label": "战略与计划",
+      "kind": "spec",
+      "registered": true,
+      "label": "product-roadmap-2026.md",
+      "title": "DAPENG Alpha · 系统定位与发展规划（2026）",
+      "bytes": 11812,
+      "lines": 163,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "目标陈述（2026 年 12 月 31 日前达成） ：",
+      "x": 533.97,
+      "y": 636.0,
+      "degree": 5,
+      "pagerank": 0.017098,
+      "betweenness": 0.00168,
+      "community": 3,
+      "bridge": false,
+      "size": 22.1
+    },
+    {
+      "id": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "name": "A-SHARE-REALTIME-DECISION-DESK.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "A-SHARE-REALTIME-DECISION-DESK.md",
+      "title": "面向全 A 股的实时分析决策台 · 架构规范",
+      "bytes": 33209,
+      "lines": 600,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "一句话： 三层各算各的，但主脑用「同一份快照 + 一张资源图 + 一套集中阈值」把它们绑在一根时间轴上，并且敢把「三层说的不是同一件事」当成一等公民报出来。",
+      "x": 800.17,
+      "y": 323.37,
+      "degree": 28,
+      "pagerank": 0.11395,
+      "betweenness": 0.421047,
+      "community": 0,
+      "bridge": true,
+      "size": 33.7
+    },
+    {
+      "id": "docs/10-architecture/ADR-001-contract-envelope.md",
+      "name": "ADR-001-contract-envelope.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "ADR-001-contract-envelope.md",
+      "title": "ADR-001：统一响应信封（contract-envelope.v1）",
+      "bytes": 2891,
+      "lines": 64,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "- 状态：已采纳（2026-11-02） - 决策者：架构治理轮次 P3 - 影响面： server/routers/ 、 server/main.py 、前端 static/js/",
+      "x": 900.16,
+      "y": 176.48,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/ADR-002-module-split-facade.md",
+      "name": "ADR-002-module-split-facade.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "ADR-002-module-split-facade.md",
+      "title": "ADR-002：超大模块按「门面 + 分片」拆分",
+      "bytes": 3479,
+      "lines": 67,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "- 状态：已采纳（2026-11-02） - 决策者：架构治理轮次 P2 - 影响面： server/ 下 10 个 900 行模块、 tools/split module.py 、 tools/arch report.py",
+      "x": 854.16,
+      "y": 505.12,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/ARMILLARY-DESIGN.md",
+      "name": "ARMILLARY-DESIGN.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "ARMILLARY-DESIGN.md",
+      "title": "浑天仪 ARMILLARY · 星系设计代码全稿（v53–v59 权威底稿）",
+      "bytes": 18489,
+      "lines": 326,
+      "updated": "2026-10-30",
+      "missing": false,
+      "summary": "- 刻线不涂光 ：一切结构用微粒紧贴线位排布成\"发光细丝\"，禁用大光斑软晕； - 日期即星历 ：文档星在轨道上的相位 = 修订日期在年内的位置； - 开普勒差速 ：内环快外环慢，ω(r) = ω0·(r0/r)^0.75，GL 与 2D 同",
+      "x": 649.2,
+      "y": 225.79,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "name": "AXON-GRAPH-DESIGN.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "AXON-GRAPH-DESIGN.md",
+      "title": "AXON 文档关系图版 · 设计记录（UI Design Record）",
+      "bytes": 120613,
+      "lines": 1855,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "项目文档有 31 份、80 条关系，读者面对的是三个问题：",
+      "x": 384.33,
+      "y": 509.27,
+      "degree": 10,
+      "pagerank": 0.032617,
+      "betweenness": 0.037532,
+      "community": 3,
+      "bridge": false,
+      "size": 25.4
+    },
+    {
+      "id": "docs/10-architecture/DATA-PLATFORM.md",
+      "name": "DATA-PLATFORM.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "DATA-PLATFORM.md",
+      "title": "数据平台与数据源治理（2026-10-30）",
+      "bytes": 4042,
+      "lines": 63,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "GET /api/data-sources/health 返回统一健康状态（实现： server/datasources.py ）。",
+      "x": 739.65,
+      "y": 503.08,
+      "degree": 2,
+      "pagerank": 0.008866,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/10-architecture/DECISION-HUB.md",
+      "name": "DECISION-HUB.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "DECISION-HUB.md",
+      "title": "决策台 → 主脑中心：三个工作区合一（decision-hub.v1）",
+      "bytes": 7690,
+      "lines": 133,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "合并前有 三个并列工作区 ，读的却是同一份数据：",
+      "x": 839.49,
+      "y": 151.0,
+      "degree": 3,
+      "pagerank": 0.012355,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/10-architecture/DECISION-ROUTING.md",
+      "name": "DECISION-ROUTING.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "DECISION-ROUTING.md",
+      "title": "决策分流：指标接入、映射规则与降级约定（decision-routing.v1）",
+      "bytes": 10378,
+      "lines": 179,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "买手率定义 ： 外盘 / (外盘 + 内盘) × 100% 。外盘 = 主动买成交量，内盘 = 主动卖成交量， 单位「手」；这是逐笔口径的主动买占比， 不是 委托挂单簿（L2 十档）口径。 指数没有外盘/内盘字段，因此指数类不给买手率（ a",
+      "x": 736.34,
+      "y": 158.11,
+      "degree": 2,
+      "pagerank": 0.008866,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+      "name": "IMPECCABLE-INTEGRATION.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "IMPECCABLE-INTEGRATION.md",
+      "title": "DAPENG Alpha · Impeccable 接入说明",
+      "bytes": 3802,
+      "lines": 57,
+      "updated": "2026-10-24",
+      "missing": false,
+      "summary": "- 设计类请求默认按 Impeccable 的 Operate / Read 模式处理：精确、克制、可读优先； - 本项目世界是 仪器图版 / 制图手册 （ DESIGN.md §2、§5）：深色纸面、发丝线、 暖金只表权威与交互、钢蓝表冷",
+      "x": 406.9,
+      "y": 465.48,
+      "degree": 4,
+      "pagerank": 0.014505,
+      "betweenness": 0.0,
+      "community": 3,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/LAYER-CROSSCHECK.md",
+      "name": "LAYER-CROSSCHECK.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "LAYER-CROSSCHECK.md",
+      "title": "三层对证与数据配置（layer-crosscheck.v1 · brain-config.v1）",
+      "bytes": 8310,
+      "lines": 158,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "主脑中心分三层，但它们对 同一件事 往往各有一份数：",
+      "x": 625.4,
+      "y": 274.19,
+      "degree": 4,
+      "pagerank": 0.016419,
+      "betweenness": 0.00639,
+      "community": 0,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/LAYER-SYNC-CONTRACT.md",
+      "name": "LAYER-SYNC-CONTRACT.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "LAYER-SYNC-CONTRACT.md",
+      "title": "全 A 股分层实时分析流程 · 层间同步契约",
+      "bytes": 20996,
+      "lines": 307,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "1. 不编造 ：取不到就是 null / ok:false + reason ，禁止 0 或中性值填充（ quality.actionable 明确表态）。 2. 口径可见 ：每份 payload 带 data scope （ full a",
+      "x": 975.18,
+      "y": 383.96,
+      "degree": 2,
+      "pagerank": 0.008866,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/10-architecture/LHB-REVIEW.md",
+      "name": "LHB-REVIEW.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "LHB-REVIEW.md",
+      "title": "龙虎榜复盘：席位筛选、五维归因与推断等级（lhb-review.v1）",
+      "bytes": 17809,
+      "lines": 371,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "龙虎榜给的是「谁买了多少」，不回答「为什么」。复盘的价值在于把 行为 翻译成 动因假设 ， 并让这个假设可被后续走势检验。所以本模块只做两件事：",
+      "x": 976.0,
+      "y": 325.93,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/MARKET-SENTIMENT-MERGE.md",
+      "name": "MARKET-SENTIMENT-MERGE.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "MARKET-SENTIMENT-MERGE.md",
+      "title": "大盘纵览 × 市场情绪追踪：合并设计",
+      "bytes": 8836,
+      "lines": 154,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "原系统里两个页面各自成体系：",
+      "x": 690.58,
+      "y": 477.06,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/REPO-HYGIENE.md",
+      "name": "REPO-HYGIENE.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "REPO-HYGIENE.md",
+      "title": "仓库卫生与提交前守卫（repo-hygiene.v1）",
+      "bytes": 5309,
+      "lines": 92,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "根目录只允许 ：配置文件（ .env / .gitignore / requirements.txt / launch.bat / kill server.py ）、入口页面（ .html ）、 README.md 、 CHANGELOG.",
+      "x": 790.06,
+      "y": 146.97,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/SENTIMENT-REDESIGN.md",
+      "name": "SENTIMENT-REDESIGN.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "SENTIMENT-REDESIGN.md",
+      "title": "市场情绪追踪页 · 面板重设计规范（待施工 · 设计师+数据对接工程师联合稿）",
+      "bytes": 1808,
+      "lines": 29,
+      "updated": "2026-10-30",
+      "missing": false,
+      "summary": "- 六源中北向（链路废弃）、资金流（上游超时）长期不可用 → 空壳/错误占位； - 卡片视觉不统一（边框/底色/圆角各异）、信息层级弱（标题/数据/来源不分层）； - 数据接入散落 fetch，无统一配置（v74 已建 dsFetch 层）",
+      "x": 949.15,
+      "y": 436.56,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md",
+      "name": "SENTIMENT-SURVEY-BRAIN.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "SENTIMENT-SURVEY-BRAIN.md",
+      "title": "情绪追踪 × 动态市场调查 × 主脑：三层一体化重构",
+      "bytes": 17096,
+      "lines": 309,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "/api/decision/sentiment 返回的是 此刻 ：总分 + 六维 + 覆盖。但交易真正需要的是：",
+      "x": 649.5,
+      "y": 434.63,
+      "degree": 2,
+      "pagerank": 0.009534,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/10-architecture/SYSTEM-OPTIMIZATION-2026Q4.md",
+      "name": "SYSTEM-OPTIMIZATION-2026Q4.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "SYSTEM-OPTIMIZATION-2026Q4.md",
+      "title": "系统架构与数据连接优化方案（2026 Q4）",
+      "bytes": 22122,
+      "lines": 360,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "硬规则（由 tests/test architecture.py 强制执行）",
+      "x": 626.56,
+      "y": 389.33,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "name": "SYSTEM-WORKFLOW.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "SYSTEM-WORKFLOW.md",
+      "title": "DAPENG Alpha · 系统工作流与模块地图",
+      "bytes": 11869,
+      "lines": 233,
+      "updated": "2026-10-19",
+      "missing": false,
+      "summary": "FastAPI 单体 + 原生前端 ：后端 server/ 负责取数、计算、决策、模拟成交、复盘与迭代；前端 static/ 负责展示，通过 SSE 实时推送 + 轮询兜底 与后端通信；状态落在 SQLite（ data/trading.d",
+      "x": 482.88,
+      "y": 24.0,
+      "degree": 5,
+      "pagerank": 0.019721,
+      "betweenness": 0.056451,
+      "community": 2,
+      "bridge": false,
+      "size": 22.1
+    },
+    {
+      "id": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "name": "UI-VISUALIZATION-ROADMAP.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "UI-VISUALIZATION-ROADMAP.md",
+      "title": "界面与可视化路线（UI / Visualization Roadmap）",
+      "bytes": 9521,
+      "lines": 141,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "1. 文档先行 ：任何界面改动先在 docs/ 写下意图与验收，再改代码；完成后回写版本表。 2. 单一数据源 ：图谱数据只来自 static/docs-graph.json （由 tools/gen docs graph.py 生成），经",
+      "x": 395.33,
+      "y": 599.89,
+      "degree": 6,
+      "pagerank": 0.020233,
+      "betweenness": 0.006069,
+      "community": 3,
+      "bridge": false,
+      "size": 22.8
+    },
+    {
+      "id": "docs/10-architecture/architecture-sidebar-tools.md",
+      "name": "architecture-sidebar-tools.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "architecture-sidebar-tools.md",
+      "title": "架构设计文档 — Sidebar 5 工具功能补全",
+      "bytes": 32745,
+      "lines": 590,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "核心决策 ：只有热门股和龙虎榜需要新建全屏覆盖面板；其余 3 个面板在现有结构上增量增强。",
+      "x": 145.23,
+      "y": 485.56,
+      "degree": 4,
+      "pagerank": 0.014158,
+      "betweenness": 0.003101,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/architecture-tab-admin.md",
+      "name": "architecture-tab-admin.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "architecture-tab-admin.md",
+      "title": "系统架构设计: Tab浮层交互重构 + API调用追踪后台",
+      "bytes": 35128,
+      "lines": 907,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "新增第三方依赖：无 （全部使用Python标准库 + 现有框架能力）",
+      "x": 127.22,
+      "y": 182.0,
+      "degree": 4,
+      "pagerank": 0.014158,
+      "betweenness": 0.003101,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/architecture-v54-sidebar-pro.md",
+      "name": "architecture-v54-sidebar-pro.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "architecture-v54-sidebar-pro.md",
+      "title": "DAPENG Alpha v5.4 架构设计 — Sidebar 5 工具深度升级",
+      "bytes": 45219,
+      "lines": 932,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "本次升级遵循\" 核心重构、外围增量 \"策略：",
+      "x": 364.16,
+      "y": 345.85,
+      "degree": 4,
+      "pagerank": 0.014158,
+      "betweenness": 0.003101,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/architecture-westock-mcp.md",
+      "name": "architecture-westock-mcp.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "architecture-westock-mcp.md",
+      "title": "DAPENG Alpha — MCP 数据源集成系统架构设计",
+      "bytes": 37705,
+      "lines": 864,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "直接扩展 westock.py CLI 封装，不引入 MCP HTTP 桥接层。",
+      "x": 907.6,
+      "y": 478.4,
+      "degree": 3,
+      "pagerank": 0.011553,
+      "betweenness": 0.001862,
+      "community": 0,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/10-architecture/auto-trading-architecture.md",
+      "name": "auto-trading-architecture.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "auto-trading-architecture.md",
+      "title": "自动化股票交易系统 — 架构设计蓝图",
+      "bytes": 40497,
+      "lines": 589,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "铁律 ： server/trading/ 可以 import 数据层模块；数据层模块 绝不 import trading/ 。 strategies.py 、 realtime.py 等现有文件零改动。",
+      "x": 553.1,
+      "y": 433.59,
+      "degree": 4,
+      "pagerank": 0.014325,
+      "betweenness": 0.001862,
+      "community": 3,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/10-architecture/class-diagram-v54.mermaid",
+      "name": "class-diagram-v54.mermaid",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "class-diagram.mermaid / class-diagram-v54.mermaid / class-diagram-westock-mcp.mermaid",
+      "title": "类图 / 数据结构图 — v5.4 Sidebar 5 工具升级",
+      "bytes": 1692,
+      "lines": 83,
+      "updated": "2026-07-07",
+      "missing": false,
+      "summary": "",
+      "x": 944.13,
+      "y": 216.74,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/impl-checklist-openbb-dsa.md",
+      "name": "impl-checklist-openbb-dsa.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "spec",
+      "registered": false,
+      "label": "impl-checklist-openbb-dsa",
+      "title": "OpenBB × DSA 接入 — 可派工实施清单（Impl Checklist）",
+      "bytes": 32918,
+      "lines": 357,
+      "updated": "2026-10-19",
+      "missing": false,
+      "summary": "- 用途 : 主理人逐单派活用。每单可直接粘贴进工程师开工说明。 - 上游设计 : openbb-dsa-integration-design.md （v1.2） - 核准时间 : 2026-10-19 19:45（as-built 实测，",
+      "x": 788.7,
+      "y": 512.95,
+      "degree": 1,
+      "pagerank": 0.006707,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/openbb-dsa-integration-design.md",
+      "name": "openbb-dsa-integration-design.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "openbb-dsa-integration-design.md",
+      "title": "OpenBB × DailyStockAnalysis 能力接入 — 系统设计与任务分解",
+      "bytes": 117486,
+      "lines": 1573,
+      "updated": "2026-10-19",
+      "missing": false,
+      "summary": "- 文档类型 : 架构设计（设计文档，不含实现代码） - 上游输入 : ../20-prd/openbb-dsa-integration-prd.md （v1.0） - 版本 : v1.3（2026-10-19）— ①并入全部五项决策（Q1",
+      "x": 617.06,
+      "y": 341.46,
+      "degree": 3,
+      "pagerank": 0.014544,
+      "betweenness": 0.042965,
+      "community": 0,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/10-architecture/sequence-diagram-v54.mermaid",
+      "name": "sequence-diagram-v54.mermaid",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "sequence-diagram.mermaid / sequence-diagram-v54.mermaid / sequence-diagram-westock-mcp.mermaid",
+      "title": "时序图 1：板块分析面板打开 → 周期切换 → 排序",
+      "bytes": 4416,
+      "lines": 103,
+      "updated": "2026-07-07",
+      "missing": false,
+      "summary": "",
+      "x": 687.62,
+      "y": 185.19,
+      "degree": 1,
+      "pagerank": 0.006045,
+      "betweenness": 0.0,
+      "community": 0,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/10-architecture/system_design.md",
+      "name": "system_design.md",
+      "group": "10-architecture",
+      "group_label": "架构与设计",
+      "kind": "design",
+      "registered": true,
+      "label": "system_design.md",
+      "title": "BigA Pro 策略选股系统 — 系统架构设计",
+      "bytes": 22572,
+      "lines": 583,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "安装方式（清华镜像）：",
+      "x": 972.6,
+      "y": 268.27,
+      "degree": 3,
+      "pagerank": 0.011553,
+      "betweenness": 0.001862,
+      "community": 0,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/20-prd/auto-trading-prd.md",
+      "name": "auto-trading-prd.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "auto-trading-prd.md",
+      "title": "自动化交易系统 — 增量 PRD",
+      "bytes": 10448,
+      "lines": 93,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "- Language : 中文 - Programming Language : 后端 Python（FastAPI，沿用现有 server/ 架构）；前端纯 HTML + 原生 JS（沿用 static/ ，无构建工具） - Projec",
+      "x": 284.57,
+      "y": 471.59,
+      "degree": 5,
+      "pagerank": 0.016269,
+      "betweenness": 0.00094,
+      "community": 1,
+      "bridge": false,
+      "size": 22.1
+    },
+    {
+      "id": "docs/20-prd/incremental-prd-sidebar-tools.md",
+      "name": "incremental-prd-sidebar-tools.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "incremental-prd-sidebar-tools.md",
+      "title": "DAPENG Alpha 增量PRD — Sidebar 5 工具功能补全",
+      "bytes": 22102,
+      "lines": 331,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "经逐文件排查 static/dashboard.html + static/js/app.js + static/js/market-data.js + static/js/strategies-ui.js + static/js/api.",
+      "x": 76.07,
+      "y": 438.82,
+      "degree": 2,
+      "pagerank": 0.008205,
+      "betweenness": 0.000687,
+      "community": 1,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/20-prd/incremental-prd-tab-admin.md",
+      "name": "incremental-prd-tab-admin.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "incremental-prd-tab-admin.md",
+      "title": "增量PRD: Tab交互重构 + 后台管理系统",
+      "bytes": 18066,
+      "lines": 235,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "解决 v5.0 遗留的两个体验与运维问题： Tab 浮层化让 K线图保持完整可视面积 ，同时 新增 /admin 后台实现 14 个 API 端点的调用追踪与可视化监控 。",
+      "x": 40.3,
+      "y": 371.19,
+      "degree": 4,
+      "pagerank": 0.013496,
+      "betweenness": 0.000687,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+      "name": "incremental-prd-v54-sidebar-pro.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "incremental-prd-v54-sidebar-pro.md",
+      "title": "DAPENG Alpha 增量PRD — Sidebar 5 工具深度升级（v5.4）",
+      "bytes": 28190,
+      "lines": 484,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "v5.3 已完成 5 工具的基础架构建设：热门股/龙虎榜已从板块分析面板独立为全屏覆盖面板（ .full-overlay-panel ），选股器/板块分析/智能选股的基本功能已跑通。但用户反馈\"功能并不齐全和高级\"，经排查确认以下核心短板：",
+      "x": 252.34,
+      "y": 173.6,
+      "degree": 4,
+      "pagerank": 0.013496,
+      "betweenness": 0.000687,
+      "community": 1,
+      "bridge": false,
+      "size": 21.3
+    },
+    {
+      "id": "docs/20-prd/incremental-prd-westock-mcp.md",
+      "name": "incremental-prd-westock-mcp.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "incremental-prd-westock-mcp.md",
+      "title": "DAPENG Alpha 增量PRD — 腾讯自选股MCP数据源接入",
+      "bytes": 28107,
+      "lines": 504,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "用户反馈当前系统存在两大核心问题： 1. 股票数量太少 — 仅356只硬编码股票，无法覆盖全市场，无法实用 2. 功能欠缺 — 资金流向、龙虎榜、热门股、研报、财务等核心功能缺失，前端部分面板是\"空壳\"（有UI无数据），无法展示",
+      "x": 76.57,
+      "y": 220.61,
+      "degree": 3,
+      "pagerank": 0.010891,
+      "betweenness": 0.000687,
+      "community": 1,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "name": "openbb-dsa-integration-prd.md",
+      "group": "20-prd",
+      "group_label": "产品需求",
+      "kind": "prd",
+      "registered": true,
+      "label": "openbb-dsa-integration-prd.md",
+      "title": "OpenBB × DailyStockAnalysis 能力接入 — 增量 PRD",
+      "bytes": 77615,
+      "lines": 619,
+      "updated": "2026-10-19",
+      "missing": false,
+      "summary": "- Language : 中文 - Programming Language : 沿用现状 —— 后端 Python（FastAPI 单服务 8900）；前端原生 HTML + 原生 JS + ECharts + klinecharts v",
+      "x": 138.81,
+      "y": 312.54,
+      "degree": 10,
+      "pagerank": 0.032915,
+      "betweenness": 0.030453,
+      "community": 1,
+      "bridge": false,
+      "size": 25.4
+    },
+    {
+      "id": "docs/30-data/DATA-DICTIONARY.md",
+      "name": "DATA-DICTIONARY.md",
+      "group": "30-data",
+      "group_label": "数据字典",
+      "kind": "data",
+      "registered": true,
+      "label": "DATA-DICTIONARY.md",
+      "title": "DAPENG Alpha · 数据口径字典",
+      "bytes": 23392,
+      "lines": 322,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "实测时间为 2026-10-14（详见 MASTER-PLAN §4.1，非推断）。",
+      "x": 243.83,
+      "y": 326.42,
+      "degree": 19,
+      "pagerank": 0.060047,
+      "betweenness": 0.073984,
+      "community": 1,
+      "bridge": true,
+      "size": 29.9
+    },
+    {
+      "id": "docs/30-data/GRAPH-DATA.md",
+      "name": "GRAPH-DATA.md",
+      "group": "30-data",
+      "group_label": "数据字典",
+      "kind": "data",
+      "registered": false,
+      "label": "GRAPH-DATA",
+      "title": "AXON 图谱数据总表 · GRAPH DATA",
+      "bytes": 6777,
+      "lines": 87,
+      "updated": "2026-10-30",
+      "missing": false,
+      "summary": "",
+      "x": 340.27,
+      "y": 416.73,
+      "degree": 1,
+      "pagerank": 0.005273,
+      "betweenness": 0.0,
+      "community": 1,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/40-ops/API-REFERENCE.md",
+      "name": "API-REFERENCE.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": true,
+      "label": "API-REFERENCE.md",
+      "title": "DAPENG Alpha 接口参考",
+      "bytes": 24106,
+      "lines": 317,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "端点总数 187 · 路径数 179 · 服务版本 4.0",
+      "x": 506.78,
+      "y": 158.47,
+      "degree": 5,
+      "pagerank": 0.023427,
+      "betweenness": 0.070057,
+      "community": 2,
+      "bridge": false,
+      "size": 22.1
+    },
+    {
+      "id": "docs/40-ops/BOARD-REVIEW.md",
+      "name": "BOARD-REVIEW.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": true,
+      "label": "BOARD-REVIEW.md",
+      "title": "打板复盘：数据要求与生成方式",
+      "bytes": 4979,
+      "lines": 87,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "一份成交明细（CSV / XLSX / XLS 都行），券商导出、同花顺/通达信「成交记录」导出均可。 最少需要这 6 列，其余可选：",
+      "x": 601.35,
+      "y": 204.4,
+      "degree": 1,
+      "pagerank": 0.006569,
+      "betweenness": 0.0,
+      "community": 2,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/40-ops/CHANGELOG-2026-10-22.md",
+      "name": "CHANGELOG-2026-10-22.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": false,
+      "label": "CHANGELOG-2026-10-22",
+      "title": "2026-10-22 系统修复与优化总账",
+      "bytes": 14495,
+      "lines": 223,
+      "updated": "2026-10-22",
+      "missing": false,
+      "summary": "- 服务：FastAPI， 127.0.0.1:8900 ，静态资源由 app.mount(\"/\", StaticFiles(..., html=True)) 直接托管 - 解释器：系统 Python 3.11（唯一装了 fastapi/u",
+      "x": 536.73,
+      "y": 246.28,
+      "degree": 2,
+      "pagerank": 0.010126,
+      "betweenness": 0.001096,
+      "community": 2,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/40-ops/CLOUD-DEPLOYMENT.md",
+      "name": "CLOUD-DEPLOYMENT.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": false,
+      "label": "CLOUD-DEPLOYMENT",
+      "title": "云服务器部署与成本（2026-10-30）",
+      "bytes": 4716,
+      "lines": 106,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "能。 国内主流「轻量应用服务器 / 云服务器」默认带公网 IP + 出网带宽，24×7 在线，可运行本系统（Python/FastAPI + SQLite + 静态页面），并主动访问腾讯/新浪/东财/Tushare 等行情接口；手机可通过公",
+      "x": 619.0,
+      "y": 556.65,
+      "degree": 1,
+      "pagerank": 0.005407,
+      "betweenness": 0.0,
+      "community": 3,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/40-ops/DEBUG-AUDIT-2026-11-02.md",
+      "name": "DEBUG-AUDIT-2026-11-02.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": true,
+      "label": "DEBUG-AUDIT-2026-11-02.md",
+      "title": "系统调试与修复记录（debug-audit 2026-11-02）",
+      "bytes": 9632,
+      "lines": 145,
+      "updated": "2026-11-02",
+      "missing": false,
+      "summary": "覆盖五块： 服务 （端口/绑定地址/健康）、 配置 （JSON 可解析、运行期校验、密钥存在性）、 上游 （新浪/东财×2/腾讯/LLM 端点）、 缓存 （账实一致、水位、过期堆积、命中率、链路新鲜度、耗时可观测）、 存储与一致性 （dat",
+      "x": 420.31,
+      "y": 224.86,
+      "degree": 1,
+      "pagerank": 0.006569,
+      "betweenness": 0.0,
+      "community": 2,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/40-ops/DEPLOYMENT.md",
+      "name": "DEPLOYMENT.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": true,
+      "label": "DEPLOYMENT.md",
+      "title": "DAPENG Alpha · 部署与运维",
+      "bytes": 7120,
+      "lines": 147,
+      "updated": "2026-11-03",
+      "missing": false,
+      "summary": "单机自部署 （明确排除多用户 / 商业化）。服务只监听本机，无登录鉴权（边界依赖\"单机\"这一前提）。",
+      "x": 464.15,
+      "y": 104.48,
+      "degree": 8,
+      "pagerank": 0.031508,
+      "betweenness": 0.105379,
+      "community": 2,
+      "bridge": true,
+      "size": 24.2
+    },
+    {
+      "id": "docs/40-ops/HARDENING-MOAT.md",
+      "name": "HARDENING-MOAT.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": false,
+      "label": "HARDENING-MOAT",
+      "title": "系统护城河 · 运行与安全加固",
+      "bytes": 6898,
+      "lines": 124,
+      "updated": "2026-10-24",
+      "missing": false,
+      "summary": "x-content-type-options: nosniff 、 x-frame-options: SAMEORIGIN 、 referrer-policy: no-referrer 、 permissions-policy 关闭摄像头/",
+      "x": 406.31,
+      "y": 24.87,
+      "degree": 2,
+      "pagerank": 0.009286,
+      "betweenness": 0.000508,
+      "community": 2,
+      "bridge": false,
+      "size": 19.5
+    },
+    {
+      "id": "docs/40-ops/REMOTE-ACCESS.md",
+      "name": "REMOTE-ACCESS.md",
+      "group": "40-ops",
+      "group_label": "运维与交付",
+      "kind": "ops",
+      "registered": false,
+      "label": "REMOTE-ACCESS",
+      "title": "远程访问与离线运行（宿舍电脑 / 手机热点场景）",
+      "bytes": 4609,
+      "lines": 74,
+      "updated": "2026-10-29",
+      "missing": false,
+      "summary": "不建议 ：让电脑继续依赖“随身热点”。手机离开 = 断网，这是物理约束，无法用软件绕开。",
+      "x": 591.1,
+      "y": 24.0,
+      "degree": 1,
+      "pagerank": 0.005934,
+      "betweenness": 0.0,
+      "community": 2,
+      "bridge": false,
+      "size": 18.2
+    },
+    {
+      "id": "docs/90-archive/HANDOFF-v5.4.md",
+      "name": "HANDOFF-v5.4.md",
+      "group": "90-archive",
+      "group_label": "归档",
+      "kind": "archive",
+      "registered": true,
+      "label": "HANDOFF-v5.4.md",
+      "title": "DAPENG Alpha v5.4 — AI 接驳手交包",
+      "bytes": 10884,
+      "lines": 215,
+      "updated": "2026-10-16",
+      "missing": false,
+      "summary": "访问： - Dashboard: http://localhost:8900/dashboard.html - 后台管理: http://localhost:8900/admin.html",
+      "x": 347.99,
+      "y": 257.22,
+      "degree": 3,
+      "pagerank": 0.011091,
+      "betweenness": 0.0,
+      "community": 1,
+      "bridge": false,
+      "size": 20.4
+    },
+    {
+      "id": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "name": "SYSTEM-OPTIMIZATION-v4.0.md",
+      "group": "90-archive",
+      "group_label": "归档",
+      "kind": "archive",
+      "registered": true,
+      "label": "SYSTEM-OPTIMIZATION-v4.0.md",
+      "title": "DAPENG Alpha v4.0 · 系统优化与测试报告（合并归档版）",
+      "bytes": 5176,
+      "lines": 102,
+      "updated": "2026-10-14",
+      "missing": false,
+      "summary": "日期 ：2026-07-04 ｜ 版本 ：v4.0 ｜ 状态 ：✅ 当时已完成全面优化，系统稳定运行 归档日期 ：2026-10-14 ｜ 归档人 ：文档体系重构（M9）",
+      "x": 47.69,
+      "y": 266.75,
+      "degree": 5,
+      "pagerank": 0.018109,
+      "betweenness": 0.004835,
+      "community": 1,
+      "bridge": false,
+      "size": 22.1
+    },
+    {
+      "id": "docs/90-archive/auto-trading-arch-v0-deprecated.md",
+      "name": "auto-trading-arch-v0-deprecated.md",
+      "group": "90-archive",
+      "group_label": "归档",
+      "kind": "archive",
+      "registered": true,
+      "label": "auto-trading-arch-v0-deprecated.md",
+      "title": "自动化交易系统 — 系统架构设计（P0 增量）",
+      "bytes": 25725,
+      "lines": 539,
+      "updated": "2026-10-15",
+      "missing": false,
+      "summary": "- 分层： 监控层（monitor）→ 信号层（signals）→ 决策/策略层（strategies engine）→ 风控层（risk）→ 网关层（gateway）→ 通知层（notifier）→ 持久层（store） - 依赖方向自上",
+      "x": 181.39,
+      "y": 166.13,
+      "degree": 2,
+      "pagerank": 0.008486,
+      "betweenness": 0.0,
+      "community": 1,
+      "bridge": false,
+      "size": 19.5
+    }
+  ],
+  "links": [
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/ADR-001-contract-envelope.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/ADR-002-module-split-facade.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/ARMILLARY-DESIGN.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/DATA-PLATFORM.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/DECISION-HUB.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/DECISION-ROUTING.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/LAYER-CROSSCHECK.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/LAYER-SYNC-CONTRACT.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/LHB-REVIEW.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/MARKET-SENTIMENT-MERGE.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/REPO-HYGIENE.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/SENTIMENT-REDESIGN.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/SYSTEM-OPTIMIZATION-2026Q4.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/architecture-sidebar-tools.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/architecture-tab-admin.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/architecture-v54-sidebar-pro.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/architecture-westock-mcp.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/auto-trading-architecture.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/class-diagram-v54.mermaid",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/openbb-dsa-integration-design.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/sequence-diagram-v54.mermaid",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "target": "docs/10-architecture/system_design.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/10-architecture · 架构设计"
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/20-prd/auto-trading-prd.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/20-prd · 需求文档"
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/20-prd/incremental-prd-sidebar-tools.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/20-prd · 需求文档"
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/20-prd/incremental-prd-tab-admin.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/20-prd · 需求文档"
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/20-prd · 需求文档"
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/20-prd/incremental-prd-westock-mcp.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/20-prd · 需求文档"
+    },
+    {
+      "source": "docs/40-ops/API-REFERENCE.md",
+      "target": "docs/40-ops/BOARD-REVIEW.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/40-ops · 部署与运维"
+    },
+    {
+      "source": "docs/40-ops/API-REFERENCE.md",
+      "target": "docs/40-ops/DEBUG-AUDIT-2026-11-02.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/40-ops · 部署与运维"
+    },
+    {
+      "source": "docs/40-ops/API-REFERENCE.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/40-ops · 部署与运维"
+    },
+    {
+      "source": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "target": "docs/90-archive/HANDOFF-v5.4.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/90-archive · 归档（过期 / 已废弃）"
+    },
+    {
+      "source": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "target": "docs/90-archive/auto-trading-arch-v0-deprecated.md",
+      "type": "data_link",
+      "line": null,
+      "group": "docs/90-archive · 归档（过期 / 已废弃）"
+    },
+    {
+      "source": "CHANGELOG.md",
+      "target": "docs/40-ops/CHANGELOG-2026-10-22.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "CHANGELOG.md",
+      "type": "link",
+      "line": 100,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 63,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 61,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/00-strategy/README.md",
+      "type": "link",
+      "line": 65,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "type": "link",
+      "line": 69,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "type": "link",
+      "line": 73,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 67,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/40-ops/API-REFERENCE.md",
+      "type": "link",
+      "line": 71,
+      "group": null
+    },
+    {
+      "source": "README.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "link",
+      "line": 23,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 6,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "target": "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 6,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 32,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 14,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "type": "link",
+      "line": 35,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md",
+      "type": "link",
+      "line": 95,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/REFERENCE-AI1FOO.md",
+      "type": "link",
+      "line": 96,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/capability-evolution-plan-2026.md",
+      "type": "link",
+      "line": 34,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/00-strategy/product-roadmap-2026.md",
+      "type": "link",
+      "line": 33,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "type": "link",
+      "line": 18,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "type": "link",
+      "line": 74,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/DATA-PLATFORM.md",
+      "type": "link",
+      "line": 97,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/DECISION-HUB.md",
+      "type": "link",
+      "line": 17,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/DECISION-ROUTING.md",
+      "type": "link",
+      "line": 19,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+      "type": "link",
+      "line": 90,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/LAYER-CROSSCHECK.md",
+      "type": "link",
+      "line": 21,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/LAYER-SYNC-CONTRACT.md",
+      "type": "link",
+      "line": 20,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "type": "link",
+      "line": 75,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/architecture-sidebar-tools.md",
+      "type": "link",
+      "line": 45,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/architecture-tab-admin.md",
+      "type": "link",
+      "line": 46,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/architecture-v54-sidebar-pro.md",
+      "type": "link",
+      "line": 44,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/architecture-westock-mcp.md",
+      "type": "link",
+      "line": 47,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/auto-trading-architecture.md",
+      "type": "link",
+      "line": 16,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/10-architecture/system_design.md",
+      "type": "link",
+      "line": 48,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/20-prd/auto-trading-prd.md",
+      "type": "link",
+      "line": 52,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/20-prd/incremental-prd-sidebar-tools.md",
+      "type": "link",
+      "line": 54,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/20-prd/incremental-prd-tab-admin.md",
+      "type": "link",
+      "line": 55,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+      "type": "link",
+      "line": 53,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/20-prd/incremental-prd-westock-mcp.md",
+      "type": "link",
+      "line": 56,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 15,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/40-ops/CLOUD-DEPLOYMENT.md",
+      "type": "link",
+      "line": 98,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "link",
+      "line": 22,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/90-archive/HANDOFF-v5.4.md",
+      "type": "link",
+      "line": 62,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "type": "link",
+      "line": 63,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/README.md",
+      "target": "docs/90-archive/auto-trading-arch-v0-deprecated.md",
+      "type": "link",
+      "line": 64,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/capability-evolution-plan-2026.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/capability-evolution-plan-2026.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/product-roadmap-2026.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/product-roadmap-2026.md",
+      "target": "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md",
+      "type": "link",
+      "line": 163,
+      "group": null
+    },
+    {
+      "source": "docs/00-strategy/product-roadmap-2026.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 156,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/00-strategy/README.md",
+      "type": "link",
+      "line": 30,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "type": "link",
+      "line": 160,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "type": "link",
+      "line": 245,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/10-architecture/auto-trading-architecture.md",
+      "type": "link",
+      "line": 158,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/20-prd/auto-trading-prd.md",
+      "type": "link",
+      "line": 159,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 157,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "link",
+      "line": 161,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/DECISION-HUB.md",
+      "target": "docs/10-architecture/LAYER-CROSSCHECK.md",
+      "type": "link",
+      "line": 131,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+      "target": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "type": "link",
+      "line": 48,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+      "target": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "type": "link",
+      "line": 49,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md",
+      "target": "docs/10-architecture/LAYER-CROSSCHECK.md",
+      "type": "link",
+      "line": 8,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "target": "docs/40-ops/API-REFERENCE.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "target": "docs/00-strategy/product-roadmap-2026.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+      "target": "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+      "type": "link",
+      "line": 5,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-sidebar-tools.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-sidebar-tools.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-tab-admin.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-tab-admin.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-v54-sidebar-pro.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-v54-sidebar-pro.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/architecture-westock-mcp.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/auto-trading-architecture.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 194,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/impl-checklist-openbb-dsa.md",
+      "target": "docs/10-architecture/openbb-dsa-integration-design.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/openbb-dsa-integration-design.md",
+      "target": "docs/10-architecture/impl-checklist-openbb-dsa.md",
+      "type": "link",
+      "line": 6,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/openbb-dsa-integration-design.md",
+      "target": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/10-architecture/system_design.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/auto-trading-prd.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/auto-trading-prd.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/incremental-prd-tab-admin.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/incremental-prd-tab-admin.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/incremental-prd-westock-mcp.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+      "type": "link",
+      "line": 6,
+      "group": null
+    },
+    {
+      "source": "docs/20-prd/openbb-dsa-integration-prd.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 5,
+      "group": null
+    },
+    {
+      "source": "docs/30-data/DATA-DICTIONARY.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 5,
+      "group": null
+    },
+    {
+      "source": "docs/30-data/GRAPH-DATA.md",
+      "target": "docs/30-data/DATA-DICTIONARY.md",
+      "type": "link",
+      "line": 5,
+      "group": null
+    },
+    {
+      "source": "docs/40-ops/DEPLOYMENT.md",
+      "target": "docs/40-ops/CHANGELOG-2026-10-22.md",
+      "type": "link",
+      "line": 87,
+      "group": null
+    },
+    {
+      "source": "docs/40-ops/DEPLOYMENT.md",
+      "target": "docs/40-ops/HARDENING-MOAT.md",
+      "type": "link",
+      "line": 102,
+      "group": null
+    },
+    {
+      "source": "docs/40-ops/DEPLOYMENT.md",
+      "target": "docs/40-ops/REMOTE-ACCESS.md",
+      "type": "link",
+      "line": 145,
+      "group": null
+    },
+    {
+      "source": "docs/40-ops/HARDENING-MOAT.md",
+      "target": "docs/10-architecture/SYSTEM-WORKFLOW.md",
+      "type": "link",
+      "line": 122,
+      "group": null
+    },
+    {
+      "source": "docs/40-ops/HARDENING-MOAT.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "link",
+      "line": 121,
+      "group": null
+    },
+    {
+      "source": "docs/90-archive/HANDOFF-v5.4.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 4,
+      "group": null
+    },
+    {
+      "source": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "target": "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+      "type": "link",
+      "line": 3,
+      "group": null
+    },
+    {
+      "source": "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+      "target": "docs/40-ops/DEPLOYMENT.md",
+      "type": "link",
+      "line": 86,
+      "group": null
+    }
+  ],
+  "dangling": [],
+  "layout": {
+    "w": 1000,
+    "h": 660,
+    "algorithm": "fr-cohesion-v1",
+    "iterations": 420,
+    "node_count": 58,
+    "cohesion": 0.26
+  },
+  "metrics": {
+    "nodes": 58,
+    "links": 137,
+    "density": 0.0829,
+    "avg_degree": 4.55,
+    "max_degree": 34,
+    "components": 1,
+    "largest_component": 58,
+    "isolated": 0,
+    "diameter": 5,
+    "diameter_from": "docs/40-ops/BOARD-REVIEW.md",
+    "diameter_to": "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "modularity": 0.341,
+    "communities": 4,
+    "avg_clustering": 0.5774
+  },
+  "communities": [
+    {
+      "id": 0,
+      "size": 21,
+      "top_group": "10-architecture",
+      "label": "架构与设计",
+      "mixed": false,
+      "group_mix": {
+        "10-architecture": 21
+      },
+      "anchor": "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+      "members": [
+        "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+        "docs/10-architecture/ADR-001-contract-envelope.md",
+        "docs/10-architecture/ADR-002-module-split-facade.md",
+        "docs/10-architecture/ARMILLARY-DESIGN.md",
+        "docs/10-architecture/DATA-PLATFORM.md",
+        "docs/10-architecture/DECISION-HUB.md",
+        "docs/10-architecture/DECISION-ROUTING.md",
+        "docs/10-architecture/LAYER-CROSSCHECK.md",
+        "docs/10-architecture/LAYER-SYNC-CONTRACT.md",
+        "docs/10-architecture/LHB-REVIEW.md",
+        "docs/10-architecture/MARKET-SENTIMENT-MERGE.md",
+        "docs/10-architecture/REPO-HYGIENE.md",
+        "docs/10-architecture/SENTIMENT-REDESIGN.md",
+        "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md",
+        "docs/10-architecture/SYSTEM-OPTIMIZATION-2026Q4.md",
+        "docs/10-architecture/architecture-westock-mcp.md",
+        "docs/10-architecture/class-diagram-v54.mermaid",
+        "docs/10-architecture/impl-checklist-openbb-dsa.md",
+        "docs/10-architecture/openbb-dsa-integration-design.md",
+        "docs/10-architecture/sequence-diagram-v54.mermaid",
+        "docs/10-architecture/system_design.md"
+      ],
+      "hull": [
+        [
+          617.06,
+          341.46
+        ],
+        [
+          625.4,
+          274.19
+        ],
+        [
+          649.2,
+          225.79
+        ],
+        [
+          687.62,
+          185.19
+        ],
+        [
+          736.34,
+          158.11
+        ],
+        [
+          790.06,
+          146.97
+        ],
+        [
+          839.49,
+          151.0
+        ],
+        [
+          900.16,
+          176.48
+        ],
+        [
+          944.13,
+          216.74
+        ],
+        [
+          972.6,
+          268.27
+        ],
+        [
+          976.0,
+          325.93
+        ],
+        [
+          975.18,
+          383.96
+        ],
+        [
+          949.15,
+          436.56
+        ],
+        [
+          907.6,
+          478.4
+        ],
+        [
+          854.16,
+          505.12
+        ],
+        [
+          788.7,
+          512.95
+        ],
+        [
+          739.65,
+          503.08
+        ],
+        [
+          690.58,
+          477.06
+        ],
+        [
+          649.5,
+          434.63
+        ],
+        [
+          626.56,
+          389.33
+        ]
+      ]
+    },
+    {
+      "id": 1,
+      "size": 17,
+      "top_group": "20-prd",
+      "label": "产品需求",
+      "mixed": true,
+      "group_mix": {
+        "20-prd": 6,
+        "00-strategy": 3,
+        "10-architecture": 3,
+        "90-archive": 3,
+        "30-data": 2
+      },
+      "anchor": "docs/30-data/DATA-DICTIONARY.md",
+      "members": [
+        "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+        "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/00-strategy/capability-evolution-plan-2026.md",
+        "docs/10-architecture/architecture-sidebar-tools.md",
+        "docs/10-architecture/architecture-tab-admin.md",
+        "docs/10-architecture/architecture-v54-sidebar-pro.md",
+        "docs/20-prd/auto-trading-prd.md",
+        "docs/20-prd/incremental-prd-sidebar-tools.md",
+        "docs/20-prd/incremental-prd-tab-admin.md",
+        "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+        "docs/20-prd/incremental-prd-westock-mcp.md",
+        "docs/20-prd/openbb-dsa-integration-prd.md",
+        "docs/30-data/DATA-DICTIONARY.md",
+        "docs/30-data/GRAPH-DATA.md",
+        "docs/90-archive/HANDOFF-v5.4.md",
+        "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+        "docs/90-archive/auto-trading-arch-v0-deprecated.md"
+      ],
+      "hull": [
+        [
+          40.3,
+          371.19
+        ],
+        [
+          47.69,
+          266.75
+        ],
+        [
+          76.57,
+          220.61
+        ],
+        [
+          127.22,
+          182.0
+        ],
+        [
+          181.39,
+          166.13
+        ],
+        [
+          252.34,
+          173.6
+        ],
+        [
+          310.62,
+          207.67
+        ],
+        [
+          347.99,
+          257.22
+        ],
+        [
+          364.16,
+          345.85
+        ],
+        [
+          340.27,
+          416.73
+        ],
+        [
+          284.57,
+          471.59
+        ],
+        [
+          219.0,
+          493.83
+        ],
+        [
+          145.23,
+          485.56
+        ],
+        [
+          76.07,
+          438.82
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "size": 11,
+      "top_group": "40-ops",
+      "label": "运维与交付",
+      "mixed": true,
+      "group_mix": {
+        "40-ops": 7,
+        "root": 2,
+        "00-strategy": 1,
+        "10-architecture": 1
+      },
+      "anchor": "docs/40-ops/DEPLOYMENT.md",
+      "members": [
+        "CHANGELOG.md",
+        "README.md",
+        "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+        "docs/10-architecture/SYSTEM-WORKFLOW.md",
+        "docs/40-ops/API-REFERENCE.md",
+        "docs/40-ops/BOARD-REVIEW.md",
+        "docs/40-ops/CHANGELOG-2026-10-22.md",
+        "docs/40-ops/DEBUG-AUDIT-2026-11-02.md",
+        "docs/40-ops/DEPLOYMENT.md",
+        "docs/40-ops/HARDENING-MOAT.md",
+        "docs/40-ops/REMOTE-ACCESS.md"
+      ],
+      "hull": [
+        [
+          367.46,
+          113.04
+        ],
+        [
+          406.31,
+          24.87
+        ],
+        [
+          482.88,
+          24.0
+        ],
+        [
+          591.1,
+          24.0
+        ],
+        [
+          632.22,
+          129.64
+        ],
+        [
+          601.35,
+          204.4
+        ],
+        [
+          536.73,
+          246.28
+        ],
+        [
+          420.31,
+          224.86
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "size": 9,
+      "top_group": "10-architecture",
+      "label": "架构与设计",
+      "mixed": true,
+      "group_mix": {
+        "00-strategy": 4,
+        "10-architecture": 4,
+        "40-ops": 1
+      },
+      "anchor": "docs/00-strategy/README.md",
+      "members": [
+        "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md",
+        "docs/00-strategy/README.md",
+        "docs/00-strategy/REFERENCE-AI1FOO.md",
+        "docs/00-strategy/product-roadmap-2026.md",
+        "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+        "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+        "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+        "docs/10-architecture/auto-trading-architecture.md",
+        "docs/40-ops/CLOUD-DEPLOYMENT.md"
+      ],
+      "hull": [
+        [
+          384.33,
+          509.27
+        ],
+        [
+          406.9,
+          465.48
+        ],
+        [
+          491.33,
+          421.51
+        ],
+        [
+          553.1,
+          433.59
+        ],
+        [
+          619.0,
+          556.65
+        ],
+        [
+          533.97,
+          636.0
+        ],
+        [
+          472.77,
+          636.0
+        ],
+        [
+          395.33,
+          599.89
+        ]
+      ]
+    }
+  ]
+}

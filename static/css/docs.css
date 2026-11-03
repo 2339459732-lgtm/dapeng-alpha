@@ -1,0 +1,308 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   DAPENG Alpha · 项目文档站样式（docs.css）
+   ---------------------------------------------------------------------------
+   本文件仅服务 static/project-docs.html，用于「文档信息架构 + 排版重构」新增：
+     1. 顶部面包屑
+     2. 分组树形目录（战略 / 架构 / 数据 / 过程 / 索引）+ 章节内小节锚点
+     3. 统一标题层级（h2 / h3 / h4 的字号、行距、上下间距成体系）
+     4. 模块边界卡（M1-M9）、三年演进阶梯
+     5. 长表格横向滚动
+     6. 移动端单列重排、无横向溢出
+   注意：不修改 dashboard.css / ui-refinement.css（其它模块在用）。
+   仅复用 dashboard.css 已定义的 CSS 变量，保持深色玻璃态一致。
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 顶部面包屑（sticky 于顶栏之下）─────────────────────────────────────── */
+.docs-breadcrumb-wrap {
+  position: sticky;
+  top: 46px;                       /* 顶栏高度约 46px */
+  z-index: 35;
+  background: rgba(2, 5, 16, .74);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.docs-breadcrumb {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 7px 20px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.docs-breadcrumb .bc-root { color: var(--muted); }
+.docs-breadcrumb .bc-sep { color: var(--border2); }
+.docs-breadcrumb .bc-group { color: var(--muted); }
+.docs-breadcrumb .bc-cur {
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 600;
+}
+.docs-breadcrumb .bc-cur:hover { text-decoration: underline; }
+.docs-breadcrumb .bc-sub { color: var(--text2); }
+
+/* ── 分组树形目录 ──────────────────────────────────────────────────────── */
+.docs-toc-list { list-style: none; margin: 0; padding: 0; }
+
+.toc-group { margin-bottom: 12px; }
+.toc-group:last-child { margin-bottom: 0; }
+.toc-group-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 5px 9px 6px;
+  margin: 0;
+  opacity: .85;
+}
+.toc-items { list-style: none; margin: 0; padding: 0; }
+
+.toc-link { display: flex; align-items: flex-start; }
+.toc-link .toc-label { flex: 1 1 auto; min-width: 0; }
+
+/* 章节内小节锚点：默认折叠，父项激活 / 悬停时展开 */
+.toc-subs {
+  list-style: none;
+  margin: 2px 0 6px;
+  padding: 0 0 0 11px;
+  border-left: 1px solid var(--border);
+  display: none;
+}
+.toc-items > li.is-active > .toc-subs,
+.toc-items > li:hover > .toc-subs { display: block; }
+.toc-sub {
+  display: block;
+  padding: 4px 8px;
+  margin-bottom: 1px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: color .14s, background .14s, border-color .14s;
+}
+.toc-sub:hover { color: var(--text); background: rgba(59, 130, 246, .09); }
+.toc-sub.active {
+  color: var(--cyan);
+  background: rgba(6, 182, 212, .1);
+  border-left-color: var(--cyan);
+  font-weight: 600;
+}
+
+/* ── 统一标题层级体系 ──────────────────────────────────────────────────── */
+/* h2 = 章节标题（18px）｜h3 = 小节标题（14px）｜h4 = 卡片/条目标题（13px） */
+.docs-section-head h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0;
+}
+.docs-section-intro { margin: 4px 0 0; }
+
+.docs-subtitle {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--text);
+  margin: 22px 0 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--cyan);
+  scroll-margin-top: 92px;
+}
+.docs-subtitle:first-child { margin-top: 0; }
+
+.docs-card h4 { line-height: 1.45; }
+
+/* 章节锚点偏移：顶栏 + 面包屑 ≈ 77px */
+.docs-section { scroll-margin-top: 86px; }
+
+/* ── 长表格横向滚动 ────────────────────────────────────────────────────── */
+.docs-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+.docs-table-wrap::-webkit-scrollbar { height: 8px; }
+.docs-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(80, 140, 255, .25);
+  border-radius: 99px;
+}
+.docs-table-wrap::-webkit-scrollbar-track { background: transparent; }
+
+.docs-doc-card.docs-doc-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.docs-doc-card.docs-doc-link:hover {
+  border-color: var(--border2);
+  background: rgba(59, 130, 246, .08);
+  transform: translateY(-1px);
+}
+.docs-doc-link .pt::after {
+  content: ' \2197';            /* ↗ */
+  color: var(--cyan);
+  font-size: 10px;
+}
+
+/* ── 防撑破布局 ────────────────────────────────────────────────────────── */
+/* overflow-x: clip 不会创建滚动容器（区别于 hidden），因此不影响 sticky 目录 /
+   面包屑与锚点滚动；仅裁掉长表格/长串可能溢出的横向内容，保证无横向溢出。 */
+.docs-main { overflow-x: clip; }
+.docs-shell { overflow-x: clip; }
+/* API 索引行：允许换行，避免超长签名把卡片撑宽 */
+.docs-api-row { flex-wrap: wrap; }
+.docs-api-row span { overflow-wrap: anywhere; min-width: 0; }
+
+/* ── 模块边界卡（M1-M9）─────────────────────────────────────────────────── */
+.docs-module {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .022);
+  padding: 15px 16px;
+  scroll-margin-top: 92px;
+}
+.docs-module + .docs-module { margin-top: 12px; }
+.docs-module-hd {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.docs-module-hd h4 { margin: 0; font-size: 14px; font-weight: 700; }
+.docs-module-goal {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text2);
+  margin: 0 0 12px;
+}
+.docs-module-goal b { color: var(--text); }
+.docs-module-evidence {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text2);
+  background: rgba(34, 197, 94, .06);
+  border: 1px solid rgba(34, 197, 94, .2);
+  border-radius: 8px;
+  padding: 9px 11px;
+  margin: 0 0 12px;
+}
+.docs-module-evidence .tag {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: .5px;
+  color: var(--green);
+  margin-right: 6px;
+}
+.docs-module-pending {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text2);
+  background: rgba(245, 158, 11, .07);
+  border: 1px solid rgba(245, 158, 11, .24);
+  border-radius: 8px;
+  padding: 9px 11px;
+  margin: 0 0 12px;
+}
+.docs-module-pending .tag {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: .5px;
+  color: var(--gold);
+  margin-right: 6px;
+}
+.docs-module-cols {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+}
+.docs-module-col { min-width: 0; }
+.docs-module-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.docs-module-col .docs-module-label:first-child { margin-top: 0; }
+.docs-module-label.do { color: var(--cyan); }
+.docs-module-label.dont { color: var(--red); margin-top: 12px; }
+.docs-module-label.accept { color: var(--green); margin-top: 12px; }
+.docs-module-notdo {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text2);
+}
+
+/* ── 三年演进阶梯 ──────────────────────────────────────────────────────── */
+.docs-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.docs-ladder li {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 13px;
+  background: rgba(255, 255, 255, .022);
+  min-width: 0;
+}
+.docs-ladder .ladder-phase {
+  display: block;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.docs-ladder .ladder-theme {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 4px 0 5px;
+  color: var(--text);
+}
+.docs-ladder .ladder-desc {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ── 响应式 ────────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .docs-ladder { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1024px) {
+  /* 窄屏目录折叠：分组标题与小节在同一折叠区内 */
+  .toc-group-title { padding-left: 4px; }
+  .docs-module-cols { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .docs-module-label.dont { margin-top: 10px; }
+}
+
+@media (max-width: 720px) {
+  /* 顶栏换行高度不定 → 面包屑改为普通文档流，避免遮挡 */
+  .docs-breadcrumb-wrap { position: static; }
+  .docs-breadcrumb { padding: 6px 12px; }
+  .docs-subtitle { scroll-margin-top: 20px; }
+  .docs-section { scroll-margin-top: 190px; }
+  .docs-module { scroll-margin-top: 20px; padding: 13px 13px; }
+}
+
+@media (max-width: 420px) {
+  .docs-ladder { grid-template-columns: minmax(0, 1fr); }
+  .docs-breadcrumb { font-size: 11px; }
+}

@@ -1,0 +1,278 @@
+/* ============================================================================
+   DAPENG Alpha — AI 主脑面板 个性化布局 + 规整展示 (M7)
+   仅作用于 #brain-modules 区域，避免污染其它视图。
+   依赖 dashboard.css 中的主题变量（--text/--text2/--muted/--red/--green/--cyan/
+   --purple/--bg/--bg2/--bg3/--border），自动跟随主题切换。
+   ============================================================================ */
+
+/* ---------- 模块网格：12 列栅格，支持半宽模块并排 ---------- */
+#brain-modules {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+/* 每个模块 = 一张规整卡片（包装模块与原有 article 模块共用同一外观） */
+.brain-mod {
+  grid-column: span 12;
+  min-width: 0;
+  position: relative;
+  padding: 12px 14px;
+  border: 1px solid var(--border, rgba(80, 140, 255, 0.18));
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(10, 18, 40, 0.72), rgba(5, 10, 26, 0.5));
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.brain-mod.span-6 { grid-column: span 6; }
+.brain-mod:hover { border-color: rgba(80, 140, 255, 0.32); }
+
+/* 内层原容器不再重复描边/留白，避免双重卡片 */
+.brain-mod > .market-panel,
+.brain-mod > .index-strip,
+.brain-mod > .survey-hero {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ---------- 统一标题层级 ---------- */
+.brain-mod-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 10px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgba(80, 140, 255, 0.12);
+}
+.brain-mod-head .bmh-grip {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  user-select: none;
+  letter-spacing: -2px;
+}
+.brain-mod-head .bmh-grip:active { cursor: grabbing; }
+.brain-mod-head .bmh-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 46vw;
+}
+.brain-mod-head .bmh-sub {
+  font-size: 10px;
+  color: var(--text2);
+  flex: 1 1 180px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brain-mod-head .bmh-meta {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* 数据来源 / 更新时间 chip */
+.bm-chip {
+  font-size: 9px;
+  line-height: 1.5;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(80, 140, 255, 0.2);
+  color: var(--text2);
+  white-space: nowrap;
+}
+.bm-chip.bm-src { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; }
+.bm-chip.bm-time { color: var(--muted); }
+
+/* 数据性质徽章（四级降级链） */
+.bm-nature {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.bm-nature.n-real { color: var(--green); border-color: rgba(0, 233, 106, 0.4); background: rgba(0, 233, 106, 0.1); }
+.bm-nature.n-snapshot { color: var(--gold, #f5c451); border-color: rgba(245, 196, 81, 0.4); background: rgba(245, 196, 81, 0.1); }
+.bm-nature.n-aggregated { color: var(--cyan); border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1); }
+.bm-nature.n-local { color: var(--purple); border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.1); }
+
+/* 折叠 / 关闭 工具按钮 */
+.bm-tools { display: flex; gap: 4px; align-items: center; }
+.bm-btn {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(80, 140, 255, 0.2);
+  color: var(--text2);
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 2px 7px;
+}
+.bm-btn:hover { border-color: var(--cyan); color: var(--text); }
+.bm-btn.bm-collapse { min-width: 22px; text-align: center; }
+
+/* 降级原因：常驻头部，折叠时也可见 */
+.bm-reason {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #ffcf8a;
+  background: rgba(255, 170, 60, 0.08);
+  border: 1px solid rgba(255, 170, 60, 0.28);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.bm-reason[hidden] { display: none; }
+
+/* ---------- 折叠规则 ---------- */
+/* 有自带 head 的 article 模块：隐藏 head 之后的所有兄弟（保留降级原因） */
+.brain-mod.is-collapsed > .market-panel-head ~ *:not(.bm-reason) { display: none; }
+/* 包装模块：隐藏内部原容器 */
+.brain-mod.is-collapsed > .market-panel,
+.brain-mod.is-collapsed > .index-strip,
+.brain-mod.is-collapsed > .survey-hero { display: none; }
+.brain-mod.is-collapsed { padding-bottom: 10px; }
+.brain-mod.is-collapsed .brain-mod-head { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+
+/* ---------- 拖拽反馈 ---------- */
+.brain-mod.dragging { opacity: 0.45; }
+.brain-mod.drag-over { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
+
+/* ---------- 数字等宽 + 右对齐（纵向可比）；涨红跌绿强化 ---------- */
+.brain-mod .ix-price, .brain-mod .ix-chg, .brain-mod .ix-breadth,
+.brain-mod .mc-val, .brain-mod .rot-flow, .brain-mod .bi-g-price,
+.brain-mod .bi-g-chg, .brain-mod .sv-count-badge,
+.brain-mod .brain-kernel-meta b, .brain-mod .dfc-meta,
+.bm-num {
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.brain-mod .up, .brain-mod .v-up { color: var(--red); }
+.brain-mod .dn, .brain-mod .v-dn { color: var(--green); }
+.brain-mod .flat { color: var(--text2); }
+/* 涨跌家数不可得：中性灰 + 明确「暂不可用」，与真实涨跌家数区分 */
+.brain-mod .ix-breadth.na,
+.brain-mod .ix-breadth b.na { color: var(--muted); }
+
+/* ---------- 沪深港通成分股涨跌分布（聚合口径，独立区块） ---------- */
+.hsgt-breadth { display: flex; flex-direction: column; gap: 10px; }
+.hsgt-row {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(80, 140, 255, 0.12);
+  background: rgba(8, 15, 34, 0.4);
+}
+.hsgt-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.hsgt-row-head strong { font-size: 12px; color: var(--text); }
+.hsgt-idx { font-size: 10px; color: var(--text2); font-variant-numeric: tabular-nums; }
+.hsgt-cells { display: flex; gap: 14px; flex-wrap: wrap; }
+.hsgt-cell { display: inline-flex; align-items: baseline; gap: 5px; }
+.hsgt-cell i { font-style: normal; font-size: 10px; color: var(--text2); }
+.hsgt-cell b {
+  font-size: 13px; font-weight: 700;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.hsgt-cell.up b { color: var(--red); }    /* A股：涨=红 */
+.hsgt-cell.dn b { color: var(--green); }  /* A股：跌=绿 */
+.hsgt-cell.flat b { color: var(--text2); }
+.hsgt-note { font-size: 9.5px; line-height: 1.65; color: var(--muted); }
+.hsgt-date { font-size: 9px; color: var(--muted); }
+
+/* ---------- 布局工具条（设置入口 + 预设） ---------- */
+.brain-layout-btn { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ---------- 设置面板 ---------- */
+.brain-settings-panel {
+  position: fixed;
+  right: 18px;
+  top: 96px;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  z-index: 4200;
+  padding: 14px 16px;
+  border: 1px solid rgba(80, 140, 255, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(8, 15, 34, 0.98), rgba(4, 9, 22, 0.98));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+.brain-settings-panel[hidden] { display: none; }
+.bsp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.bsp-head strong { font-size: 13px; color: var(--text); }
+.bsp-close { cursor: pointer; background: transparent; border: none; color: var(--muted); font-size: 15px; }
+.bsp-close:hover { color: var(--text); }
+.bsp-section { margin: 10px 0 6px; font-size: 10px; color: var(--muted); letter-spacing: 0.4px; }
+.bsp-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.bsp-preset {
+  cursor: pointer;
+  flex: 1 1 0;
+  text-align: center;
+  font-size: 11px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(80, 140, 255, 0.22);
+  background: transparent;
+  color: var(--text2);
+}
+.bsp-preset:hover { border-color: var(--cyan); color: var(--text); }
+.bsp-preset.on { border-color: var(--cyan); color: var(--cyan); background: rgba(6, 182, 212, 0.1); }
+.bsp-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.bsp-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text);
+  padding: 5px 6px;
+  border-radius: 7px;
+  border: 1px solid rgba(80, 140, 255, 0.1);
+}
+.bsp-item:hover { border-color: rgba(80, 140, 255, 0.25); }
+.bsp-item .bsp-grip { color: var(--muted); cursor: grab; letter-spacing: -2px; }
+.bsp-item .bsp-name { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bsp-item .bsp-nature { font-size: 9px; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; }
+.bsp-item input[type="checkbox"] { accent-color: var(--cyan); }
+.bsp-item .bsp-collapse-btn { cursor: pointer; font-size: 9px; color: var(--text2); border: 1px solid rgba(80, 140, 255, 0.2); border-radius: 5px; padding: 1px 5px; background: transparent; }
+.bsp-actions { display: flex; gap: 8px; margin-top: 14px; }
+.bsp-actions button {
+  flex: 1;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 7px;
+  border-radius: 8px;
+  border: 1px solid rgba(80, 140, 255, 0.25);
+  background: transparent;
+  color: var(--text2);
+}
+.bsp-actions button:hover { border-color: var(--cyan); color: var(--text); }
+.bsp-hint { font-size: 8.5px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+
+/* ---------- 响应式：窄屏单列，杜绝横向溢出 ---------- */
+@media (max-width: 900px) {
+  #brain-modules { grid-template-columns: minmax(0, 1fr); }
+  .brain-mod, .brain-mod.span-6 { grid-column: 1 / -1 !important; }
+  .brain-mod-head .bmh-sub { flex-basis: 100%; }
+  .brain-mod-head .bmh-meta { margin-left: 0; justify-content: flex-start; }
+  .bm-chip.bm-src { max-width: 60vw; }
+  .brain-settings-panel { right: 8px; left: 8px; width: auto; }
+}

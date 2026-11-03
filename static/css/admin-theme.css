@@ -1,0 +1,239 @@
+/* ════════════════════════════════════════════════════════════════════════
+   管理后台 · 主题层（admin theme）v1
+   把后台从「蓝紫科技风」统一到 DAPENG 的墨金仪器语言：
+   近黑暖调纸面 + 暖金权威色 + 冷灰次级；亮色为纸白。
+   只做视觉覆盖，不改业务脚本。
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #06070b;
+  --bg2: #0b0d13;
+  --card: rgba(18, 20, 26, .74);
+  --border: rgba(214, 176, 132, .14);
+  --border2: rgba(214, 176, 132, .28);
+  --text: #ece6da;
+  --text2: #b3aa99;
+  --muted: #7a7264;
+  --blue: #93a9c4;
+  --cyan: #9fb8c9;
+  --green: #8fbf9a;
+  --gold: #d6b084;
+  --purple: #a99bc8;
+  --rose: #d08f7c;
+  --r: 10px;
+  --r2: 14px;
+  --accent-gradient: linear-gradient(135deg, #d6b084, #8f7250);
+  --admin-glow: rgba(214, 176, 132, .18);
+  --admin-hair: rgba(214, 176, 132, .16);
+}
+.light {
+  --bg: #f7f4ec;
+  --bg2: #efeadd;
+  --card: rgba(255, 255, 255, .86);
+  --border: rgba(90, 70, 40, .16);
+  --border2: rgba(90, 70, 40, .3);
+  --text: #211d16;
+  --text2: #5c5344;
+  --muted: #8d8371;
+  --blue: #5b7593;
+  --cyan: #4f7f8c;
+  --green: #4f7d5c;
+  --gold: #a97b3f;
+  --purple: #6f5f96;
+  --rose: #a4614f;
+  --accent-gradient: linear-gradient(135deg, #a97b3f, #6d5330);
+  --admin-glow: rgba(120, 90, 40, .16);
+  --admin-hair: rgba(90, 70, 40, .18);
+}
+
+html, body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif !important;
+  background:
+    radial-gradient(90% 70% at 8% -10%, rgba(214, 176, 132, .07), transparent 60%),
+    radial-gradient(70% 60% at 100% 0%, rgba(120, 150, 190, .05), transparent 60%),
+    var(--bg) !important;
+  color: var(--text) !important;
+}
+.light html, .light body { background: var(--bg) !important; }
+
+/* 背景粒子与光标光晕：调成暖色低强度 */
+#particle-canvas { opacity: .45; }
+#cursor-glow {
+  background: radial-gradient(circle, rgba(214, 176, 132, .1), transparent 65%) !important;
+}
+
+/* ── 侧栏 ─────────────────────────────────────────────────────────────── */
+#sidebar {
+  background: linear-gradient(180deg, rgba(14, 15, 20, .96), rgba(8, 9, 13, .98)) !important;
+  border-right: 1px solid var(--admin-hair) !important;
+}
+.light #sidebar { background: linear-gradient(180deg, #fffdf7, #f2edE0) !important; }
+.sidebar-logo-icon {
+  background: var(--accent-gradient) !important;
+  color: #14100a !important;
+  box-shadow: 0 6px 18px rgba(214, 176, 132, .22);
+}
+.sidebar-logo-text { letter-spacing: .1em; color: var(--text) !important; }
+.sidebar-logo-sub { color: var(--muted) !important; letter-spacing: .14em; }
+.nav-item {
+  color: var(--text2) !important;
+  border-radius: 7px !important;
+  transition: background .16s ease, color .16s ease;
+}
+.nav-item:hover { background: rgba(214, 176, 132, .07) !important; color: var(--text) !important; }
+.nav-item.active {
+  background: rgba(214, 176, 132, .13) !important;
+  color: var(--gold) !important;
+  box-shadow: inset 2px 0 0 var(--gold);
+}
+.nav-indicator { background: var(--gold) !important; box-shadow: 0 0 12px var(--admin-glow) !important; }
+.nav-divider { background: var(--admin-hair) !important; }
+.sidebar-footer { color: var(--muted) !important; border-top: 1px solid var(--admin-hair) !important; }
+
+/* ── 顶栏 / 面包屑 ────────────────────────────────────────────────────── */
+.header-title, h1, h2, h3 { color: var(--text) !important; }
+.header-badge, .badge {
+  border: 1px solid var(--border2) !important;
+  background: rgba(214, 176, 132, .08) !important;
+  color: var(--gold) !important;
+  border-radius: 4px !important;
+  font-variant-numeric: tabular-nums;
+}
+.header-actions .btn, .btn {
+  border-radius: 7px !important;
+  border: 1px solid var(--border2) !important;
+  background: transparent !important;
+  color: var(--text2) !important;
+  transition: color .16s ease, border-color .16s ease, background .16s ease, transform .12s ease;
+}
+.btn:hover { color: var(--gold) !important; border-color: var(--gold) !important; background: rgba(214, 176, 132, .08) !important; }
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: var(--accent-gradient) !important;
+  color: #16110a !important;
+  border-color: transparent !important;
+  font-weight: 600;
+}
+.btn-primary:hover { color: #0c0905 !important; filter: brightness(1.06); }
+
+/* ── 卡片 / 统计卡 ───────────────────────────────────────────────────── */
+.card, .info-card, .ah-block {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r2) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .03);
+  backdrop-filter: blur(14px);
+}
+.card-header { border-bottom: 1px solid var(--admin-hair) !important; }
+.card-title { color: var(--text) !important; letter-spacing: .02em; }
+.card-subtitle, .ah-sub, .stat-sub, .stat-label { color: var(--muted) !important; }
+.stat-card {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r2) !important;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--admin-glow), transparent);
+}
+.stat-value { color: var(--text) !important; font-variant-numeric: tabular-nums; }
+.stat-icon { border-radius: 9px !important; }
+.stat-icon.blue, .stat-icon.cyan { background: rgba(140, 170, 200, .12) !important; color: var(--blue) !important; }
+.stat-icon.gold { background: rgba(214, 176, 132, .14) !important; color: var(--gold) !important; }
+.stat-icon.green { background: rgba(143, 191, 154, .12) !important; color: var(--green) !important; }
+.stat-icon.purple { background: rgba(169, 155, 200, .12) !important; color: var(--purple) !important; }
+.stat-icon.rose { background: rgba(208, 143, 124, .12) !important; color: var(--rose) !important; }
+.stat-progress, .mini-progress { background: rgba(255, 255, 255, .06) !important; border-radius: 2px; }
+.stat-progress-fill, .mini-progress-fill { background: linear-gradient(90deg, rgba(214,176,132,.4), var(--gold)) !important; border-radius: 2px; }
+.stat-card.blue .stat-progress-fill { background: linear-gradient(90deg, rgba(147,169,196,.4), var(--blue)) !important; }
+
+/* ── 表格 ─────────────────────────────────────────────────────────────── */
+.table-wrap { border: 1px solid var(--border) !important; border-radius: var(--r) !important; background: rgba(10, 11, 15, .4) !important; }
+table thead th {
+  color: var(--muted) !important;
+  border-bottom: 1px solid var(--border2) !important;
+  letter-spacing: .1em;
+  font-weight: 500;
+}
+table tbody tr { border-bottom: 1px solid rgba(214, 176, 132, .06) !important; }
+table tbody tr:hover { background: rgba(214, 176, 132, .05) !important; }
+table td { color: var(--text2) !important; font-variant-numeric: tabular-nums; }
+table td strong { color: var(--text) !important; }
+.badge-green, .badge-up { background: rgba(143, 191, 154, .12) !important; color: var(--green) !important; border: 1px solid rgba(143, 191, 154, .3) !important; }
+.badge-rose, .badge-down { background: rgba(208, 143, 124, .12) !important; color: var(--rose) !important; border: 1px solid rgba(208, 143, 124, .3) !important; }
+.badge-gold, .badge-slow { background: rgba(214, 176, 132, .12) !important; color: var(--gold) !important; border: 1px solid rgba(214, 176, 132, .3) !important; }
+.badge-blue { background: rgba(147, 169, 196, .12) !important; color: var(--blue) !important; border: 1px solid rgba(147, 169, 196, .3) !important; }
+.badge-purple { background: rgba(169, 155, 200, .12) !important; color: var(--purple) !important; border: 1px solid rgba(169, 155, 200, .3) !important; }
+.badge-muted { background: rgba(255,255,255,.04) !important; color: var(--muted) !important; border: 1px solid var(--border) !important; }
+
+/* ── 输入 / 搜索 / 分页 ───────────────────────────────────────────────── */
+.search-input, .cmd-input, input[type="text"], input[type="search"], select {
+  background: rgba(255, 255, 255, .03) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 7px !important;
+  color: var(--text) !important;
+}
+.search-input:focus, .cmd-input:focus, input:focus, select:focus {
+  outline: none !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px var(--admin-glow) !important;
+}
+.search-input::placeholder, .cmd-input::placeholder { color: var(--muted) !important; }
+.page-btn {
+  border: 1px solid var(--border) !important;
+  background: transparent !important;
+  color: var(--text2) !important;
+  border-radius: 6px !important;
+}
+.page-btn.active { background: var(--accent-gradient) !important; color: #16110a !important; border-color: transparent !important; }
+.page-btn:hover { color: var(--gold) !important; border-color: var(--gold) !important; }
+
+/* ── 抽屉 / 通知 / 命令面板 / 弹窗 ─────────────────────────────────────── */
+.drawer, .notif-panel, .cmd-overlay, .confirm-box {
+  background: var(--card) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: var(--r2) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .6) !important;
+}
+.drawer-header, .notif-panel-header, .confirm-title {
+  border-bottom: 1px solid var(--admin-hair) !important;
+  color: var(--text) !important;
+}
+.drawer-overlay, .cmd-overlay { background: rgba(2, 3, 6, .62) !important; }
+.drawer-overlay.show, .cmd-overlay.show { backdrop-filter: blur(6px); }
+.cmd-item.selected, .cmd-item:hover {
+  background: rgba(214, 176, 132, .1) !important;
+  color: var(--gold) !important;
+}
+.drawer-info-key { color: var(--muted) !important; }
+.drawer-info-val { color: var(--text) !important; }
+
+/* ── 主题开关 / 通知铃 / 状态点 ───────────────────────────────────────── */
+.theme-toggle { border: 1px solid var(--border2) !important; border-radius: 999px !important; }
+.notif-bell { color: var(--text2) !important; }
+.notif-badge { background: var(--gold) !important; color: #14100a !important; }
+.notif-item.unread { border-left: 2px solid var(--gold) !important; }
+.notif-panel-actions { border-top: 1px solid var(--admin-hair) !important; }
+
+/* ── ECharts 容器：去掉旧底色 ─────────────────────────────────────────── */
+[id*="chart"], [class*="chart"] { background: transparent !important; }
+
+/* ── 滚动条 / 选中 / 焦点 ─────────────────────────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::selection { background: rgba(214, 176, 132, .28); color: #fff; }
+:where(button, a, [tabindex], input, select):focus-visible {
+  outline: 1px solid var(--gold); outline-offset: 2px; border-radius: 6px;
+}
+
+/* ── 页面切换动画：更克制 ─────────────────────────────────────────────── */
+.page-section { animation: adminFade .28s ease both; }
+@keyframes adminFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .page-section { animation: none; }
+}

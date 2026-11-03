@@ -1,0 +1,37 @@
+%% 时序图 — 用户点击侧边栏 → 全屏面板 → API → 渲染表格
+%% DAPENG Alpha Sidebar 5 工具架构设计
+
+sequenceDiagram
+    participant U as 用户
+    participant SB as 侧边栏按钮
+    participant Panel as #hot-stocks-panel / #lhb-panel
+    participant LoadFn as loadHotStocksFull() / loadLHBFull()
+    participant API as fetchHotStocks() / fetchLHB()
+    participant Render as renderHotStocksFull() / renderLHBFull()
+    participant Table as .data-table DOM
+
+    U->>SB: 点击"🔥 热门股" / "📜 龙虎榜"
+    SB->>Panel: showHotStocksPanel() / showLHBPanel()
+    Panel->>Panel: display = 'flex' (显示全屏面板)
+    Panel->>Table: _renderTableSkeleton() (shimmer 骨架)
+    Panel->>LoadFn: loadHotStocksFull('stock', 50) / loadLHBFull('jg')
+    LoadFn->>API: fetchHotStocks('stock', 50) / fetchLHB('jg')
+    API->>API: request() 去重 + 超时控制
+    API-->>LoadFn: {ok, data: [...]} 或 null
+    
+    alt API 成功且有数据
+        LoadFn->>Render: renderHotStocksFull(data) / renderLHBFull(data, tab)
+        Render->>Table: 生成 <table class="data-table"> HTML
+        Table-->>U: 显示完整表格 (50行 / 全量行)
+    else API 返回空数据
+        LoadFn->>Table: _renderTableEmpty('暂无数据')
+        Table-->>U: 显示空态图标 + 提示
+    else API 失败 (null)
+        LoadFn->>Table: _renderTableError(retryFn)
+        Table-->>U: 显示错误提示 + 重试按钮
+    end
+
+    U->>Table: 点击表格行
+    Table->>Panel: selectStock(code, name) + closeHotStocksPanel() / closeLHBPanel()
+    Panel->>Panel: display = 'none' (隐藏面板)
+    Panel-->>U: K 线图切换到该股票

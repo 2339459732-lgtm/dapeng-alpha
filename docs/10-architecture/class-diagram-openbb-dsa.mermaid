@@ -1,0 +1,269 @@
+%% OpenBB × DSA 能力接入 — 类图
+%% 来源: docs/10-architecture/openbb-dsa-integration-design.md §4.1
+%% 标注 新增 = 本期新引入；改造 = 在既有类上增量
+classDiagram
+    direction TB
+
+    %% ==================== 数据 Provider 层 ====================
+    class SourceResult {
+        <<dataclass 新增>>
+        +Any data
+        +str_or_none source
+        +str_or_none as_of
+        +bool degraded
+        +str_or_none reason
+        +dict extra
+    }
+
+    class Fetcher {
+        <<abstract 新增>>
+        +str name
+        +float ttl
+        +float stale_max
+        +fetch(params) SourceResult
+        +health() dict
+    }
+
+    class FinancialAbstractFetcher {
+        <<新增>>
+        +str name
+        +float ttl
+        +fetch(code) SourceResult
+        +_wide_to_periods(df) list
+        +_pick(periods, key) float_or_none
+        +_ttm_aggregate(periods, key) float_or_none
+    }
+
+    class ValuationHistoryFetcher {
+        <<新增>>
+        +str name
+        +float ttl
+        +fetch(code, years) SourceResult
+        +_pct_rank(series, value) float_or_none
+    }
+
+    class DividendFetcher {
+        <<新增>>
+        +str name
+        +float ttl
+        +fetch(code) SourceResult
+    }
+
+    class FetcherRegistry {
+        <<module 新增>>
+        +dict _REGISTRY
+        +register(f) None
+        +get(name) Fetcher
+        +health_all() list
+    }
+
+    class FundamentalService {
+        <<新增>>
+        +get_snapshot(code, price) dict
+        +get_valuation(code, years) dict
+        +_assemble_cards(raw, price) dict
+        +_period_lag(period, now) int
+    }
+
+    class QuoteHub {
+        <<既有>>
+        +float max_age
+        +float stale_max
+        +snapshot(codes) dict
+        +snapshot_ex(codes) tuple
+        +dict stats
+    }
+
+    class TTLCache {
+        <<既有 改造>>
+        +int max_size
+        +get(key) Any
+        +get_entry(key) tuple
+        +get_or_fetch(key, fn, ttl) Any
+        +get_or_fetch_ex(key, fn, ttl, stale_max) tuple
+        +clear() None
+    }
+
+    %% ==================== 指标与风险层 ====================
+    class IndicatorSpec {
+        <<dataclass 新增>>
+        +str key
+        +tuple panes
+        +bool overlay
+        +dict default_params
+        +tuple value_range
+        +Callable fn
+    }
+
+    class IndicatorEngine {
+        <<module 新增>>
+        +dict INDICATOR_REGISTRY
+        +compute(key, klines, params) dict
+        +list_specs() list
+    }
+
+    class RiskMetrics {
+        <<module 新增>>
+        +int _MIN_SAMPLE
+        +compute_capm(port, bench) dict
+        +compute_sharpe(ret, rf, periods) float_or_none
+        +compute_sortino(ret, rf, periods) float_or_none
+        +compute_omega(ret, threshold) float_or_none
+        +compute_cvar_95(ret) float_or_none
+        +compute_corr_matrix(ret_map) dict
+        +compute_attribution(round_trips, sectors) dict
+    }
+
+    %% ==================== 选股层 (P1-1) ====================
+    class ScreenStrategy {
+        <<pydantic 新增>>
+        +str strategy_id
+        +str strategy_version
+        +dict hard_filters
+        +dict factor_weights
+        +dict scoring_profile
+        +dict risk_profile
+        +dict portfolio_profile
+        +int max_output
+    }
+
+    class ScreenPipeline {
+        <<新增>>
+        +run_screen(strategy, universe) dict
+        +apply_hard_filters(rows, filters) list
+        +normalize_weights(weights) dict
+        +score_and_rank(rows, strategy) list
+    }
+
+    %% ==================== 风控与交易层 ====================
+    class PortfolioRisk {
+        <<新增>>
+        +float _SINGLE_MAX_PCT
+        +float _INDUSTRY_MAX_PCT
+        +check_concentration(order, positions, cfg) tuple
+        +build_flags(positions, quotes, cfg) dict
+        +top_weight(positions) tuple
+        +industry_concentration(positions) tuple
+    }
+
+    class FailCode {
+        <<enumeration 新增>>
+        LIMIT_UP
+        LIMIT_DOWN
+        SUSPENDED
+        T1_LOCKED
+        QUOTA_SINGLE
+        QUOTA_DAILY
+        MAX_POSITIONS
+        GATE_CLOSED
+        COOLDOWN
+        BREAKER
+        DAY_LOSS
+        LOW_CONFIDENCE
+        SRC_UNAVAILABLE
+        EXEC_ERROR
+        MARKET_CLOSED
+        NOT_WHITELIST
+        LIVE_OFF
+    }
+
+    class FailCodeMapper {
+        <<module 新增>>
+        +dict _TEXT_TABLE
+        +to_user_text(code, ctx) dict
+    }
+
+    class RiskManager {
+        <<既有 改造>>
+        +check_order(order, state) OrderResult
+        +execute_order(order) OrderResult
+        +_gate_1_to_9() bool
+        +_gate_10_concentration(order) bool
+        +_finish_reject(reason, fail_code) None
+    }
+
+    class Strategy {
+        <<abstract 既有 改造>>
+        +str id
+        +str name
+        +dict default_params
+        +dict params_schema
+        +evaluate(code, klines, ctx) Signal
+        +version_fingerprint(params) str
+    }
+
+    class MaCrossAtrStrategy {
+        <<既有 改造>>
+        +str id
+        +dict params_schema
+    }
+
+    class OrderResult {
+        <<既有 改造>>
+        +str order_id
+        +str status
+        +float filled_price
+        +str_or_none fail_reason
+        +str_or_none fail_code
+        +str_or_none signal_id
+        +str_or_none strategy_version
+        +to_dict() dict
+    }
+
+    class ReviewEngine {
+        <<既有 改造>>
+        +compute_round_trips(orders) list
+        +build_review(days) dict
+    }
+
+    %% ==================== 前端关键模块 ====================
+    class Capability {
+        <<module 新增>>
+        +attach(el, meta) None
+        +render(meta) str
+        +fromEnvelope(env) meta
+        +_classify(age, ok, degraded) str
+        +preload(keys) None
+    }
+
+    class DrillBus {
+        <<module 新增>>
+        +on(evt, cb) None
+        +emit(evt, payload) None
+        +extract(params) dict_or_none
+        +route(hash) None
+    }
+
+    %% ==================== 关系 ====================
+    Fetcher <|-- FinancialAbstractFetcher
+    Fetcher <|-- ValuationHistoryFetcher
+    Fetcher <|-- DividendFetcher
+    Fetcher ..> SourceResult : produces
+    FetcherRegistry o-- Fetcher : registers
+    FundamentalService --> FetcherRegistry : resolves
+    FundamentalService --> TTLCache : caches via
+    FundamentalService --> QuoteHub : reads price
+    ValuationHistoryFetcher ..> RiskMetrics : PE series feeds
+    IndicatorEngine ..> IndicatorSpec : holds
+    ScreenPipeline --> ScreenStrategy : validates
+    ScreenPipeline --> FundamentalService : reads fundamentals
+    ScreenPipeline ..> IndicatorEngine : reads technicals
+    RiskMetrics ..> QuoteHub : reads quotes
+    PortfolioRisk --> QuoteHub : prices
+    PortfolioRisk --> RiskManager : gate 10
+    RiskManager --> FailCodeMapper : maps
+    RiskManager ..> OrderResult : returns
+    Strategy <|-- MaCrossAtrStrategy
+    MaCrossAtrStrategy ..> OrderResult : version stamped
+    ReviewEngine ..> RiskMetrics : sharpe sortino omega
+    ReviewEngine ..> OrderResult : round_trips
+    Capability ..> TTLCache : reads meta
+    DrillBus ..> IndicatorEngine : triggers refetch
+
+    note for RiskManager "关卡 1-9 现状不动; 新增关卡 10 插在关卡 6 之后"
+    note for Fetcher "50 行最小协议, 非 OpenBB provider 体系"
+    note for RiskMetrics "_MIN_SAMPLE = 60; 不足返回 null 而非假值"
+    note for FundamentalService "禁用 akshare 的 *_em 系列 (本机东财 403)"
+    note for PortfolioRisk "_SINGLE_MAX_PCT = 30.0; _INDUSTRY_MAX_PCT = 50.0"
+    note for ValuationHistoryFetcher "ttl = 43200"
+    note for FinancialAbstractFetcher "ttl = 21600"

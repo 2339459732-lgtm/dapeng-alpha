@@ -1,0 +1,59 @@
+{
+  "version": "lhb-config.v1",
+  "_comment": "龙虎榜复盘的唯一可调配置。hot_money 里的营业部→游资别名属市场俗称，未逐条核实，报告会标注 alias_source；改这里即可更新名单与阈值。",
+  "updated_at": "2026-11-03T12:05:00",
+  "quality": {
+    "min_net_amount": 30000000,
+    "institution_min_net": 50000000,
+    "min_win_rate_3d": 50.0,
+    "min_win_samples": 30,
+    "max_records": 40
+  },
+  "hot_money": {
+    "华鑫证券股份有限公司上海分公司": { "alias": "炒股养家", "style": "题材龙头、高标接力" },
+    "中国银河证券股份有限公司绍兴证券营业部": { "alias": "赵老哥", "style": "首板/连板打板，快进快出" },
+    "国泰君安证券股份有限公司上海江苏路证券营业部": { "alias": "章盟主", "style": "大资金打板，偏好主线" },
+    "中信证券股份有限公司上海溧阳路证券营业部": { "alias": "上海溧阳路", "style": "强势股接力" },
+    "财通证券股份有限公司杭州上塘路证券营业部": { "alias": "杭州上塘路", "style": "低吸与打板结合" },
+    "东方财富证券股份有限公司拉萨团结路第二证券营业部": { "alias": "拉萨天团", "style": "散户集中席位，不作优质游资" },
+    "华泰证券股份有限公司深圳益田路荣超商务中心证券营业部": { "alias": "深圳荣超", "style": "强势股短线" },
+    "中国中金财富证券有限公司北京宋庄路证券营业部": { "alias": "北京宋庄路", "style": "题材兑现型" }
+  },
+  "retail_keywords": ["拉萨", "东方财富证券股份有限公司拉萨"],
+  "northbound_keywords": ["深股通", "沪股通", "港股通"],
+  "institution_keywords": ["机构专用", "机构席位"],
+  "blacklist_keywords": ["沪股通", "深股通"],
+  "motive": {
+    "min_primary_score": 0.25,
+    "theme": { "sector_chg_warm": 2.0, "sector_chg_hot": 4.0, "sector_limit_up_hot": 3 },
+    "mood": { "limit_up_strong": 60, "limit_up_euphoric": 100, "up_ratio_strong": 60, "sentiment_warm": 65, "discount": 0.55 },
+    "game": { "net_ratio_strong": 5.0, "net_ratio_extreme": 10.0, "concentration_high": 0.6 },
+    "news": {
+      "lookback_days": 5,
+      "material_keywords": ["重组", "并购", "中标", "业绩预增", "预增", "涨价", "停牌", "问询", "立案", "控制权", "定增", "重大合同", "中标通知"],
+      "secondary_keywords": ["签订协议", "关联交易", "对外担保", "回购", "减持", "增持", "重大诉讼"]
+    },
+    "technical": { "turnover_hot": 10.0, "turnover_extreme": 20.0 }
+  },
+  "factors": {
+    "_usage": "买卖因素规则库（lhb-factors.v1）。when 的键是「事实名+比较符」（_gte/_lte/_gt/_lt/_eq/_ne，无后缀=相等），多键 AND；事实缺失不命中。weight 只用于排序与主因素选择。可用事实：is_limit_up/board_count/open_times/first_seal/last_seal/turnover/chg/close/vwap/vwap_gap_pct/industry_rank/peers/news_score/game_score/theme_score/technical_score/mood_score/net_ratio。",
+    "buy": [
+      { "id": "seal_early", "label": "早盘封板抢筹", "weight": 0.8, "note": "10:00 前封板说明抢筹意愿强", "when": { "is_limit_up": true, "first_seal_lte": "10:00" } },
+      { "id": "theme_mainline", "label": "主线板块追涨", "weight": 0.7, "note": "同行业多家涨停且行业排名前三", "when": { "peers_gte": 3, "industry_rank_lte": 3 } },
+      { "id": "board_ladder", "label": "连板梯队接力", "weight": 0.6, "note": "2 板以上处于题材梯队前列", "when": { "board_count_gte": 2 } },
+      { "id": "news_material", "label": "实质消息驱动", "weight": 0.6, "note": "复盘日前 5 日内有实质性公告", "when": { "news_score_gte": 0.4 } },
+      { "id": "seal_rebound", "label": "炸板回封承接", "weight": 0.5, "note": "分歧后仍有资金愿意接", "when": { "is_limit_up": true, "open_times_gte": 1 } },
+      { "id": "dip_vwap", "label": "均价下方低吸", "weight": 0.4, "note": "收盘低于当日均价，更可能回踩低吸", "when": { "vwap_gap_pct_lt": 0 } },
+      { "id": "turnover_active", "label": "高换手活跃票", "weight": 0.3, "note": "流动性好，大资金进出不冲击价格", "when": { "turnover_gte": 10 } }
+    ],
+    "sell": [
+      { "id": "open_window", "label": "开板兑现窗口", "weight": 0.7, "note": "当日炸过板，开板区间即兑现窗口", "when": { "open_times_gte": 1 } },
+      { "id": "seal_cash", "label": "板上兑现", "weight": 0.6, "note": "收盘仍涨停但榜上有卖，属板上排队兑现", "when": { "is_limit_up": true } },
+      { "id": "turnover_excess", "label": "换手过高出货", "weight": 0.6, "note": "换手超 20%，存在出货条件", "when": { "turnover_gte": 20 } },
+      { "id": "theme_peak", "label": "题材发酵高点兑现", "weight": 0.5, "note": "板块已充分发酵，情绪高点兑现", "when": { "theme_score_gte": 0.4 } },
+      { "id": "game_intense", "label": "博弈激烈触发", "weight": 0.5, "note": "多空对峙/对倒明显", "when": { "game_score_gte": 0.5 } },
+      { "id": "premium_vwap", "label": "大幅偏离均价", "weight": 0.4, "note": "收盘大幅高于均价，获利盘有兑现动力", "when": { "vwap_gap_pct_gte": 8 } }
+    ]
+  },
+  "schedule": { "after_close": "15:35", "retry_window": "19:30" }
+}

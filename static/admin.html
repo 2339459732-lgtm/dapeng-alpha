@@ -1,0 +1,2754 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>📈</text></svg>">
+<title>DAPENG Alpha · 管理后台</title>
+<script src="vendor/tailwind-cdn.js"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        surface: { DEFAULT: '#0f172a', light: '#1e293b', hover: '#334155' },
+        accent: { blue: '#3b82f6', cyan: '#06b6d4', green: '#10b981', gold: '#f59e0b', purple: '#8b5cf6', rose: '#f43f5e' }
+      }
+    }
+  }
+}
+</script>
+<script src="js/echarts.min.js?v=5"></script>
+<script src="js/admin-theme.js?v=1"></script>
+<script src="vendor/vanilla-tilt.min.js"></script>
+<link rel="stylesheet" href="vendor/fontawesome-all.min.css">
+<style>
+/* ===== Base ===== */
+:root {
+  --bg: #020510; --bg2: #0a1028; --card: rgba(15,23,42,0.6);
+  --border: rgba(255,255,255,0.05); --border2: rgba(255,255,255,0.10);
+  --text: #eef2f7; --text2: #94a3b8; --muted: #475569;
+  --blue: #3b82f6; --cyan: #06b6d4; --green: #10b981; --gold: #f59e0b; --purple: #8b5cf6; --rose: #f43f5e;
+  --r: 12px; --r2: 16px;
+  --accent-gradient: linear-gradient(135deg, var(--blue), var(--purple));
+}
+.light {
+  --bg: #f8fafc; --bg2: #e2e8f0; --card: rgba(255,255,255,0.9);
+  --border: #e2e8f0; --border2: #cbd5e1;
+  --text: #0f172a; --text2: #475569; --muted: #94a3b8;
+  --accent-gradient: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased; font-size: 13px; line-height: 1.5;
+  transition: background .3s, color .3s;
+}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,0.4)}
+
+/* ===== Layout ===== */
+#app{display:flex;height:100vh}
+#sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--card); border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:10;
+  backdrop-filter:blur(16px); transition:background .3s,border-color .3s;
+}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ===== Sidebar ===== */
+.sidebar-logo{
+  padding:20px 18px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.sidebar-logo-text{font-size:16px;font-weight:700;color:var(--text)}
+.sidebar-logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sidebar-nav{
+  flex:1;padding:12px 8px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:2px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:10px;cursor:pointer;transition:all .15s;
+  color:var(--text2);font-size:13px;text-decoration:none;border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(59,130,246,0.06);color:var(--text)}
+.nav-item.active{
+  background:rgba(59,130,246,0.1);color:var(--blue);
+  border-color:rgba(59,130,246,0.2);box-shadow:0 0 20px rgba(59,130,246,0.05);
+}
+.nav-item .icon{font-size:15px;width:22px;text-align:center}
+.nav-divider{height:1px;background:var(--border);margin:8px 14px}
+.sidebar-footer{padding:12px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+
+/* Theme toggle */
+.theme-toggle{
+  width:44px;height:24px;border-radius:12px;cursor:pointer;
+  background:rgba(148,163,184,0.3);position:relative;transition:all .3s;border:none;
+}
+.theme-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:18px;height:18px;border-radius:50%;background:#fff;
+  transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+.light .theme-toggle{background:var(--blue)}
+.light .theme-toggle::after{transform:translateX(20px)}
+.theme-toggle:hover{opacity:0.9}
+
+/* ===== Header ===== */
+#header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;border-bottom:1px solid var(--border);
+  background:var(--card);flex-shrink:0;backdrop-filter:blur(12px);
+  transition:background .3s,border-color .3s;
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-title{font-size:18px;font-weight:700}
+.header-badge{
+  font-size:10px;padding:3px 10px;border-radius:20px;
+  background:rgba(59,130,246,0.08);color:var(--blue);border:1px solid rgba(59,130,246,0.15);
+}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{
+  padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;
+  transition:all .15s;font-weight:500;display:inline-flex;align-items:center;gap:5px;
+  text-decoration:none;white-space:nowrap;position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;top:0;left:-120%;width:80%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
+  transition:left .55s ease;pointer-events:none;
+}
+.btn:hover::after{left:120%}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;border:none}
+.btn-primary:hover{box-shadow:0 4px 16px rgba(59,130,246,0.35);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid rgba(245,158,11,0.2)}
+.btn-outline:hover{background:rgba(245,158,11,0.06)}
+
+/* ===== Content ===== */
+#content{flex:1;overflow-y:auto;padding:20px 24px}
+#content::-webkit-scrollbar{width:5px}
+#content::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.15);border-radius:3px}
+
+/* ===== Page Sections ===== */
+.page-section{display:none}
+.page-section.active{display:block;animation:pageSlideIn .45s cubic-bezier(0.16,1,0.3,1)}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);padding:20px;
+  backdrop-filter:blur(12px);transition:all .2s;
+}
+.card:hover{border-color:var(--border2)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700}
+.card-subtitle{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ===== Stat Cards ===== */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:20px;perspective:1000px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);padding:22px;position:relative;overflow:hidden;
+  transition:all 0.4s cubic-bezier(0.23, 1, 0.32, 1);cursor:default;
+  transform-style:preserve-3d;
+}
+.stat-card:hover{
+  border-color:rgba(59,130,246,0.4);
+  box-shadow:0 20px 50px rgba(0,0,0,0.4), 0 0 20px rgba(59,130,246,0.1);
+}
+.stat-card::before{
+  content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;
+  background:linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1), transparent 60%);
+  background-size:200% 200%;
+  z-index:-1;opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
+}
+.stat-card:hover::before{
+  opacity:1;animation:shimmerBorder 2s linear infinite;
+}
+@keyframes shimmerBorder{
+  0%{background-position:-200% -200%}
+  100%{background-position:200% 200%}
+}
+.stat-card.blue::before{background-image:linear-gradient(45deg, transparent 30%, var(--blue), var(--cyan), transparent 70%)}
+.stat-card.green::before{background-image:linear-gradient(45deg, transparent 30%, var(--green), #34d399, transparent 70%)}
+.stat-card.gold::before{background-image:linear-gradient(45deg, transparent 30%, var(--gold), #fbbf24, transparent 70%)}
+.stat-card.purple::before{background-image:linear-gradient(45deg, transparent 30%, var(--purple), #a78bfa, transparent 70%)}
+.stat-card.rose::before{background-image:linear-gradient(45deg, transparent 30%, var(--rose), #fb7185, transparent 70%)}
+.stat-card.cyan::before{background-image:linear-gradient(45deg, transparent 30%, var(--cyan), #22d3ee, transparent 70%)}
+
+.stat-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;transform:translateZ(20px)}
+.stat-value{font-size:28px;font-weight:800;font-family:'Courier New',monospace;line-height:1.1;transform:translateZ(35px)}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px;transform:translateZ(20px)}
+.stat-icon{transform:translateZ(30px)}
+.stat-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  transition:transform .3s,filter .3s;
+}
+.stat-card:hover .stat-icon{transform:scale(1.1) rotate(-6deg);filter:drop-shadow(0 0 10px currentColor)}
+.stat-icon.blue{background:rgba(59,130,246,0.1);color:var(--blue)}
+.stat-icon.green{background:rgba(16,185,129,0.1);color:var(--green)}
+.stat-icon.gold{background:rgba(245,158,11,0.1);color:var(--gold)}
+.stat-icon.purple{background:rgba(139,92,246,0.1);color:var(--purple)}
+.stat-icon.rose{background:rgba(244,63,94,0.1);color:var(--rose)}
+.stat-icon.cyan{background:rgba(6,182,212,0.1);color:var(--cyan)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.stat-value{font-size:28px;font-weight:800;font-family:'Courier New',monospace;line-height:1.1}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px}
+.stat-progress{
+  height:4px;background:rgba(255,255,255,0.06);border-radius:2px;
+  margin-top:10px;overflow:hidden;
+}
+.stat-progress-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(0.16,1,0.3,1)}
+.stat-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 currentColor}50%{opacity:0.6;box-shadow:0 0 0 4px transparent}}
+
+/* ===== Chart Grid ===== */
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px}
+.chart-row.equal{grid-template-columns:1fr 1fr}
+@media(max-width:1200px){.chart-row,.chart-row.equal{grid-template-columns:1fr}}
+
+/* ===== Table ===== */
+.table-wrap{overflow-x:auto;border-radius:var(--r)}
+.table-wrap table{width:100%;border-collapse:collapse}
+.table-wrap th{
+  text-align:left;padding:10px 14px;font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);
+  font-weight:600;background:rgba(0,0,0,0.1);
+}
+.table-wrap td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
+.table-wrap tr:hover td{background:rgba(59,130,246,0.03)}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:600;letter-spacing:0.3px;
+}
+.badge-green{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.15)}
+.badge-rose{background:rgba(244,63,94,0.1);color:var(--rose);border:1px solid rgba(244,63,94,0.15)}
+.badge-gold{background:rgba(245,158,11,0.1);color:var(--gold);border:1px solid rgba(245,158,11,0.15)}
+.badge-blue{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.badge-purple{background:rgba(139,92,246,0.1);color:var(--purple);border:1px solid rgba(139,92,246,0.15)}
+.badge-muted{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid rgba(255,255,255,0.06)}
+
+/* ===== Grid Layouts ===== */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.info-card{
+  background:rgba(0,0,0,0.2);border:1px solid var(--border);
+  border-radius:10px;padding:14px;
+}
+.info-card-title{
+  font-size:11px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.5px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.info-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+.info-key{color:var(--text2)}
+.info-val{font-weight:600;font-family:'Courier New',monospace;color:var(--text)}
+
+/* Search & Filter */
+.search-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search-input{
+  padding:8px 14px;background:rgba(0,0,0,0.25);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--muted)}
+select.search-input{max-width:160px;cursor:pointer}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px}
+.page-btn{
+  padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);cursor:pointer;font-size:12px;
+  font-family:inherit;transition:all .15s;min-width:36px;text-align:center;
+}
+.page-btn:hover{border-color:var(--blue);color:var(--blue)}
+.page-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Sector Grid */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.sector-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;text-align:center;transition:all .2s;
+}
+.sector-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.15)}
+.sector-icon{font-size:28px;margin-bottom:8px}
+.sector-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.sector-count{font-size:11px;color:var(--muted)}
+.sector-cache{font-size:10px;margin-top:6px}
+
+/* Toast */
+.toast{
+  position:fixed;top:20px;right:20px;z-index:9999;
+  padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;
+  transform:translateX(120%);transition:transform .35s cubic-bezier(0.16,1,0.3,1);
+  backdrop-filter:blur(12px);pointer-events:none;
+}
+.toast.show{transform:translateX(0)}
+.toast.success{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.toast.error{background:rgba(244,63,94,0.15);color:var(--rose);border:1px solid rgba(244,63,94,0.2)}
+.toast.info{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+
+/* Security audit table */
+.audit-hash{font-family:'Courier New',monospace;font-size:11px;color:var(--blue)}
+.audit-ip{font-family:'Courier New',monospace;color:var(--muted);font-size:11px}
+
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{width:60px}
+  .sidebar-logo-text,.sidebar-logo-sub,.nav-item span:not(.icon),.sidebar-footer span{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  #main{margin-left:0}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ===== Command Palette ===== */
+.cmd-overlay{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);
+  display:none;align-items:flex-start;justify-content:center;
+  padding-top:80px;
+}
+.cmd-overlay.show{display:flex;animation:fadeIn .15s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.cmd-box{
+  width:560px;max-width:90vw;background:var(--card);
+  border:1px solid var(--border2);border-radius:var(--r2);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden;
+  backdrop-filter:blur(20px);
+}
+.cmd-input-wrap{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.cmd-input-wrap i{color:var(--muted);font-size:16px}
+.cmd-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-size:15px;font-family:inherit;
+}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-shortcut{
+  font-size:10px;padding:3px 8px;border-radius:6px;
+  background:rgba(255,255,255,0.05);color:var(--muted);
+  border:1px solid var(--border);
+}
+.cmd-results{max-height:400px;overflow-y:auto;padding:8px}
+.cmd-group-title{
+  font-size:10px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.5px;padding:8px 12px 4px;font-weight:600;
+}
+.cmd-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:8px;cursor:pointer;transition:background .1s;
+}
+.cmd-item:hover,.cmd-item.selected{background:rgba(59,130,246,0.1)}
+.cmd-item-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.cmd-item-icon.blue{background:rgba(59,130,246,0.1);color:var(--blue)}
+.cmd-item-icon.green{background:rgba(16,185,129,0.1);color:var(--green)}
+.cmd-item-icon.gold{background:rgba(245,158,11,0.1);color:var(--gold)}
+.cmd-item-icon.purple{background:rgba(139,92,246,0.1);color:var(--purple)}
+.cmd-item-icon.cyan{background:rgba(6,182,212,0.1);color:var(--cyan)}
+.cmd-item-info{flex:1;min-width:0}
+.cmd-item-title{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmd-item-desc{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmd-empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.cmd-footer{
+  display:flex;justify-content:space-between;padding:8px 16px;
+  border-top:1px solid var(--border);font-size:10px;color:var(--muted);
+}
+.cmd-footer kbd{
+  padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);font-family:inherit;font-size:10px;
+}
+
+/* ===== User Detail Drawer ===== */
+.drawer-overlay{
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);
+  display:none;
+}
+.drawer-overlay.show{display:block;animation:fadeIn .2s ease-out}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:400px;max-width:90vw;
+  background:var(--bg2);border-left:1px solid var(--border2);
+  z-index:8001;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(0.16,1,0.3,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.drawer.show{transform:translateX(0)}
+.drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.drawer-title{font-size:16px;font-weight:700}
+.drawer-close{
+  width:32px;height:32px;border-radius:8px;border:none;
+  background:transparent;color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all .15s;
+}
+.drawer-close:hover{background:rgba(255,255,255,0.06);color:var(--rose)}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 24px}
+.drawer-section{margin-bottom:24px}
+.drawer-section-title{
+  font-size:11px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.5px;margin-bottom:10px;font-weight:600;
+}
+.drawer-info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.drawer-info-key{color:var(--text2)}
+.drawer-info-val{font-weight:600}
+
+/* ===== Notification Center ===== */
+.notif-bell{
+  position:relative;width:36px;height:36px;border-radius:10px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:15px;transition:all .15s;
+}
+.notif-bell:hover{border-color:var(--blue);color:var(--blue)}
+.notif-badge{
+  position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;
+  border-radius:8px;background:var(--rose);color:#fff;
+  font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  padding:0 4px;
+}
+.notif-panel{
+  position:absolute;top:50px;right:24px;width:360px;max-width:90vw;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);z-index:7000;
+  display:none;flex-direction:column;overflow:hidden;
+  backdrop-filter:blur(20px);
+}
+.notif-panel.show{display:flex;animation:fadeSlideIn .2s ease-out}
+.notif-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.notif-panel-title{font-size:13px;font-weight:700}
+.notif-panel-actions{display:flex;gap:8px}
+.notif-panel-actions button{
+  font-size:10px;padding:3px 10px;border-radius:6px;
+  border:1px solid var(--border);background:transparent;color:var(--text2);
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.notif-panel-actions button:hover{border-color:var(--blue);color:var(--blue)}
+.notif-list{max-height:360px;overflow-y:auto}
+.notif-item{
+  display:flex;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;
+}
+.notif-item:hover{background:rgba(59,130,246,0.04)}
+.notif-item.unread{background:rgba(59,130,246,0.03)}
+.notif-item-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif-item-icon.alert{background:rgba(244,63,94,0.1);color:var(--rose)}
+.notif-item-icon.order{background:rgba(16,185,129,0.1);color:var(--green)}
+.notif-item-icon.user{background:rgba(59,130,246,0.1);color:var(--blue)}
+.notif-item-icon.info{background:rgba(139,92,246,0.1);color:var(--purple)}
+.notif-item-body{flex:1;min-width:0}
+.notif-item-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.notif-item-msg{font-size:11px;color:var(--text2);line-height:1.4}
+.notif-item-time{font-size:10px;color:var(--muted);margin-top:4px}
+.notif-empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ===== Health Status Badges ===== */
+.badge-up{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.15)}
+.badge-down{background:rgba(244,63,94,0.1);color:var(--rose);border:1px solid rgba(244,63,94,0.15)}
+.badge-slow{background:rgba(245,158,11,0.1);color:var(--gold);border:1px solid rgba(245,158,11,0.15)}
+
+/* ===== Response Time Bar ===== */
+.resp-bar{width:100px;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.resp-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* ===== Progress Mini Bar ===== */
+.mini-progress{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-top:4px}
+.mini-progress-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* ===== Export Button ===== */
+.btn-export{
+  background:rgba(16,185,129,0.08);color:var(--green);
+  border:1px solid rgba(16,185,129,0.15);
+}
+.btn-export:hover{background:rgba(16,185,129,0.12)}
+.btn-export.loading{opacity:0.6;pointer-events:none}
+
+/* ===== Confirm Modal ===== */
+.confirm-modal{
+  position:fixed;inset:0;z-index:9500;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+}
+.confirm-modal.show{display:flex;animation:fadeIn .15s ease-out}
+.confirm-box{
+  width:400px;max-width:90vw;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:var(--r2);
+  padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.confirm-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* ================================================================
+   ENHANCED VISUAL FX — DAPENG Alpha Admin Upgrade
+   ================================================================ */
+
+/* Page slide-in transition */
+@keyframes pageSlideIn{
+  from{opacity:0;transform:translateX(28px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* Staggered child entrance for page sections */
+.page-section.active > *{animation:childFadeUp .5s cubic-bezier(0.16,1,0.3,1) backwards}
+.page-section.active > *:nth-child(1){animation-delay:0ms}
+.page-section.active > *:nth-child(2){animation-delay:70ms}
+.page-section.active > *:nth-child(3){animation-delay:140ms}
+.page-section.active > *:nth-child(4){animation-delay:210ms}
+@keyframes childFadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Dynamically created stat-card entrance */
+.stat-card.card-entrance{animation:cardFadeUp .55s cubic-bezier(0.16,1,0.3,1) backwards}
+@keyframes cardFadeUp{
+  from{opacity:0;transform:translateY(22px) scale(0.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Card hover glow enhancement */
+.card{transition:all .3s cubic-bezier(0.4,0,0.2,1)}
+.card:hover{border-color:rgba(59,130,246,0.25);box-shadow:0 0 0 1px rgba(59,130,246,0.06),0 12px 40px rgba(0,0,0,0.2)}
+
+/* Event stream animation */
+@keyframes eventFadeIn{
+  from{opacity:0;transform:translateX(-12px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.event-item-enter{
+  animation:eventFadeIn .4s cubic-bezier(0.16,1,0.3,1);
+  padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,0.02);
+}
+.light .event-item-enter{
+  border-bottom:1px solid rgba(0,0,0,0.03);
+}
+
+/* Stat value count-up animation */
+.stat-value{
+  transition:transform .2s ease;
+}
+.stat-card:hover .stat-value{
+  transform:scale(1.08);
+}
+
+/* Nav item active glow */
+.nav-item.active{
+  position:relative;
+}
+.nav-item.active::after{
+  content:'';
+  position:absolute;
+  right:0;top:50%;
+  transform:translateY(-50%);
+  width:3px;height:60%;
+  background:linear-gradient(180deg,var(--blue),var(--cyan));
+  border-radius:3px 0 0 3px;
+}
+
+/* Button press feedback */
+.btn:active{transform:scale(0.96)}
+
+/* Notification badge pulse */
+.notif-badge{
+  animation:notifPulse 2s ease-in-out infinite;
+}
+@keyframes notifPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.15)}
+}
+
+/* Table row staggered entrance */
+.table-wrap tbody tr{
+  animation:rowFadeIn .3s cubic-bezier(0.16,1,0.3,1) backwards;
+}
+.table-wrap tbody tr:nth-child(1){animation-delay:0ms}
+.table-wrap tbody tr:nth-child(2){animation-delay:30ms}
+.table-wrap tbody tr:nth-child(3){animation-delay:60ms}
+.table-wrap tbody tr:nth-child(4){animation-delay:90ms}
+.table-wrap tbody tr:nth-child(5){animation-delay:120ms}
+.table-wrap tbody tr:nth-child(6){animation-delay:150ms}
+.table-wrap tbody tr:nth-child(7){animation-delay:180ms}
+.table-wrap tbody tr:nth-child(8){animation-delay:210ms}
+@keyframes rowFadeIn{
+  from{opacity:0;transform:translateX(-8px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* Table row hover indicator */
+.table-wrap tr{transition:background .15s}
+.table-wrap tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
+.table-wrap tr:hover td{background:rgba(59,130,246,0.04)}
+
+/* Live pulse animation */
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{opacity:0.6;box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+#live-indicator{transition:opacity .3s}
+#live-indicator.off{opacity:0.3}
+#live-indicator.off span:first-child{background:var(--muted)!important;animation:none!important}
+
+
+/* Particle background canvas */
+#particle-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;
+}
+#app{position:relative;z-index:1}
+
+/* Cursor glow */
+#cursor-glow{
+  position:fixed;top:0;left:0;width:400px;height:400px;
+  border-radius:50%;pointer-events:none;z-index:0;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(59,130,246,0.06) 0%,rgba(6,182,212,0.03) 35%,transparent 65%);
+  transition:opacity .3s;opacity:0;
+  will-change:transform;
+}
+.dark #cursor-glow{opacity:1}
+.light #cursor-glow{opacity:0.35}
+@media(hover:none){#cursor-glow{display:none}}
+
+/* Nav indicator (sliding active bar) */
+.sidebar-nav{position:relative}
+.nav-indicator{
+  position:absolute;left:0;width:3px;height:36px;
+  background:linear-gradient(180deg,var(--blue),var(--cyan));
+  border-radius:0 3px 3px 0;
+  box-shadow:0 0 12px rgba(59,130,246,0.6);
+  transition:transform .35s cubic-bezier(0.16,1,0.3,1),opacity .3s;
+  opacity:0;pointer-events:none;z-index:1;
+}
+.nav-item{position:relative}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;border-radius:0 2px 2px 0;
+  background:linear-gradient(180deg,var(--blue),var(--cyan));
+  box-shadow:0 0 8px rgba(59,130,246,0.4);
+  opacity:0;transition:opacity .2s;
+}
+
+/* Bell shake on new notification */
+@keyframes bellShake{
+  0%,100%{transform:rotate(0)}
+  15%{transform:rotate(15deg)}
+  30%{transform:rotate(-12deg)}
+  45%{transform:rotate(8deg)}
+  60%{transform:rotate(-5deg)}
+  75%{transform:rotate(3deg)}
+}
+.notif-bell.bell-shake{animation:bellShake 0.8s ease-in-out}
+
+/* Security stat flash highlight */
+@keyframes flashHighlight{
+  0%{background:transparent}
+  30%{background:rgba(59,130,246,0.12)}
+  100%{background:transparent}
+}
+.flash-highlight{animation:flashHighlight .6s ease-out}
+
+/* Event stream item entrance */
+.event-item-enter{
+  animation:eventSlideIn .4s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes eventSlideIn{
+  from{opacity:0;transform:translateX(-12px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* Theme transition smoothing */
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after{
+  transition:background-color .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease !important;
+}
+
+/* ECharts tooltip glassmorphism fallback */
+.echarts-glass-tooltip{
+  backdrop-filter:blur(16px) !important;
+  -webkit-backdrop-filter:blur(16px) !important;
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  #particle-canvas{display:none}
+  #cursor-glow{display:none}
+}
+
+/* ===== 系统健康总览（admin-health.js）=====
+   非方向性指标（CPU/内存/缓存/命中率）一律**中性色**，不使用红绿；
+   --green 仅用于「就绪/最新」这类状态，--gold 用于「陈旧/关注」提示。 */
+#system-health-root{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.ah-block{border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;background:rgba(255,255,255,0.02)}
+.ah-block-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.ah-block-title{font-size:12px;font-weight:600;color:var(--text)}
+.ah-block-src{font-size:10px;color:var(--text2);background:rgba(148,163,184,0.10);border:1px solid var(--border2);padding:2px 8px;border-radius:20px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ah-block-body{font-size:12px;color:var(--text2)}
+.ah-sub{font-size:11px;color:var(--text2);margin-bottom:8px}
+.ah-kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--border)}
+.ah-kv:last-child{border-bottom:none}
+.ah-kv-col{flex-direction:column;align-items:flex-start;gap:6px}
+.ah-k{color:var(--text2);white-space:nowrap}
+.ah-v{color:var(--text);text-align:right;word-break:break-word}
+.ah-kv-col .ah-v{text-align:left;display:flex;flex-wrap:wrap;gap:6px}
+.ah-note{color:var(--muted);font-size:10px}
+.ah-na{color:var(--muted);font-style:normal}
+.ah-empty{font-size:11px;color:var(--gold);background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.22);border-radius:8px;padding:8px 10px}
+.ah-table{width:100%;border-collapse:collapse;font-size:11px}
+.ah-table th{text-align:left;color:var(--text2);font-weight:500;padding:4px 6px;border-bottom:1px solid var(--border2);white-space:nowrap}
+.ah-table td{padding:4px 6px;border-bottom:1px dashed var(--border);color:var(--text);white-space:nowrap}
+.ah-table tr:last-child td{border-bottom:none}
+.ah-chip{display:inline-block;font-size:10px;color:var(--text2);background:rgba(148,163,184,0.10);border:1px solid var(--border2);border-radius:20px;padding:2px 8px;margin:0 4px 0 0}
+.ah-chip b{color:var(--text)}
+.ah-flag-ok{color:var(--green)}
+.ah-flag-stale{color:var(--gold)}
+/* 非方向性阈值色阶：全部中性，仅用深浅 + 文案区分 */
+.ah-neutral{color:var(--text)}
+.ah-neutral-mid{color:var(--text2)}
+.ah-neutral-strong{color:var(--text);font-weight:600}
+</style>
+<link rel="stylesheet" href="css/admin-theme.css?v=2">
+</head>
+<body>
+
+<!-- Particle Background Canvas -->
+<canvas id="particle-canvas"></canvas>
+<!-- Cursor Glow -->
+<div id="cursor-glow"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- App -->
+<div id="app">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-shield-halved text-white text-sm"></i></div>
+      <div>
+        <div class="sidebar-logo-text">管理后台</div>
+        <div class="sidebar-logo-sub">DAPENG Alpha Admin</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-indicator" id="nav-indicator"></div>
+      <div class="nav-item active" onclick="switchPage('dashboard')">
+        <span class="icon"><i class="fa-solid fa-chart-pie"></i></span><span>数据概览</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('security')">
+        <span class="icon"><i class="fa-solid fa-shield-halved"></i></span><span>安全审计</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="switchPage('users')">
+        <span class="icon"><i class="fa-solid fa-users"></i></span><span>用户管理</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('orders')">
+        <span class="icon"><i class="fa-solid fa-receipt"></i></span><span>订单管理</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="switchPage('sectors')">
+        <span class="icon"><i class="fa-solid fa-layer-group"></i></span><span>板块管理</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('cache')">
+        <span class="icon"><i class="fa-solid fa-database"></i></span><span>缓存管理</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('api-health')">
+        <span class="icon"><i class="fa-solid fa-heart-pulse"></i></span><span>API监控</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('api-monitor')">
+        <span class="icon"><i class="fa-solid fa-chart-line"></i></span><span>调用追踪</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('logs')">
+        <span class="icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span>操作日志</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="switchPage('system')">
+        <span class="icon"><i class="fa-solid fa-server"></i></span><span>系统监控</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="location.href='/index.html'">
+        <span class="icon"><i class="fa-solid fa-house"></i></span><span>返回首页</span>
+      </div>
+      <div class="nav-item" onclick="location.href='/dashboard.html'">
+        <span class="icon"><i class="fa-solid fa-chart-line"></i></span><span>交易系统</span>
+      </div>
+      <div class="nav-item" onclick="location.href='/quant.html'">
+        <span class="icon"><i class="fa-solid fa-flask"></i></span><span>量化回测</span>
+      </div>
+      <div class="nav-item" onclick="location.href='/dashboard.html#market'">
+        <span class="icon"><i class="fa-solid fa-gauge-high"></i></span><span>市场情绪</span>
+      </div>
+      <div class="nav-item" onclick="location.href='/project-docs.html'">
+        <span class="icon"><i class="fa-solid fa-book"></i></span><span>项目文档</span>
+      </div>
+      <div class="nav-item" onclick="location.href='/api-reference.html'">
+        <span class="icon"><i class="fa-solid fa-plug"></i></span><span>接口目录</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span>v4.0 · 2026</span>
+      <button class="theme-toggle" id="themeToggle" title="切换主题"></button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <div id="header">
+      <div class="header-left">
+        <div class="header-title" id="page-title">
+          <i class="fa-solid fa-chart-pie mr-2"></i> 数据概览
+        </div>
+        <span class="header-badge" id="header-badge">LIVE</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:6px;display:flex;align-items:center;gap:4px" id="live-indicator"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:livePulse 2s infinite"></span><span id="live-timestamp">加载中...</span></span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" onclick="openCommandPalette()" title="命令面板 (Ctrl+K)"><i class="fa-solid fa-magnifying-glass"></i> <span class="hidden sm:inline">搜索</span> <kbd style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,0.05);border:1px solid var(--border);margin-left:2px">⌘K</kbd></button>
+        <button class="btn btn-ghost" onclick="refreshCurrentPage()"><i class="fa-solid fa-rotate"></i> 刷新</button>
+        <div style="position:relative">
+          <button class="notif-bell" onclick="toggleNotifications()" title="通知">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+          </button>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-panel-header">
+              <div class="notif-panel-title"><i class="fa-solid fa-bell mr-1"></i> 通知中心</div>
+              <div class="notif-panel-actions">
+                <button onclick="markAllNotificationsRead()">全部已读</button>
+                <button onclick="clearAllNotifications()" style="color:var(--rose)">清空</button>
+              </div>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <div class="notif-empty"><i class="fa-solid fa-bell-slash text-2xl mb-2 block opacity-20"></i>暂无通知</div>
+            </div>
+          </div>
+        </div>
+        <a href="/dashboard.html" class="btn btn-outline"><i class="fa-solid fa-chart-line"></i> 交易系统</a>
+        <a href="/index.html" class="btn btn-ghost"><i class="fa-solid fa-house"></i> 首页</a>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- ===== Dashboard ===== -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="stats-row" id="dash-stats"></div>
+        <div class="chart-row">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title"><i class="fa-solid fa-chart-line text-blue-500 mr-1"></i> 近30天收入趋势</div><div class="card-subtitle">每日收入与订单量双轴图</div></div>
+              <span style="font-size:10px;color:var(--cyan);background:rgba(6,182,212,0.08);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px"><span class="status-pulse-live" style="width:6px;height:6px;background:var(--cyan);border-radius:50%;box-shadow:0 0 5px var(--cyan)"></span>LIVE STREAMING</span>
+            </div>
+            <div id="chart-revenue" style="height:300px"></div>
+          </div>
+          <div class="flex flex-col gap-[14px]">
+            <div class="card flex-1">
+              <div class="card-header">
+                <div><div class="card-title"><i class="fa-solid fa-chart-pie text-purple-500 mr-1"></i> 订单状态分布</div><div class="card-subtitle">支付状态占比统计</div></div>
+              </div>
+              <div id="chart-orders" style="height:240px"></div>
+            </div>
+            <div class="card" style="padding:16px">
+              <div class="card-header" style="margin-bottom:8px">
+                <div class="card-title text-[11px] opacity-60 uppercase tracking-wider">系统实时动态</div>
+                <i class="fa-solid fa-bolt text-gold text-[10px]"></i>
+              </div>
+              <div id="event-stream" style="font-size:11px;height:80px;overflow:hidden;display:flex;flex-direction:column;gap:6px">
+                <div class="opacity-30 italic">正在接入实时数据流...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-layer-group text-gold mr-1"></i> 板块概览</div><div class="card-subtitle">所有板块及股票覆盖</div></div>
+          </div>
+          <div id="dash-sectors" class="sector-grid"></div>
+        </div>
+      </div>
+
+      <!-- ===== Security Audit (NEW) ===== -->
+      <div class="page-section" id="page-security">
+        <div class="stats-row" id="security-stats"></div>
+
+        <div class="chart-row equal" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title"><i class="fa-solid fa-wave-square text-cyan-500 mr-1"></i> API响应耗时分布</div><div class="card-subtitle">基于真实调用日志的端点耗时</div></div>
+              <span style="font-size:10px;color:var(--cyan);background:rgba(6,182,212,0.08);padding:4px 10px;border-radius:20px">REAL DATA</span>
+            </div>
+            <div id="chart-throughput" style="height:280px"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title"><i class="fa-solid fa-microchip text-purple-500 mr-1"></i> API端点状态分布</div><div class="card-subtitle">按真实调用状态统计</div></div>
+            </div>
+            <div id="chart-resources" style="height:280px"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> API端点健康审计</div><div class="card-subtitle">实时监控所有API端点的运行状态</div></div>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="loadSecurityPage()"><i class="fa-solid fa-rotate"></i> 刷新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>端点标识</th><th>状态</th><th>API路径</th><th>响应时延</th><th>风险级别</th><th>最后调用</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody">
+                <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">切换到此页面时自动加载API健康数据...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Users ===== -->
+      <div class="page-section" id="page-users">
+        <div class="search-bar">
+          <select class="search-input" id="user-status-filter"><option value="">全部状态</option><option value="active">活跃</option><option value="inactive">停用</option></select>
+          <select class="search-input" id="user-plan-filter"><option value="">全部套餐</option><option value="free">免费</option><option value="pro">Pro</option><option value="premium">旗舰</option></select>
+          <button class="btn btn-primary" onclick="loadUsers()"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+          <button class="btn btn-export" id="btn-export-users" onclick="exportCSV('users')"><i class="fa-solid fa-file-csv"></i> 导出CSV</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap"><table><thead><tr><th>ID</th><th>姓名</th><th>手机</th><th>套餐</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="users-tbody"></tbody></table></div>
+        </div>
+        <div class="pagination" id="users-pagination"></div>
+      </div>
+
+      <!-- ===== Orders ===== -->
+      <div class="page-section" id="page-orders">
+        <div class="search-bar">
+          <select class="search-input" id="order-status-filter"><option value="">全部状态</option><option value="pending">待支付</option><option value="paid">已支付</option><option value="refunded">已退款</option><option value="expired">已过期</option></select>
+          <select class="search-input" id="order-gateway-filter"><option value="">全部渠道</option><option value="wechat">微信</option><option value="alipay">支付宝</option></select>
+          <button class="btn btn-primary" onclick="loadOrders()"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+          <button class="btn btn-export" id="btn-export-orders" onclick="exportCSV('orders')"><i class="fa-solid fa-file-csv"></i> 导出CSV</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap"><table><thead><tr><th>订单号</th><th>用户</th><th>套餐</th><th>金额</th><th>渠道</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="orders-tbody"></tbody></table></div>
+        </div>
+        <div class="pagination" id="orders-pagination"></div>
+      </div>
+
+      <!-- ===== Sectors ===== -->
+      <div class="page-section" id="page-sectors">
+        <div class="stats-row" id="sector-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-layer-group text-blue-500 mr-1"></i> 板块列表与缓存状态</div><div class="card-subtitle">绿色边框表示数据已缓存</div></div>
+          </div>
+          <div id="sectors-grid" class="sector-grid"></div>
+        </div>
+      </div>
+
+      <!-- ===== Cache Management ===== -->
+      <div class="page-section" id="page-cache">
+        <div class="stats-row" id="cache-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-database text-cyan-500 mr-1"></i> 缓存列表</div><div class="card-subtitle" id="cache-subtitle">所有活跃缓存条目</div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost" onclick="purgeExpiredCache()" title="立即回收已过期条目（后台每 30 秒自动执行一次）"><i class="fa-solid fa-broom mr-1"></i> 回收过期</button>
+              <button class="btn btn-ghost" style="color:var(--rose);border-color:rgba(244,63,94,0.2)" onclick="confirmClearAllCache()"><i class="fa-solid fa-trash mr-1"></i> 清空所有缓存</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>缓存键</th><th>类型</th><th>大小</th><th>TTL剩余(秒)</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="cache-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== API Health ===== -->
+      <div class="page-section" id="page-api-health">
+        <div class="stats-row" id="apihealth-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> API端点状态</div><div class="card-subtitle">所有已注册路由的健康状态</div></div>
+            <span style="font-size:10px;color:var(--green);background:rgba(16,185,129,0.08);padding:4px 10px;border-radius:20px">
+              <span class="stat-pulse" style="color:var(--green)"></span>30s 自动刷新
+            </span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>端点路径</th><th>方法</th><th>状态</th><th>平均响应时间</th><th>响应可视化</th><th>最近调用</th></tr></thead>
+              <tbody id="apihealth-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== API Call Monitor (v5.1) ===== -->
+      <div class="page-section" id="page-api-monitor">
+        <!-- Toolbar: time range + refresh -->
+        <div class="card" style="margin-bottom:16px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:13px;color:var(--text2)">时间范围:</span>
+            <select class="search-input" id="monitor-time-range" style="max-width:140px" onchange="onMonitorTimeRangeChange()">
+              <option value="1h">近1小时</option>
+              <option value="24h" selected>近24小时</option>
+              <option value="7d">近7天</option>
+              <option value="30d">近30天</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:10px;color:var(--green);background:rgba(16,185,129,0.08);padding:4px 10px;border-radius:20px">
+              <span class="stat-pulse" style="color:var(--green)"></span>30s 自动刷新
+            </span>
+            <button class="btn btn-ghost" onclick="refreshMonitor()"><i class="fa-solid fa-rotate"></i> 刷新</button>
+          </div>
+        </div>
+
+        <!-- 4 stat cards -->
+        <div class="stats-row" id="monitor-stats"></div>
+
+        <!-- Error Ranking Table -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> 错误率排行 (TOP 10)</div><div class="card-subtitle">按端点聚合的错误率排名</div></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>端点</th><th>总调用</th><th>错误数</th><th>错误率</th><th>平均响应</th></tr></thead>
+              <tbody id="monitor-error-ranking"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Calls Detail Table -->
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-list text-blue-500 mr-1"></i> 调用明细</div><div class="card-subtitle">API调用记录分页查询</div></div>
+            <select class="search-input" id="monitor-filter-endpoint" style="max-width:200px" onchange="onMonitorEndpointFilter()">
+              <option value="">全部端点</option>
+            </select>
+          </div>
+          <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+            <table>
+              <thead><tr><th>时间</th><th>端点</th><th>方法</th><th>状态</th><th>耗时(ms)</th><th>参数</th></tr></thead>
+              <tbody id="monitor-calls-table"></tbody>
+            </table>
+          </div>
+          <!-- Pagination -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border)">
+            <span style="font-size:11px;color:var(--text2)" id="monitor-pagination-info">--</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost" id="monitor-prev-btn" onclick="monitorPrevPage()"><i class="fa-solid fa-chevron-left"></i> 上一页</button>
+              <button class="btn btn-ghost" id="monitor-next-btn" onclick="monitorNextPage()">下一页 <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Operation Logs ===== -->
+      <div class="page-section" id="page-logs">
+        <div class="stats-row" id="logs-stats"></div>
+        <div class="chart-row equal" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title"><i class="fa-solid fa-clock-rotate-left text-purple-500 mr-1"></i> 操作类型分布</div><div class="card-subtitle">按操作类型统计</div></div>
+            </div>
+            <div id="chart-logs-pie" style="height:260px"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title"><i class="fa-solid fa-list text-blue-500 mr-1"></i> 最近操作日志</div><div class="card-subtitle">按操作类型筛选</div></div>
+              <select class="search-input" id="log-action-filter" onchange="loadLogs()" style="max-width:160px">
+                <option value="">全部类型</option>
+                <option value="USER_TOGGLE">用户状态切换</option>
+                <option value="ORDER_REFUND">订单退款</option>
+                <option value="CACHE_CLEAR">清空缓存</option>
+                <option value="CACHE_DELETE">删除缓存</option>
+                <option value="CACHE_PURGE">回收过期缓存</option>
+              </select>
+            </div>
+            <div class="table-wrap" style="max-height:260px;overflow-y:auto">
+              <table>
+                <thead><tr><th>时间</th><th>类型</th><th>详情</th><th>操作人</th></tr></thead>
+                <tbody id="logs-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== System ===== -->
+      <div class="page-section" id="page-system">
+        <div class="stats-row" id="system-stats"></div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div><div class="card-title"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> 实时资源监控</div><div class="card-subtitle">CPU / 内存 近30个采样点</div></div>
+            <span style="font-size:10px;color:var(--green);background:rgba(16,185,129,0.08);padding:4px 10px;border-radius:20px">
+              <span class="stat-pulse" style="color:var(--green)"></span>LIVE
+            </span>
+          </div>
+          <div id="chart-system" style="height:260px"></div>
+        </div>
+        <div class="info-grid" id="system-info-grid"></div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa-solid fa-stethoscope text-cyan-500 mr-1"></i> 系统健康总览（升级模块状态）</div>
+              <div class="card-subtitle">外部因子新鲜度 · 离线产物 · 交易引擎 · 实时推送 · 功耗与缓存 ｜ 来源与时间戳随条目展示，取不到一律显示 --</div>
+            </div>
+            <span id="syshealth-updated" style="font-size:10px;color:var(--text2);">--</span>
+          </div>
+          <div id="system-health-root"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Command Palette Overlay -->
+<div class="cmd-overlay" id="cmd-overlay" onclick="if(event.target===this)closeCommandPalette()">
+  <div class="cmd-box">
+    <div class="cmd-input-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" class="cmd-input" id="cmd-input" placeholder="搜索页面、用户、订单..." autocomplete="off" oninput="onCmdInput(this.value)" onkeydown="onCmdKeydown(event)">
+      <span class="cmd-shortcut">ESC 关闭</span>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+    <div class="cmd-footer">
+      <span><kbd>↑</kbd> <kbd>↓</kbd> 导航 · <kbd>Enter</kbd> 确认</span>
+      <span>DAPENG Alpha Command</span>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="if(event.target===this)closeUserDrawer()"></div>
+<div class="drawer" id="user-drawer">
+  <div class="drawer-header">
+    <div class="drawer-title"><i class="fa-solid fa-user mr-2"></i> 用户详情</div>
+    <button class="drawer-close" onclick="closeUserDrawer()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="confirm-modal" id="confirm-modal" onclick="if(event.target===this)closeConfirm()">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">确认操作</div>
+    <div class="confirm-msg" id="confirm-msg">确定要执行此操作吗？</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  Theme Toggle
+// ================================================================
+(function() {
+  var saved = localStorage.getItem('admin-theme');
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+  } else {
+    document.documentElement.classList.remove('light');
+  }
+})();
+document.getElementById('themeToggle').addEventListener('click', function() {
+  document.documentElement.classList.add('theme-transitioning');
+  var isLight = document.documentElement.classList.toggle('light');
+  localStorage.setItem('admin-theme', isLight ? 'light' : 'dark');
+  // Re-init charts on theme change
+  setTimeout(function() {
+    if (currentPage === 'dashboard') { loadRevenueChart(); loadOrdersPieChart(); }
+    if (currentPage === 'security') initSecurityCharts();
+    if (currentPage === 'system') renderSystemChart();
+  }, 100);
+  setTimeout(function() {
+    document.documentElement.classList.remove('theme-transitioning');
+  }, 450);
+});
+
+// ================================================================
+//  Global State
+// ================================================================
+var currentPage = 'dashboard';
+var usersPage = 1, ordersPage = 1;
+var revenueChart = null, ordersPieChart = null, systemChart = null;
+var throughputChart = null, resourcesPieChart = null;
+var logsPieChart = null;
+var systemHistory = {cpu:[],mem:[],labels:[]};
+var securitySimInterval = null;
+var apiHealthInterval = null;
+var _securityApiData = null;
+var cmdSelectedIndex = -1;
+var cmdResults = [];
+var cmdDebounceTimer = null;
+
+// ================================================================
+//  Utilities
+// ================================================================
+(function installAdminFetchGuard() {
+  var nativeFetch = window.fetch.bind(window);
+  window.fetch = async function(input, init) {
+    init = init || {};
+    var headers = new Headers(init.headers || {});
+    var token = sessionStorage.getItem('dapeng_admin_token') || localStorage.getItem('dapeng_admin_token');
+    if (token) headers.set('X-Admin-Token', token);
+    var response = await nativeFetch(input, Object.assign({}, init, {headers: headers}));
+    if (response.status === 401 && !window.__adminTokenPrompted) {
+      window.__adminTokenPrompted = true;
+      var entered = window.prompt('请输入管理令牌');
+      window.__adminTokenPrompted = false;
+      if (entered) {
+        sessionStorage.setItem('dapeng_admin_token', entered.trim());
+        headers.set('X-Admin-Token', entered.trim());
+        response = await nativeFetch(input, Object.assign({}, init, {headers: headers}));
+      }
+    }
+    return response;
+  };
+})();
+
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type||'info') + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, 2800);
+}
+
+function formatTime(iso) {
+  if (!iso) return '--';
+  try { return new Date(iso).toLocaleString('zh-CN', {hour12:false}); }
+  catch(e) { return iso; }
+}
+
+function formatMoney(fen) {
+  if (!fen && fen !== 0) return '--';
+  return '¥' + (fen / 100).toFixed(2);
+}
+
+function statusBadge(status) {
+  var map = {
+    'active':'badge-green','inactive':'badge-muted',
+    'paid':'badge-green','pending':'badge-gold','refunded':'badge-purple','expired':'badge-muted','cancelled':'badge-rose',
+  };
+  var labels = {
+    'active':'活跃','inactive':'停用',
+    'paid':'已支付','pending':'待支付','refunded':'已退款','expired':'已过期','cancelled':'已取消',
+  };
+  return '<span class="badge '+(map[status]||'badge-muted')+'">'+(labels[status]||status)+'</span>';
+}
+
+function planBadge(plan) {
+  var map = {'free':'badge-muted','pro':'badge-blue','premium':'badge-gold','family':'badge-purple'};
+  var labels = {'free':'免费','pro':'Pro','premium':'旗舰','family':'家庭'};
+  return '<span class="badge '+(map[plan]||'badge-muted')+'">'+(labels[plan]||plan)+'</span>';
+}
+
+function gatewayLabel(gw) {
+  return gw === 'wechat' ? '<i class="fa-brands fa-weixin text-green-400 mr-1"></i> 微信'
+    : gw === 'alipay' ? '<i class="fa-brands fa-alipay text-blue-400 mr-1"></i> 支付宝'
+    : gw || '--';
+}
+
+// ================================================================
+//  Page Switching
+// ================================================================
+function switchPage(page) {
+  currentPage = page;
+  // Stop security sim if leaving security page
+  if (securitySimInterval) { clearInterval(securitySimInterval); securitySimInterval = null; }
+  // Stop API health polling if leaving api-health page
+  if (apiHealthInterval) { clearInterval(apiHealthInterval); apiHealthInterval = null; }
+  // Stop API monitor polling if leaving api-monitor page
+  if (typeof stopMonitorPolling === 'function') stopMonitorPolling();
+
+  document.querySelectorAll('.page-section').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+
+  var pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.add('active');
+
+  // Find nav item by matching onclick attribute
+  document.querySelectorAll('.nav-item').forEach(function(el) {
+    var onclick = el.getAttribute('onclick') || '';
+    if (onclick.indexOf("switchPage('" + page + "')") >= 0) {
+      el.classList.add('active');
+    }
+  });
+
+  var titles = {
+    'dashboard':'<i class="fa-solid fa-chart-pie mr-2"></i> 数据概览',
+    'security':'<i class="fa-solid fa-shield-halved mr-2"></i> 安全审计',
+    'users':'<i class="fa-solid fa-users mr-2"></i> 用户管理',
+    'orders':'<i class="fa-solid fa-receipt mr-2"></i> 订单管理',
+    'sectors':'<i class="fa-solid fa-layer-group mr-2"></i> 板块管理',
+    'cache':'<i class="fa-solid fa-database mr-2"></i> 缓存管理',
+    'api-health':'<i class="fa-solid fa-heart-pulse mr-2"></i> API监控',
+    'api-monitor':'<i class="fa-solid fa-chart-line mr-2"></i> 调用追踪',
+    'logs':'<i class="fa-solid fa-clock-rotate-left mr-2"></i> 操作日志',
+    'system':'<i class="fa-solid fa-server mr-2"></i> 系统监控'
+  };
+  document.getElementById('page-title').innerHTML = titles[page] || page;
+  document.getElementById('header-badge').style.display = (page === 'system' || page === 'dashboard') ? 'inline' : 'none';
+
+  // Load data
+  if (page === 'dashboard') loadDashboard();
+  else if (page === 'security') loadSecurityPage();
+  else if (page === 'users') loadUsers();
+  else if (page === 'orders') loadOrders();
+  else if (page === 'sectors') loadSectors();
+  else if (page === 'cache') loadCache();
+  else if (page === 'api-health') loadApiHealth();
+  else if (page === 'api-monitor') initMonitor();
+  else if (page === 'logs') loadLogs();
+  else if (page === 'system') loadSystem();
+}
+
+function refreshCurrentPage() { switchPage(currentPage); }
+
+// ================================================================
+//  Dashboard
+// ================================================================
+async function loadDashboard() {
+  try {
+    var resp = await fetch('/api/admin/dashboard');
+    var json = await resp.json();
+    if (!json.ok) { toast('加载失败', 'error'); return; }
+    var d = json.data;
+
+    document.getElementById('dash-stats').innerHTML = [
+      '<div class="stat-card blue">' +
+        '<div class="stat-card-top"><div class="stat-label">总用户</div><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--blue)">'+d.users.total.toLocaleString()+'</div>' +
+        '<div class="stat-sub">活跃 '+d.users.active+' · Pro '+d.users.pro+'</div>' +
+      '</div>',
+      '<div class="stat-card green">' +
+        '<div class="stat-card-top"><div class="stat-label">总收入</div><div class="stat-icon green"><i class="fa-solid fa-coins"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--green)">¥'+(d.orders.total_revenue_yuan || 0).toLocaleString()+'</div>' +
+        '<div class="stat-sub">今日已收 ¥'+(d.orders.today_revenue_yuan || 0).toLocaleString()+'</div>' +
+      '</div>',
+      '<div class="stat-card gold">' +
+        '<div class="stat-card-top"><div class="stat-label">总订单</div><div class="stat-icon gold"><i class="fa-solid fa-receipt"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--gold)">'+d.orders.total.toLocaleString()+'</div>' +
+        '<div class="stat-sub">已支付 '+d.orders.paid+' · 待付 '+d.orders.pending+'</div>' +
+      '</div>',
+      '<div class="stat-card purple">' +
+        '<div class="stat-card-top"><div class="stat-label">覆盖板块</div><div class="stat-icon purple"><i class="fa-solid fa-layer-group"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--purple)">'+d.sectors.total+'</div>' +
+        '<div class="stat-sub"><span class="font-bold text-purple-400">'+d.sectors.total_stocks+'</span> 只股票已覆盖</div>' +
+      '</div>',
+      '<div class="stat-card cyan">' +
+        '<div class="stat-card-top"><div class="stat-label">系统负载</div><div class="stat-icon cyan"><i class="fa-solid fa-microchip"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--cyan)">'+d.system.memory_used_pct+'%</div>' +
+        '<div class="stat-progress"><div class="stat-progress-fill" style="width:'+d.system.memory_used_pct+'%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>' +
+        '<div class="stat-sub">进程占用 '+d.system.process_memory_mb+'MB</div>' +
+      '</div>',
+    ].join('');
+
+    // 注：此处原有 startEventStream() 调用，但该函数全项目从未定义，
+    // 一抛错就中断了后面的板块卡片与两个图表渲染（仪表盘三块永久空白）。
+    // 实时刷新由 _liveEngine（30s 轮询、document.hidden 时暂停）负责，无需 SSE。
+
+    // Sectors
+    document.getElementById('dash-sectors').innerHTML = d.sectors.list.map(function(s) {
+      return '<div class="sector-card"><div class="sector-icon">'+s.icon+'</div><div class="sector-name">'+s.name+'</div><div class="sector-count">'+s.stock_count+' 只</div></div>';
+    }).join('');
+
+    loadRevenueChart();
+    loadOrdersPieChart(d);
+  } catch(e) {
+    toast('仪表盘加载失败: '+e.message, 'error');
+  }
+}
+
+async function loadRevenueChart() {
+  try {
+    var resp = await fetch('/api/admin/revenue-trend?days=30');
+    var json = await resp.json();
+    if (!json.ok) return;
+    var data = json.data;
+
+    var el = document.getElementById('chart-revenue');
+    if (!revenueChart) revenueChart = echarts.init(el);
+
+    var isLight = document.documentElement.classList.contains('light');
+    var tc = isLight ? '#475569' : '#8b9ec2';
+    var mc = isLight ? '#94a3b8' : '#3d5278';
+    var sl = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.04)';
+
+    var option = {
+      backgroundColor:'transparent',
+      tooltip:{trigger:'axis',backgroundColor:isLight?'#fff':'rgba(6,12,28,0.96)',borderColor:isLight?'#e2e8f0':'rgba(59,130,246,0.2)',textStyle:{color:isLight?'#0f172a':'#eef2f7',fontSize:12}},
+      grid:{left:55,right:25,top:15,bottom:30},
+      xAxis:{type:'category',data:data.map(function(d){return d.date.slice(5)}),axisLine:{lineStyle:{color:sl}},axisLabel:{color:mc,fontSize:10}},
+      yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:sl}},axisLabel:{color:mc,fontSize:10}},
+      series:[{
+        type:'line',data:data.map(function(d){return d.revenue_yuan}),smooth:true,
+        lineStyle:{color:'#3b82f6',width:2.5},
+        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(59,130,246,0.25)'},{offset:1,color:'rgba(59,130,246,0)'}])},
+        itemStyle:{color:'#3b82f6'},symbol:'circle',symbolSize:4,
+      },{
+        type:'bar',data:data.map(function(d){return d.orders}),
+        yAxisIndex:0,barWidth:8,itemStyle:{color:'rgba(245,158,11,0.35)',borderRadius:[3,3,0,0]},
+      }],
+    };
+    revenueChart.setOption(option, {notMerge:true});
+  } catch(e) {}
+}
+
+async function loadOrdersPieChart(dashData) {
+  try {
+    // 复用 loadDashboard() 已取到的数据，避免每 30s 轮询多打一次 /api/admin/dashboard
+    var d;
+    if (dashData && dashData.orders) {
+      d = dashData.orders;
+    } else {
+      var resp = await fetch('/api/admin/dashboard');
+      var json = await resp.json();
+      if (!json.ok) return;
+      d = json.data.orders;
+    }
+
+    var el = document.getElementById('chart-orders');
+    if (!ordersPieChart) ordersPieChart = echarts.init(el);
+
+    var isLight = document.documentElement.classList.contains('light');
+    var tc = isLight ? '#475569' : '#8b9ec2';
+
+    var option = {
+      backgroundColor:'transparent',
+      tooltip:{trigger:'item',backgroundColor:isLight?'#fff':'rgba(6,12,28,0.96)',borderColor:isLight?'#e2e8f0':'rgba(59,130,246,0.2)',textStyle:{color:isLight?'#0f172a':'#eef2f7',fontSize:12}},
+      series:[{
+        type:'pie',radius:['42%','72%'],center:['50%','48%'],
+        data:[
+          {value:d.paid,name:'已支付',itemStyle:{color:'#10b981'}},
+          {value:d.pending,name:'待支付',itemStyle:{color:'#f59e0b'}},
+          {value:Math.max(0,d.total-d.paid-d.pending),name:'其他',itemStyle:{color:isLight?'#cbd5e1':'#3d5278'}},
+        ].filter(function(d){return d.value>0}),
+        label:{color:tc,fontSize:11},
+        labelLine:{lineStyle:{color:isLight?'#cbd5e1':'rgba(255,255,255,0.08)'}},
+        emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.3)'}},
+      }],
+    };
+    ordersPieChart.setOption(option, {notMerge:true});
+  } catch(e) {}
+}
+
+// ================================================================
+//  Security Audit Page (NEW)
+// ================================================================
+async function loadSecurityPage() {
+  // Fetch real API health data
+  var apiData = null;
+  var cacheData = null;
+  var sysData = null;
+  try {
+    var apiResp = await fetch('/api/admin/api-health');
+    var apiJson = await apiResp.json();
+    if (apiJson.ok) apiData = apiJson.data;
+  } catch(e) {}
+  try {
+    var cacheResp = await fetch('/api/admin/cache');
+    var cacheJson = await cacheResp.json();
+    if (cacheJson.ok) cacheData = cacheJson.data;
+  } catch(e) {}
+  try {
+    var sysResp = await fetch('/api/admin/system');
+    var sysJson = await sysResp.json();
+    if (sysJson.ok) sysData = sysJson.data;
+  } catch(e) {}
+
+  var totalEndpoints = apiData ? apiData.total : 0;
+  var healthyEndpoints = apiData ? apiData.healthy : 0;
+  var avgLatency = apiData ? (apiData.avg_response_ms || 0).toFixed(1) : '0.0';
+  var slowCount = apiData ? apiData.slow : 0;
+  var cacheTotal = cacheData ? cacheData.total : 0;
+  var cacheHitRate = cacheData ? (cacheData.hit_rate || 0).toFixed(1) : '0.0';
+  var cpuPct = sysData && Number.isFinite(Number(sysData.cpu_percent)) ? Number(sysData.cpu_percent).toFixed(1) : '0.0';
+  var memPct = sysData && sysData.memory && Number.isFinite(Number(sysData.memory.system_used_pct)) ? Number(sysData.memory.system_used_pct).toFixed(1) : '0.0';
+
+  // Stats with real data
+  document.getElementById('security-stats').innerHTML = [
+    '<div class="stat-card blue">' +
+      '<div class="stat-card-top"><div class="stat-label">API端点总数</div><div class="stat-icon blue"><i class="fa-solid fa-route"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--blue)" id="sec-total">' + totalEndpoints + '</div>' +
+      '<div class="stat-sub">健康 ' + healthyEndpoints + ' · 异常 ' + (totalEndpoints - healthyEndpoints) + '</div>' +
+    '</div>',
+    '<div class="stat-card green">' +
+      '<div class="stat-card-top"><div class="stat-label">API健康率</div><div class="stat-icon green"><i class="fa-solid fa-shield-halved"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--green)" id="sec-rate">' + (totalEndpoints > 0 ? (healthyEndpoints / totalEndpoints * 100).toFixed(1) : '0.0') + '%</div>' +
+      '<div class="stat-progress"><div class="stat-progress-fill" style="width:' + (totalEndpoints > 0 ? healthyEndpoints / totalEndpoints * 100 : 0) + '%;background:linear-gradient(90deg,var(--green),#34d399)"></div></div>' +
+      '<div class="stat-sub">慢请求 ' + slowCount + ' 个</div>' +
+    '</div>',
+    '<div class="stat-card cyan">' +
+      '<div class="stat-card-top"><div class="stat-label">平均响应时延</div><div class="stat-icon cyan"><i class="fa-solid fa-bolt"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--cyan)" id="sec-latency">' + avgLatency + 'ms</div>' +
+      '<div class="stat-sub">' + (slowCount > 0 ? '⚠️ ' + slowCount + ' 个慢请求' : '所有请求正常') + '</div>' +
+    '</div>',
+    '<div class="stat-card purple">' +
+      '<div class="stat-card-top"><div class="stat-label">缓存条目</div><div class="stat-icon purple"><i class="fa-solid fa-database"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--purple)" id="sec-rules">' + cacheTotal + '</div>' +
+      '<div class="stat-sub">命中率 ' + cacheHitRate + '%</div>' +
+    '</div>',
+    '<div class="stat-card gold">' +
+      '<div class="stat-card-top"><div class="stat-label">系统负载</div><div class="stat-icon gold"><i class="fa-solid fa-microchip"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--gold)" id="sec-ips">CPU ' + cpuPct + '%</div>' +
+      '<div class="stat-sub">内存 ' + memPct + '%</div>' +
+    '</div>',
+  ].join('');
+
+  // Update audit table with real API health data
+  var auditBody = document.getElementById('audit-tbody');
+  if (auditBody && apiData && apiData.endpoints) {
+    auditBody.innerHTML = apiData.endpoints.slice(0, 8).map(function(ep, i) {
+      var avgMs = Number(ep.avg_response_ms || 0);
+      var riskLevel = ep.status === 'DOWN' ? '<span class="badge badge-rose">CRITICAL</span>' :
+                      ep.status === 'NO_DATA' ? '<span class="badge badge-muted">NO DATA</span>' :
+                      avgMs > 1000 ? '<span class="badge badge-gold">WARNING</span>' :
+                      '<span class="badge badge-blue">INFO</span>';
+      var featureType = ep.status === 'DOWN' ? '服务不可用' :
+                        ep.status === 'NO_DATA' ? '暂无调用记录' :
+                        avgMs > 1000 ? '响应超时' :
+                        avgMs > 500 ? '响应偏慢' : '正常运行';
+      var latency = avgMs ? avgMs.toFixed(1) + 'ms' : '--';
+      var time = ep.last_called ? new Date(ep.last_called).toLocaleTimeString('zh-CN', {hour12:false}) : '--';
+      var hash = '0x' + (ep.path || '').substring(0, 8).split('').map(function(c) { return c.charCodeAt(0).toString(16); }).join('').substring(0, 6);
+      return '<tr>' +
+        '<td style="color:var(--muted)">' + (i + 1) + '</td>' +
+        '<td class="audit-hash">' + hash + '..' + (ep.path || '').slice(-4) + '</td>' +
+        '<td style="font-weight:600">' + featureType + '</td>' +
+        '<td class="audit-ip">' + (ep.method || 'GET') + ' ' + (ep.path || '--').substring(0, 24) + '</td>' +
+        '<td style="color:var(--muted)">' + latency + '</td>' +
+        '<td>' + riskLevel + '</td>' +
+        '<td style="color:var(--muted);font-size:10px">' + time + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  window._securityApiData = apiData;
+  initSecurityCharts(apiData);
+}
+
+function initSecurityCharts(apiData) {
+  apiData = apiData || window._securityApiData || null;
+  var isLight = document.documentElement.classList.contains('light');
+  var tc = isLight ? '#475569' : '#8b9ec2';
+  var sl = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.04)';
+  var bg = isLight ? '#fff' : 'rgba(6,12,28,0.96)';
+  var bc = isLight ? '#e2e8f0' : 'rgba(59,130,246,0.2)';
+
+  // Throughput chart
+  var el1 = document.getElementById('chart-throughput');
+  if (throughputChart) throughputChart.dispose();
+  throughputChart = echarts.init(el1);
+  throughputChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:bg,borderColor:bc,textStyle:{color:isLight?'#0f172a':'#eef2f7',fontSize:12}},
+    grid:{left:45,right:15,top:15,bottom:25},
+    xAxis:{type:'category',boundaryGap:false,
+      data:(apiData && apiData.endpoints && apiData.endpoints.length ? apiData.endpoints.slice(0, 7).map(function(ep){ return (ep.method || 'GET') + ' ' + (ep.path || '').slice(-12); }) : ['暂无调用记录']),
+      axisLine:{show:false},axisLabel:{color:tc,fontSize:10}
+    },
+    yAxis:{type:'value',axisLabel:{color:tc,fontSize:10},splitLine:{lineStyle:{color:sl}}},
+    series:[{
+      type:'line',smooth:0.4,symbol:'none',lineStyle:{width:3,color:'#06b6d4'},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(6,182,212,0.2)'},{offset:1,color:'rgba(6,182,212,0)'}])},
+      data:(apiData && apiData.endpoints && apiData.endpoints.length ? apiData.endpoints.slice(0, 7).map(function(ep){ return ep.calls ? ep.avg_response_ms : 0; }) : [0])
+    }]
+  });
+
+  // Resources pie
+  var el2 = document.getElementById('chart-resources');
+  if (resourcesPieChart) resourcesPieChart.dispose();
+  resourcesPieChart = echarts.init(el2);
+  resourcesPieChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'item',backgroundColor:bg,borderColor:bc,textStyle:{color:isLight?'#0f172a':'#eef2f7',fontSize:12}},
+    legend:{bottom:0,left:'center',textStyle:{color:tc,fontSize:10},itemWidth:10,itemHeight:10},
+    series:[{
+      type:'pie',radius:['50%','75%'],center:['50%','42%'],
+      itemStyle:{borderRadius:6,borderColor:isLight?'#fff':'#0f172a',borderWidth:2},
+      label:{show:false},
+       data:[
+         {value:apiData ? (apiData.healthy || 0) : 0,name:'正常',itemStyle:{color:'#10b981'}},
+         {value:apiData ? (apiData.slow || 0) : 0,name:'偏慢',itemStyle:{color:'#f59e0b'}},
+         {value:apiData ? (apiData.down || 0) : 0,name:'异常',itemStyle:{color:'#f43f5e'}},
+         {value:apiData ? (apiData.no_data || 0) : 0,name:'无记录',itemStyle:{color:'#64748b'}},
+       ].filter(function(item){ return item.value > 0; })
+    }]
+  });
+}
+
+function startSecuritySimulation() {
+  // 兼容旧调用：安全审计页不再生成随机或伪造的监控数据。
+  if (securitySimInterval) {
+    clearInterval(securitySimInterval);
+    securitySimInterval = null;
+  }
+}
+
+// ================================================================
+//  Users
+// ================================================================
+async function loadUsers() {
+  try {
+    var status = document.getElementById('user-status-filter').value;
+    var plan = document.getElementById('user-plan-filter').value;
+    var params = '?page='+usersPage+'&size=20';
+    if (status) params += '&status='+status;
+    if (plan) params += '&plan='+plan;
+
+    var resp = await fetch('/api/admin/users'+params);
+    var json = await resp.json();
+    if (!json.ok) { toast('加载用户失败', 'error'); return; }
+    var d = json.data;
+
+    var tbody = document.getElementById('users-tbody');
+    if (d.items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:48px"><i class="fa-solid fa-inbox text-2xl mb-2 block opacity-20"></i>暂无用户数据</td></tr>';
+    } else {
+      tbody.innerHTML = d.items.map(function(u) {
+        return '<tr>' +
+          '<td style="font-family:monospace;font-size:11px;color:var(--muted)">'+(u.id||'--')+'</td>' +
+          '<td style="font-weight:600;cursor:pointer;color:var(--blue)" onclick="openUserDrawer(\''+u.id+'\')">'+(u.guardian_name||'--')+'</td>' +
+          '<td style="color:var(--muted)">'+(u.guardian_phone||'--')+'</td>' +
+          '<td>'+planBadge(u.plan)+'</td>' +
+          '<td>'+statusBadge(u.status)+'</td>' +
+          '<td style="color:var(--muted);font-size:11px">'+formatTime(u.created_at)+'</td>' +
+          '<td><button class="btn btn-ghost" style="font-size:10px;padding:4px 12px" onclick="toggleUser(\''+u.id+'\')">'+(u.status==='active'?'<i class="fa-solid fa-lock mr-1"></i> 禁用':'<i class="fa-solid fa-unlock mr-1"></i> 启用')+'</button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    var totalPages = Math.ceil(d.total/20)||1;
+    var pagHtml = '';
+    for (var i=1;i<=totalPages;i++) {
+      pagHtml += '<button class="page-btn'+(i===usersPage?' active':'')+'" onclick="usersPage='+i+';loadUsers()">'+i+'</button>';
+    }
+    document.getElementById('users-pagination').innerHTML = pagHtml;
+  } catch(e) { toast('用户加载失败: '+e.message, 'error'); }
+}
+
+async function toggleUser(userId) {
+  try {
+    var resp = await fetch('/api/admin/users/'+userId+'/toggle', {method:'POST'});
+    var json = await resp.json();
+    if (json.ok) { toast('用户状态已更新: '+json.data.status, 'success'); loadUsers(); }
+    else { toast(json.message||'操作失败', 'error'); }
+  } catch(e) { toast('操作失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  Orders
+// ================================================================
+async function loadOrders() {
+  try {
+    var status = document.getElementById('order-status-filter').value;
+    var gateway = document.getElementById('order-gateway-filter').value;
+    var params = '?page='+ordersPage+'&size=20';
+    if (status) params += '&status='+status;
+    if (gateway) params += '&gateway='+gateway;
+
+    var resp = await fetch('/api/admin/orders'+params);
+    var json = await resp.json();
+    if (!json.ok) { toast('加载订单失败', 'error'); return; }
+    var d = json.data;
+
+    var tbody = document.getElementById('orders-tbody');
+    if (d.items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:48px"><i class="fa-solid fa-inbox text-2xl mb-2 block opacity-20"></i>暂无订单数据</td></tr>';
+    } else {
+      tbody.innerHTML = d.items.map(function(o) {
+        var actions = '';
+        if (o.status === 'paid') {
+          actions = '<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;color:var(--rose);border-color:rgba(244,63,94,0.2)" onclick="refundOrder(\''+o.order_id+'\')"><i class="fa-solid fa-rotate-left mr-1"></i> 退款</button>';
+        }
+        return '<tr>' +
+          '<td style="font-family:monospace;font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+o.order_id+'">'+o.order_id+'</td>' +
+          '<td style="font-weight:600">'+(o.user_name||'--')+'</td>' +
+          '<td>'+planBadge(o.plan)+'</td>' +
+          '<td style="font-weight:600;font-family:\'Courier New\',monospace">'+formatMoney(o.amount_fen)+'</td>' +
+          '<td>'+gatewayLabel(o.gateway)+'</td>' +
+          '<td>'+statusBadge(o.status)+'</td>' +
+          '<td style="color:var(--muted);font-size:11px">'+formatTime(o.created_at)+'</td>' +
+          '<td>'+actions+'</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    var totalPages = Math.ceil(d.total/20)||1;
+    var pagHtml = '';
+    for (var i=1;i<=totalPages;i++) {
+      pagHtml += '<button class="page-btn'+(i===ordersPage?' active':'')+'" onclick="ordersPage='+i+';loadOrders()">'+i+'</button>';
+    }
+    document.getElementById('orders-pagination').innerHTML = pagHtml;
+  } catch(e) { toast('订单加载失败: '+e.message, 'error'); }
+}
+
+async function refundOrder(orderId) {
+  if (!confirm('确认退款此订单？')) return;
+  try {
+    var resp = await fetch('/api/admin/orders/'+orderId+'/refund', {method:'POST'});
+    var json = await resp.json();
+    if (json.ok) { toast('退款成功', 'success'); loadOrders(); }
+    else { toast(json.message||'退款失败', 'error'); }
+  } catch(e) { toast('退款失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  Sectors
+// ================================================================
+async function loadSectors() {
+  try {
+    var [dashResp, heatResp] = await Promise.all([
+      fetch('/api/admin/dashboard'),
+      fetch('/api/admin/sector-heatmap'),
+    ]);
+    var dashJson = await dashResp.json();
+    var heatJson = await heatResp.json();
+
+    if (dashJson.ok) {
+      var d = dashJson.data;
+      document.getElementById('sector-stats').innerHTML = [
+        '<div class="stat-card blue"><div class="stat-card-top"><div class="stat-label">板块总数</div><div class="stat-icon blue"><i class="fa-solid fa-layer-group"></i></div></div><div class="stat-value" style="color:var(--blue)">'+d.sectors.total+'</div></div>',
+        '<div class="stat-card green"><div class="stat-card-top"><div class="stat-label">股票总数</div><div class="stat-icon green"><i class="fa-solid fa-chart-line"></i></div></div><div class="stat-value" style="color:var(--green)">'+d.sectors.total_stocks+'</div></div>',
+      ].join('');
+    }
+
+    if (heatJson.ok) {
+      document.getElementById('sectors-grid').innerHTML = heatJson.data.map(function(s) {
+        return '<div class="sector-card" style="'+(s.has_cache?'border-color:rgba(16,185,129,0.2)':'')+'">' +
+          '<div class="sector-icon">'+s.icon+'</div><div class="sector-name">'+s.name+'</div>' +
+          '<div class="sector-count">'+s.stock_count+' 只</div>' +
+          '<div class="sector-cache">'+(s.has_cache?'<span style="color:var(--green)"><i class="fa-solid fa-circle-check mr-1"></i>已缓存</span>':'<span style="color:var(--muted)"><i class="fa-regular fa-circle mr-1"></i>未缓存</span>')+'</div>' +
+        '</div>';
+      }).join('');
+    }
+  } catch(e) { toast('板块加载失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  System Monitor
+// ================================================================
+async function loadSystem() {
+  try {
+    var resp = await fetch('/api/admin/system');
+    var json = await resp.json();
+    if (!json.ok) { toast('系统监控加载失败', 'error'); return; }
+    var d = json.data;
+
+    document.getElementById('system-stats').innerHTML = [
+      '<div class="stat-card blue">' +
+        '<div class="stat-card-top"><div class="stat-label">CPU</div><div class="stat-icon blue"><i class="fa-solid fa-microchip"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--blue)">'+d.cpu_percent.toFixed(1)+'%</div>' +
+        '<div class="stat-progress"><div class="stat-progress-fill" style="width:'+d.cpu_percent+'%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div>' +
+      '</div>',
+      '<div class="stat-card green">' +
+        '<div class="stat-card-top"><div class="stat-label">系统内存</div><div class="stat-icon green"><i class="fa-solid fa-memory"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--green)">'+d.memory.system_used_pct+'%</div>' +
+        '<div class="stat-sub">可用 '+d.memory.system_available_gb+'GB / 总 '+d.memory.system_total_gb+'GB</div>' +
+        '<div class="stat-progress"><div class="stat-progress-fill" style="width:'+d.memory.system_used_pct+'%;background:linear-gradient(90deg,var(--green),#34d399)"></div></div>' +
+      '</div>',
+      '<div class="stat-card gold">' +
+        '<div class="stat-card-top"><div class="stat-label">进程内存</div><div class="stat-icon gold"><i class="fa-solid fa-box"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--gold)">'+d.memory.process_rss_mb+'MB</div>' +
+        '<div class="stat-sub">VMS '+d.memory.process_vms_mb+'MB</div>' +
+      '</div>',
+      '<div class="stat-card purple">' +
+        '<div class="stat-card-top"><div class="stat-label">磁盘</div><div class="stat-icon purple"><i class="fa-solid fa-hard-drive"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--purple)">'+d.disk.used_pct+'%</div>' +
+        '<div class="stat-sub">已用 '+d.disk.used_gb+'GB / '+d.disk.total_gb+'GB</div>' +
+        '<div class="stat-progress"><div class="stat-progress-fill" style="width:'+d.disk.used_pct+'%;background:linear-gradient(90deg,var(--purple),#a78bfa)"></div></div>' +
+      '</div>',
+      '<div class="stat-card cyan">' +
+        '<div class="stat-card-top"><div class="stat-label">缓存</div><div class="stat-icon cyan"><i class="fa-solid fa-database"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--cyan)">'+d.cache.size+'</div>' +
+        '<div class="stat-sub">活跃缓存条目</div>' +
+      '</div>',
+    ].join('');
+
+    // System info grid
+    var infoHtml = '';
+    infoHtml += '<div class="info-card"><div class="info-card-title"><i class="fa-solid fa-gear mr-1"></i> 进程信息</div>';
+    infoHtml += '<div class="info-row"><span class="info-key">PID</span><span class="info-val">'+d.process.pid+'</span></div>';
+    infoHtml += '<div class="info-row"><span class="info-key">线程数</span><span class="info-val">'+d.process.threads+'</span></div>';
+    infoHtml += '<div class="info-row"><span class="info-key">启动时间</span><span class="info-val">'+formatTime(d.process.create_time)+'</span></div>';
+    infoHtml += '</div>';
+
+    infoHtml += '<div class="info-card"><div class="info-card-title"><i class="fa-solid fa-network-wired mr-1"></i> 网络统计</div>';
+    if (d.network) {
+      infoHtml += '<div class="info-row"><span class="info-key">发送</span><span class="info-val">'+(d.network.bytes_sent/1024/1024).toFixed(1)+' MB</span></div>';
+      infoHtml += '<div class="info-row"><span class="info-key">接收</span><span class="info-val">'+(d.network.bytes_recv/1024/1024).toFixed(1)+' MB</span></div>';
+    } else { infoHtml += '<div class="info-row"><span class="info-key">状态</span><span class="info-val">N/A</span></div>'; }
+    infoHtml += '</div>';
+
+    infoHtml += '<div class="info-card"><div class="info-card-title"><i class="fa-solid fa-hard-drive mr-1"></i> 磁盘详情</div>';
+    infoHtml += '<div class="info-row"><span class="info-key">总量</span><span class="info-val">'+d.disk.total_gb+' GB</span></div>';
+    infoHtml += '<div class="info-row"><span class="info-key">已用</span><span class="info-val">'+d.disk.used_gb+' GB</span></div>';
+    infoHtml += '<div class="info-row"><span class="info-key">可用</span><span class="info-val">'+d.disk.free_gb+' GB</span></div>';
+    infoHtml += '</div>';
+
+    document.getElementById('system-info-grid').innerHTML = infoHtml;
+
+    // System chart
+    var now = new Date();
+    systemHistory.labels.push(now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0'));
+    systemHistory.cpu.push(d.cpu_percent);
+    systemHistory.mem.push(d.memory.system_used_pct);
+    if (systemHistory.labels.length>30) { systemHistory.labels.shift(); systemHistory.cpu.shift(); systemHistory.mem.shift(); }
+    renderSystemChart();
+  } catch(e) { toast('系统监控加载失败: '+e.message, 'error'); }
+}
+
+function renderSystemChart() {
+  var el = document.getElementById('chart-system');
+  if (!systemChart) systemChart = echarts.init(el);
+
+  var isLight = document.documentElement.classList.contains('light');
+  var tc = isLight ? '#475569' : '#8b9ec2';
+  var sl = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.04)';
+
+  var option = {
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:isLight?'#fff':'rgba(6,12,28,0.96)',borderColor:isLight?'#e2e8f0':'rgba(59,130,246,0.2)',textStyle:{color:isLight?'#0f172a':'#eef2f7',fontSize:12}},
+    legend:{data:['CPU','内存'],textStyle:{color:tc,fontSize:11},top:0,right:10,icon:'roundRect'},
+    grid:{left:42,right:20,top:35,bottom:28},
+    xAxis:{type:'category',data:systemHistory.labels,axisLine:{lineStyle:{color:sl}},axisLabel:{color:tc,fontSize:9}},
+    yAxis:{type:'value',max:100,axisLine:{show:false},splitLine:{lineStyle:{color:sl}},axisLabel:{color:tc,fontSize:10,formatter:'{value}%'}},
+    series:[
+      {name:'CPU',type:'line',data:systemHistory.cpu,smooth:true,lineStyle:{color:'#3b82f6',width:2},itemStyle:{color:'#3b82f6'},symbol:'none'},
+      {name:'内存',type:'line',data:systemHistory.mem,smooth:true,lineStyle:{color:'#10b981',width:2},itemStyle:{color:'#10b981'},symbol:'none',
+       areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(16,185,129,0.15)'},{offset:1,color:'rgba(16,185,129,0)'}])}},
+    ],
+  };
+  systemChart.setOption(option, {notMerge:true});
+}
+
+// ================================================================
+//  Cache Management Page
+// ================================================================
+async function loadCache() {
+  try {
+    var resp = await fetch('/api/admin/cache');
+    var json = await resp.json();
+    if (!json.ok) { toast('缓存加载失败', 'error'); return; }
+    var d = json.data;
+
+    // Stats cards
+    var prefixHtml = '';
+    var prefixes = Object.keys(d.prefix_stats);
+    var colorMap = {'quotes_raw':'blue','kline':'green','quotes':'gold','scan':'purple','other':'cyan'};
+    var colorIdx = 0;
+    var colors = ['blue','green','gold','purple','cyan','rose'];
+    
+    var st = d.stats || {};
+    var statsHtml = '<div class="stat-card cyan">' +
+      '<div class="stat-card-top"><div class="stat-label">总缓存数</div><div class="stat-icon cyan"><i class="fa-solid fa-database"></i></div></div>' +
+      '<div class="stat-value" style="color:var(--cyan)">'+d.total+'</div>' +
+      '<div class="stat-sub">最大容量 '+d.max_size+'</div>' +
+      '<div class="stat-progress"><div class="stat-progress-fill" style="width:'+Math.min(100,d.total/d.max_size*100)+'%;background:var(--cyan)"></div></div>' +
+    '</div>';
+
+    // 回收健康度：过期残留 / 命中率 / 后台任务状态
+    if (st.size !== undefined) {
+      var expCount = st.expired_now || 0;
+      var expColor = expCount > 0 ? 'rose' : 'green';
+      var hitPct = st.hit_rate === null || st.hit_rate === undefined ? '--' : (st.hit_rate * 100).toFixed(1) + '%';
+      statsHtml += '<div class="stat-card '+expColor+'">' +
+        '<div class="stat-card-top"><div class="stat-label">过期未回收</div><div class="stat-icon '+expColor+'"><i class="fa-solid fa-hourglass-end"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--'+expColor+')">'+expCount+'</div>' +
+        '<div class="stat-sub">累计已回收 '+(st.expired_purged||0)+' 条</div>' +
+      '</div>' +
+      '<div class="stat-card purple">' +
+        '<div class="stat-card-top"><div class="stat-label">缓存命中率</div><div class="stat-icon purple"><i class="fa-solid fa-bullseye"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--purple)">'+hitPct+'</div>' +
+        '<div class="stat-sub">命中 '+(st.hits||0)+' / 未命中 '+(st.misses||0)+'</div>' +
+      '</div>' +
+      '<div class="stat-card '+(st.cleanup_task_running?'green':'gold')+'">' +
+        '<div class="stat-card-top"><div class="stat-label">自动回收</div><div class="stat-icon '+(st.cleanup_task_running?'green':'gold')+'"><i class="fa-solid fa-arrows-rotate"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--'+(st.cleanup_task_running?'green':'gold')+');font-size:18px">'+(st.cleanup_task_running?'运行中':'未启动')+'</div>' +
+        '<div class="stat-sub">周期 '+(st.cleanup_interval||'--')+' 秒 · 淘汰 '+(st.evictions||0)+' 条</div>' +
+      '</div>';
+    }
+
+    prefixes.forEach(function(p, i) {
+      var s = d.prefix_stats[p];
+      var color = colorMap[p] || colors[colorIdx % colors.length];
+      colorIdx++;
+      statsHtml += '<div class="stat-card '+color+'">' +
+        '<div class="stat-card-top"><div class="stat-label">'+p+'</div><div class="stat-icon '+color+'"><i class="fa-solid fa-layer-group"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--'+color+')"">'+s.count+'</div>' +
+        '<div class="stat-sub">'+s.total_display+'</div>' +
+      '</div>';
+    });
+    document.getElementById('cache-stats').innerHTML = statsHtml;
+
+    // Table
+    var tbody = document.getElementById('cache-tbody');
+    if (d.items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:48px"><i class="fa-solid fa-inbox text-2xl mb-2 block opacity-20"></i>暂无缓存数据</td></tr>';
+    } else {
+      tbody.innerHTML = d.items.map(function(item) {
+        var ttlColor = item.is_expired ? 'var(--muted)' : item.remaining_ttl < 60 ? 'var(--rose)' : item.remaining_ttl < 300 ? 'var(--gold)' : 'var(--text2)';
+        var ttlText = item.is_expired ? '已过期' : item.remaining_ttl.toFixed(1);
+        return '<tr'+(item.is_expired?' style="opacity:.55"':'')+'>' +
+          '<td style="font-family:monospace;font-size:11px;color:var(--blue)">'+item.key+'</td>' +
+          '<td><span class="badge badge-blue">'+item.prefix+'</span>'+(item.is_expired?' <span class="badge" style="background:rgba(244,63,94,.12);color:var(--rose)">过期</span>':'')+'</td>' +
+          '<td style="font-family:monospace">'+item.size_display+'</td>' +
+          '<td style="color:'+ttlColor+';font-family:monospace">'+ttlText+'</td>' +
+          '<td style="color:var(--muted);font-size:11px">'+formatTime(item.created_at)+'</td>' +
+          '<td><button class="btn btn-ghost" style="font-size:10px;padding:4px 10px;color:var(--rose);border-color:rgba(244,63,94,0.2)" onclick="deleteCache(\''+item.key+'\')"><i class="fa-solid fa-trash"></i></button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    var sub = document.getElementById('cache-subtitle');
+    if (sub) {
+      sub.textContent = '共 ' + d.total + ' 条' +
+        (st.live !== undefined ? '，有效 ' + st.live + ' 条' : '') +
+        (st.expired_now ? '，过期待回收 ' + st.expired_now + ' 条' : '') +
+        (st.seconds_since_cleanup !== undefined ? ' · 距上次回收 ' + st.seconds_since_cleanup + 's' : '');
+    }
+  } catch(e) { toast('缓存加载失败: '+e.message, 'error'); }
+}
+
+async function deleteCache(key) {
+  try {
+    var resp = await fetch('/api/admin/cache/'+encodeURIComponent(key), {method:'DELETE'});
+    var json = await resp.json();
+    if (json.ok) { toast('缓存已删除: '+key, 'success'); loadCache(); }
+    else { toast(json.message||'删除失败', 'error'); }
+  } catch(e) { toast('删除失败: '+e.message, 'error'); }
+}
+
+async function purgeExpiredCache() {
+  try {
+    var resp = await fetch('/api/admin/cache/purge-expired', {method:'POST'});
+    var json = await resp.json();
+    if (json.ok) {
+      var d = json.data;
+      toast(d.purged > 0 ? ('已回收 '+d.purged+' 条过期缓存') : '没有需要回收的过期缓存', 'success');
+      loadCache();
+    } else { toast(json.message||'回收失败', 'error'); }
+  } catch(e) { toast('回收失败: '+e.message, 'error'); }
+}
+
+function confirmClearAllCache() {
+  showConfirm('清空所有缓存', '确定要清空所有缓存吗？此操作不可撤销，可能影响系统性能。', function() {
+    clearAllCache();
+  });
+}
+
+async function clearAllCache() {
+  try {
+    var resp = await fetch('/api/admin/cache', {method:'DELETE'});
+    var json = await resp.json();
+    if (json.ok) { toast('已清空 '+json.data.cleared+' 条缓存', 'success'); loadCache(); }
+    else { toast('清空失败', 'error'); }
+  } catch(e) { toast('清空失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  API Health Monitoring Page
+// ================================================================
+async function loadApiHealth() {
+  try {
+    var resp = await fetch('/api/admin/api-health');
+    var json = await resp.json();
+    if (!json.ok) { toast('API健康检查加载失败', 'error'); return; }
+    var d = json.data;
+
+    // Stats cards
+    document.getElementById('apihealth-stats').innerHTML = [
+      '<div class="stat-card blue">' +
+        '<div class="stat-card-top"><div class="stat-label">总端点数</div><div class="stat-icon blue"><i class="fa-solid fa-route"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--blue)">'+d.total+'</div>' +
+        '<div class="stat-sub">已注册路由</div>' +
+      '</div>',
+      '<div class="stat-card green">' +
+        '<div class="stat-card-top"><div class="stat-label">健康端点</div><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--green)">'+d.healthy+'</div>' +
+        '<div class="stat-sub">状态: UP</div>' +
+      '</div>',
+      '<div class="stat-card gold">' +
+        '<div class="stat-card-top"><div class="stat-label">平均响应时间</div><div class="stat-icon gold"><i class="fa-solid fa-bolt"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--gold)">'+d.avg_response_ms+'<span style="font-size:14px">ms</span></div>' +
+        '<div class="stat-sub">所有端点平均</div>' +
+      '</div>',
+      '<div class="stat-card rose">' +
+        '<div class="stat-card-top"><div class="stat-label">慢请求数</div><div class="stat-icon rose"><i class="fa-solid fa-gauge-high"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--rose)">'+d.slow+'</div>' +
+        '<div class="stat-sub">>1000ms</div>' +
+      '</div>',
+    ].join('');
+
+    // Table
+    var tbody = document.getElementById('apihealth-tbody');
+    if (d.endpoints.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:48px"><i class="fa-solid fa-inbox text-2xl mb-2 block opacity-20"></i>暂无API端点</td></tr>';
+    } else {
+      tbody.innerHTML = d.endpoints.map(function(ep) {
+        var badge = ep.status === 'UP' ? 'badge-up' : ep.status === 'DOWN' ? 'badge-down' : ep.status === 'NO_DATA' ? 'badge-muted' : 'badge-slow';
+        var barColor = ep.status === 'UP' ? 'var(--green)' : ep.status === 'DOWN' ? 'var(--rose)' : ep.status === 'NO_DATA' ? 'var(--muted)' : 'var(--gold)';
+        var barWidth = Math.min(100, Number(ep.avg_response_ms || 0) / 10);
+        var methodColor = ep.method === 'GET' ? 'var(--green)' : ep.method === 'POST' ? 'var(--gold)' : ep.method === 'DELETE' ? 'var(--rose)' : 'var(--blue)';
+        return '<tr>' +
+          '<td style="font-family:monospace;font-size:11px;color:var(--blue)">'+ep.path+'</td>' +
+          '<td><span class="badge" style="background:rgba(255,255,255,0.04);color:'+methodColor+';border:1px solid var(--border)">'+ep.method+'</span></td>' +
+          '<td><span class="badge '+badge+'">'+ep.status+'</span></td>' +
+          '<td style="font-family:monospace;font-weight:600">'+ep.avg_response_ms+'ms</td>' +
+          '<td><div class="resp-bar"><div class="resp-bar-fill" style="width:'+barWidth+'%;background:'+barColor+'"></div></div></td>' +
+          '<td style="color:var(--muted);font-size:11px">'+formatTime(ep.last_called)+'</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+  } catch(e) { toast('API健康检查加载失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  Operation Logs Page
+// ================================================================
+async function loadLogs() {
+  try {
+    var action = document.getElementById('log-action-filter') ? document.getElementById('log-action-filter').value : '';
+    var params = '?page=1&size=50';
+    if (action) params += '&action='+action;
+
+    var resp = await fetch('/api/admin/logs'+params);
+    var json = await resp.json();
+    if (!json.ok) { toast('日志加载失败', 'error'); return; }
+    var d = json.data;
+
+    // Stats cards
+    var actionLabels = {
+      'USER_TOGGLE':'用户切换','ORDER_REFUND':'订单退款',
+      'CACHE_CLEAR':'清空缓存','CACHE_DELETE':'删除缓存','CACHE_PURGE':'回收过期缓存'
+    };
+    document.getElementById('logs-stats').innerHTML = [
+      '<div class="stat-card blue">' +
+        '<div class="stat-card-top"><div class="stat-label">今日操作</div><div class="stat-icon blue"><i class="fa-solid fa-calendar-day"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--blue)">'+d.today_count+'</div>' +
+        '<div class="stat-sub">今日操作总数</div>' +
+      '</div>',
+      '<div class="stat-card green">' +
+        '<div class="stat-card-top"><div class="stat-label">本周操作</div><div class="stat-icon green"><i class="fa-solid fa-calendar-week"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--green)">'+d.week_count+'</div>' +
+        '<div class="stat-sub">本周操作总数</div>' +
+      '</div>',
+      '<div class="stat-card gold">' +
+        '<div class="stat-card-top"><div class="stat-label">总操作数</div><div class="stat-icon gold"><i class="fa-solid fa-list-check"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--gold)">'+d.total+'</div>' +
+        '<div class="stat-sub">历史记录总数</div>' +
+      '</div>',
+      '<div class="stat-card purple">' +
+        '<div class="stat-card-top"><div class="stat-label">操作类型数</div><div class="stat-icon purple"><i class="fa-solid fa-shapes"></i></div></div>' +
+        '<div class="stat-value" style="color:var(--purple)">'+Object.keys(d.action_distribution).length+'</div>' +
+        '<div class="stat-sub">不同操作类型</div>' +
+      '</div>',
+    ].join('');
+
+    // Logs table
+    var tbody = document.getElementById('logs-tbody');
+    if (d.items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px"><i class="fa-solid fa-inbox text-2xl mb-2 block opacity-20"></i>暂无操作日志</td></tr>';
+    } else {
+      var actionBadgeMap = {
+        'USER_TOGGLE':'badge-blue','ORDER_REFUND':'badge-purple',
+        'CACHE_CLEAR':'badge-rose','CACHE_DELETE':'badge-gold'
+      };
+      tbody.innerHTML = d.items.map(function(l) {
+        var label = actionLabels[l.action] || l.action;
+        var badge = actionBadgeMap[l.action] || 'badge-muted';
+        return '<tr>' +
+          '<td style="color:var(--muted);font-size:11px;white-space:nowrap">'+formatTime(l.timestamp)+'</td>' +
+          '<td><span class="badge '+badge+'">'+label+'</span></td>' +
+          '<td style="font-size:12px">'+l.detail+'</td>' +
+          '<td style="color:var(--text2);font-size:11px">'+l.operator+'</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // Pie chart
+    loadLogsPieChart(d.action_distribution, actionLabels);
+  } catch(e) { toast('日志加载失败: '+e.message, 'error'); }
+}
+
+async function loadLogsPieChart(dist, labels) {
+  try {
+    var el = document.getElementById('chart-logs-pie');
+    if (!el) return;
+    if (logsPieChart) logsPieChart.dispose();
+    logsPieChart = echarts.init(el);
+
+    var isLight = document.documentElement.classList.contains('light');
+    var tc = isLight ? '#475569' : '#8b9ec2';
+    var bg = isLight ? '#fff' : 'rgba(6,12,28,0.96)';
+    var bc = isLight ? '#e2e8f0' : 'rgba(59,130,246,0.2)';
+
+    var colorPalette = ['#3b82f6','#8b5cf6','#f43f5e','#f59e0b','#10b981','#06b6d4'];
+    var data = Object.keys(dist).map(function(k, i) {
+      return {value: dist[k], name: labels[k] || k, itemStyle: {color: colorPalette[i % colorPalette.length]}};
+    });
+
+    if (data.length === 0) {
+      data = [{value: 1, name: '暂无数据', itemStyle: {color: isLight ? '#cbd5e1' : '#3d5278'}}];
+    }
+
+    logsPieChart.setOption({
+      backgroundColor: 'transparent',
+      tooltip: {trigger: 'item', backgroundColor: bg, borderColor: bc, textStyle: {color: isLight ? '#0f172a' : '#eef2f7', fontSize: 12}},
+      legend: {bottom: 0, left: 'center', textStyle: {color: tc, fontSize: 10}, itemWidth: 10, itemHeight: 10},
+      series: [{
+        type: 'pie', radius: ['42%', '72%'], center: ['50%', '42%'],
+        itemStyle: {borderRadius: 6, borderColor: isLight ? '#fff' : '#0f172a', borderWidth: 2},
+        label: {color: tc, fontSize: 11},
+        data: data,
+        emphasis: {itemStyle: {shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)'}},
+      }],
+    });
+  } catch(e) {}
+}
+
+// ================================================================
+//  CSV Export (Feature 5)
+// ================================================================
+async function exportCSV(type) {
+  var btnId = 'btn-export-' + type;
+  var btn = document.getElementById(btnId);
+  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 导出中...'; }
+  try {
+    var resp = await fetch('/api/admin/export?type=' + type);
+    if (!resp.ok) { toast('导出失败', 'error'); return; }
+    var blob = await resp.blob();
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var disposition = resp.headers.get('Content-Disposition') || '';
+    var filename = type + '_' + new Date().toISOString().slice(0,10) + '.csv';
+    var match = disposition.match(/filename="(.+?)"/);
+    if (match) filename = match[1];
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast(type === 'users' ? '用户数据导出成功' : '订单数据导出成功', 'success');
+  } catch(e) {
+    toast('导出失败: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.classList.remove('loading'); btn.innerHTML = '<i class="fa-solid fa-file-csv"></i> 导出CSV'; }
+  }
+}
+
+// ================================================================
+//  User Detail Drawer (Feature 6)
+// ================================================================
+async function openUserDrawer(userId) {
+  var overlay = document.getElementById('drawer-overlay');
+  var drawer = document.getElementById('user-drawer');
+  var body = document.getElementById('drawer-body');
+
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i>加载中...</div>';
+  overlay.classList.add('show');
+  drawer.classList.add('show');
+
+  try {
+    var resp = await fetch('/api/admin/users/' + userId);
+    var json = await resp.json();
+    if (!json.ok) { body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--rose)">加载失败: '+json.message+'</div>'; return; }
+    var u = json.data;
+
+    var html = '';
+    // Basic info
+    html += '<div class="drawer-section">';
+    html += '<div class="drawer-section-title"><i class="fa-solid fa-id-card mr-1"></i> 基本信息</div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">用户ID</span><span class="drawer-info-val" style="font-family:monospace;font-size:11px">'+(u.id||'--')+'</span></div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">姓名</span><span class="drawer-info-val">'+(u.guardian_name||'--')+'</span></div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">手机</span><span class="drawer-info-val">'+(u.guardian_phone||'--')+'</span></div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">套餐</span>'+planBadge(u.plan)+'</div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">状态</span>'+statusBadge(u.status)+'</div>';
+    html += '<div class="drawer-info-row"><span class="drawer-info-key">创建时间</span><span class="drawer-info-val" style="font-size:11px">'+formatTime(u.created_at)+'</span></div>';
+    html += '</div>';
+
+    // Actions
+    html += '<div class="drawer-section">';
+    html += '<button class="btn '+(u.status==='active'?'btn-ghost':'btn-primary')+'" style="width:100%;justify-content:center" onclick="toggleUserFromDrawer(\''+u.id+'\')">';
+    html += (u.status==='active' ? '<i class="fa-solid fa-lock mr-1"></i> 禁用用户' : '<i class="fa-solid fa-unlock mr-1"></i> 启用用户');
+    html += '</button></div>';
+
+    // Order history
+    html += '<div class="drawer-section">';
+    html += '<div class="drawer-section-title"><i class="fa-solid fa-receipt mr-1"></i> 订单历史</div>';
+    html += '<div id="drawer-orders" style="text-align:center;padding:20px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> 加载订单...</div>';
+    html += '</div>';
+
+    body.innerHTML = html;
+
+    // Load user's orders
+    var ordersResp = await fetch('/api/admin/orders?page=1&size=100');
+    var ordersJson = await ordersResp.json();
+    var ordersEl = document.getElementById('drawer-orders');
+    if (ordersJson.ok) {
+      var userOrders = ordersJson.data.items.filter(function(o) {
+        return o.user_phone === u.guardian_phone || o.user_name === u.guardian_name;
+      });
+      if (userOrders.length === 0) {
+        ordersEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">暂无订单记录</div>';
+      } else {
+        ordersEl.innerHTML = '<div style="max-height:200px;overflow-y:auto">' +
+          userOrders.map(function(o) {
+            return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">' +
+              '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
+                '<span style="font-family:monospace;font-size:10px;color:var(--muted)">'+o.order_id.substring(0,20)+'...</span>' +
+                statusBadge(o.status) +
+              '</div>' +
+              '<div style="display:flex;justify-content:space-between">' +
+                '<span>'+planBadge(o.plan)+'</span>' +
+                '<span style="font-weight:600;font-family:monospace">'+formatMoney(o.amount_fen)+'</span>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+      }
+    } else {
+      ordersEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">订单加载失败</div>';
+    }
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--rose)">加载失败: '+e.message+'</div>';
+  }
+}
+
+function closeUserDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('user-drawer').classList.remove('show');
+}
+
+async function toggleUserFromDrawer(userId) {
+  try {
+    var resp = await fetch('/api/admin/users/'+userId+'/toggle', {method:'POST'});
+    var json = await resp.json();
+    if (json.ok) {
+      toast('用户状态已更新: '+json.data.status, 'success');
+      openUserDrawer(userId);
+      loadUsers();
+    } else {
+      toast(json.message||'操作失败', 'error');
+    }
+  } catch(e) { toast('操作失败: '+e.message, 'error'); }
+}
+
+// ================================================================
+//  Notification Center (Feature 7)
+// ================================================================
+async function loadNotifications() {
+  try {
+    var resp = await fetch('/api/admin/notifications');
+    var json = await resp.json();
+    if (!json.ok) return;
+    var d = json.data;
+
+    // Update badge
+    var badge = document.getElementById('notif-badge');
+    if (d.unread > 0) {
+      badge.textContent = d.unread > 99 ? '99+' : d.unread;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    // Render notification list
+    var list = document.getElementById('notif-list');
+    if (d.items.length === 0) {
+      list.innerHTML = '<div class="notif-empty"><i class="fa-solid fa-bell-slash text-2xl mb-2 block opacity-20"></i>暂无通知</div>';
+    } else {
+      var typeIconMap = {
+        'alert':'<i class="fa-solid fa-triangle-exclamation"></i>',
+        'order':'<i class="fa-solid fa-receipt"></i>',
+        'user':'<i class="fa-solid fa-user-plus"></i>',
+        'info':'<i class="fa-solid fa-info-circle"></i>'
+      };
+      list.innerHTML = d.items.map(function(n) {
+        var iconClass = n.type || 'info';
+        var icon = typeIconMap[iconClass] || typeIconMap['info'];
+        return '<div class="notif-item'+(n.read?'':' unread')+'" onclick="markNotificationRead(\''+n.id+'\')">' +
+          '<div class="notif-item-icon '+iconClass+'">'+icon+'</div>' +
+          '<div class="notif-item-body">' +
+            '<div class="notif-item-title">'+n.title+'</div>' +
+            '<div class="notif-item-msg">'+n.message+'</div>' +
+            '<div class="notif-item-time">'+formatTime(n.timestamp)+'</div>' +
+          '</div>' +
+          (!n.read ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px"></span>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    // Persist to localStorage
+    try { localStorage.setItem('admin-notifications', JSON.stringify(d)); } catch(e) {}
+  } catch(e) {}
+}
+
+function toggleNotifications() {
+  var panel = document.getElementById('notif-panel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) {
+    loadNotifications();
+  }
+}
+
+async function markNotificationRead(notifId) {
+  try {
+    await fetch('/api/admin/notifications/read?notification_id='+encodeURIComponent(notifId), {method:'POST'});
+    loadNotifications();
+  } catch(e) {}
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await fetch('/api/admin/notifications/read', {method:'POST'});
+    toast('已全部标记为已读', 'success');
+    loadNotifications();
+  } catch(e) { toast('操作失败', 'error'); }
+}
+
+async function clearAllNotifications() {
+  try {
+    await fetch('/api/admin/notifications', {method:'DELETE'});
+    toast('通知已清空', 'success');
+    loadNotifications();
+  } catch(e) { toast('清空失败', 'error'); }
+}
+
+// ================================================================
+//  Command Palette (Feature 1)
+// ================================================================
+function openCommandPalette() {
+  var overlay = document.getElementById('cmd-overlay');
+  overlay.classList.add('show');
+  var input = document.getElementById('cmd-input');
+  input.value = '';
+  input.focus();
+  onCmdInput('');
+}
+
+function closeCommandPalette() {
+  document.getElementById('cmd-overlay').classList.remove('show');
+  cmdSelectedIndex = -1;
+  cmdResults = [];
+}
+
+function onCmdInput(value) {
+  if (cmdDebounceTimer) clearTimeout(cmdDebounceTimer);
+  cmdDebounceTimer = setTimeout(function() {
+    performCmdSearch(value);
+  }, 200);
+}
+
+async function performCmdSearch(query) {
+  cmdResults = [];
+  cmdSelectedIndex = -1;
+  var resultsEl = document.getElementById('cmd-results');
+
+  if (!query || query.trim() === '') {
+    // Show default pages
+    var pages = [
+      {type:'page', icon:'fa-chart-pie', color:'blue', title:'数据概览', desc:'Dashboard 概览页面', action:function(){switchPage('dashboard')}},
+      {type:'page', icon:'fa-shield-halved', color:'blue', title:'安全审计', desc:'安全审计页面', action:function(){switchPage('security')}},
+      {type:'page', icon:'fa-users', color:'green', title:'用户管理', desc:'用户列表与管理', action:function(){switchPage('users')}},
+      {type:'page', icon:'fa-receipt', color:'gold', title:'订单管理', desc:'订单列表与退款', action:function(){switchPage('orders')}},
+      {type:'page', icon:'fa-layer-group', color:'purple', title:'板块管理', desc:'板块列表与缓存', action:function(){switchPage('sectors')}},
+      {type:'page', icon:'fa-database', color:'cyan', title:'缓存管理', desc:'缓存列表与清理', action:function(){switchPage('cache')}},
+      {type:'page', icon:'fa-heart-pulse', color:'rose', title:'API监控', desc:'API端点健康检查', action:function(){switchPage('api-health')}},
+      {type:'page', icon:'fa-chart-line', color:'cyan', title:'调用追踪', desc:'API调用记录追踪', action:function(){switchPage('api-monitor')}},
+      {type:'page', icon:'fa-clock-rotate-left', color:'purple', title:'操作日志', desc:'操作日志审计', action:function(){switchPage('logs')}},
+      {type:'page', icon:'fa-server', color:'blue', title:'系统监控', desc:'系统资源监控', action:function(){switchPage('system')}},
+    ];
+    cmdResults = pages;
+    renderCmdResults();
+    return;
+  }
+
+  var q = query.toLowerCase();
+  var groups = {};
+
+  // Pages
+  var pageItems = [
+    {icon:'fa-chart-pie', color:'blue', title:'数据概览', desc:'Dashboard', page:'dashboard'},
+    {icon:'fa-shield-halved', color:'blue', title:'安全审计', desc:'Security', page:'security'},
+    {icon:'fa-users', color:'green', title:'用户管理', desc:'Users', page:'users'},
+    {icon:'fa-receipt', color:'gold', title:'订单管理', desc:'Orders', page:'orders'},
+    {icon:'fa-layer-group', color:'purple', title:'板块管理', desc:'Sectors', page:'sectors'},
+    {icon:'fa-database', color:'cyan', title:'缓存管理', desc:'Cache', page:'cache'},
+    {icon:'fa-heart-pulse', color:'rose', title:'API监控', desc:'API Health', page:'api-health'},
+    {icon:'fa-clock-rotate-left', color:'purple', title:'操作日志', desc:'Logs', page:'logs'},
+    {icon:'fa-server', color:'blue', title:'系统监控', desc:'System', page:'system'},
+  ];
+  var matchedPages = pageItems.filter(function(p) {
+    return p.title.toLowerCase().indexOf(q) >= 0 || p.desc.toLowerCase().indexOf(q) >= 0 || p.page.indexOf(q) >= 0;
+  });
+  if (matchedPages.length > 0) groups['页面'] = matchedPages.map(function(p) {
+    return {type:'page', icon:p.icon, color:p.color, title:p.title, desc:p.desc, action:function(){switchPage(p.page)}};
+  });
+
+  // Actions
+  var actions = [
+    {icon:'fa-trash', color:'rose', title:'清理所有缓存', desc:'执行一键清空系统 Redis 缓存', action:function(){confirmClearAllCache()}},
+    {icon:'fa-circle-half-stroke', color:'cyan', title:'切换主题模式', desc:'在深色与浅色模式间切换', action:function(){document.getElementById('themeToggle').click()}},
+    {icon:'fa-file-export', color:'green', title:'导出全局报表', desc:'打包下载所有用户与订单数据', action:function(){exportCSV('users'); setTimeout(function(){exportCSV('orders')}, 1000)}},
+    {icon:'fa-bolt', color:'gold', title:'运行健康检查', desc:'即刻触发全系统 API 连通性测试', action:function(){loadApiHealth(); toast('已启动系统健康检查', 'info')}},
+  ];
+  var matchedActions = actions.filter(function(a) {
+    return a.title.toLowerCase().indexOf(q) >= 0 || a.desc.toLowerCase().indexOf(q) >= 0;
+  });
+  if (matchedActions.length > 0) groups['快捷操作'] = matchedActions;
+
+  // Users (async)
+  try {
+    var usersResp = await fetch('/api/admin/users?page=1&size=50');
+    var usersJson = await usersResp.json();
+    if (usersJson.ok) {
+      var matchedUsers = usersJson.data.items.filter(function(u) {
+        var name = (u.guardian_name||'').toLowerCase();
+        var phone = (u.guardian_phone||'').toLowerCase();
+        return name.indexOf(q) >= 0 || phone.indexOf(q) >= 0;
+      }).slice(0, 5);
+      if (matchedUsers.length > 0) groups['用户'] = matchedUsers.map(function(u) {
+        return {type:'user', icon:'fa-user', color:'green', title:u.guardian_name||'未知', desc:u.guardian_phone||'--', action:function(){switchPage('users'); setTimeout(function(){openUserDrawer(u.id)}, 300);}};
+      });
+    }
+  } catch(e) {}
+
+  // Orders (async)
+  try {
+    var ordersResp = await fetch('/api/admin/orders?page=1&size=50');
+    var ordersJson = await ordersResp.json();
+    if (ordersJson.ok) {
+      var matchedOrders = ordersJson.data.items.filter(function(o) {
+        var id = (o.order_id||'').toLowerCase();
+        var name = (o.user_name||'').toLowerCase();
+        return id.indexOf(q) >= 0 || name.indexOf(q) >= 0;
+      }).slice(0, 5);
+      if (matchedOrders.length > 0) groups['订单'] = matchedOrders.map(function(o) {
+        return {type:'order', icon:'fa-receipt', color:'gold', title:o.order_id, desc:(o.user_name||'--')+' · '+formatMoney(o.amount_fen), action:function(){switchPage('orders')}};
+      });
+    }
+  } catch(e) {}
+
+  // Sectors
+  var sectorItems = [
+    {icon:'fa-layer-group', color:'purple', title:'银行', desc:'板块: 银行', page:'sectors'},
+    {icon:'fa-layer-group', color:'purple', title:'半导体', desc:'板块: 半导体', page:'sectors'},
+    {icon:'fa-layer-group', color:'purple', title:'新能源', desc:'板块: 新能源', page:'sectors'},
+    {icon:'fa-layer-group', color:'purple', title:'医药', desc:'板块: 医药', page:'sectors'},
+  ];
+  var matchedSectors = sectorItems.filter(function(s) { return s.title.toLowerCase().indexOf(q) >= 0; });
+  if (matchedSectors.length > 0) groups['板块'] = matchedSectors.map(function(s) {
+    return {type:'sector', icon:s.icon, color:s.color, title:s.title, desc:s.desc, action:function(){switchPage(s.page)}};
+  });
+
+  // Flatten results
+  cmdResults = [];
+  Object.keys(groups).forEach(function(g) {
+    cmdResults = cmdResults.concat(groups[g]);
+  });
+
+  renderCmdResults(groups);
+}
+
+function renderCmdResults(groups) {
+  var el = document.getElementById('cmd-results');
+  if (cmdResults.length === 0) {
+    el.innerHTML = '<div class="cmd-empty"><i class="fa-solid fa-magnifying-glass text-2xl mb-2 block opacity-20"></i>未找到匹配结果</div>';
+    return;
+  }
+
+  var html = '';
+  if (groups) {
+    var idx = 0;
+    Object.keys(groups).forEach(function(g) {
+      html += '<div class="cmd-group-title">'+g+'</div>';
+      groups[g].forEach(function(item) {
+        html += renderCmdItem(item, idx);
+        idx++;
+      });
+    });
+  } else {
+    html += '<div class="cmd-group-title">页面导航</div>';
+    cmdResults.forEach(function(item, i) {
+      html += renderCmdItem(item, i);
+    });
+  }
+  el.innerHTML = html;
+
+  // Bind click events
+  el.querySelectorAll('.cmd-item').forEach(function(itemEl, i) {
+    itemEl.addEventListener('click', function() {
+      executeCmdResult(i);
+    });
+    itemEl.addEventListener('mouseenter', function() {
+      cmdSelectedIndex = i;
+      updateCmdSelection();
+    });
+  });
+}
+
+function renderCmdItem(item, index) {
+  return '<div class="cmd-item'+(index===cmdSelectedIndex?' selected':'')+'" data-idx="'+index+'">' +
+    '<div class="cmd-item-icon '+item.color+'"><i class="fa-solid '+item.icon+'"></i></div>' +
+    '<div class="cmd-item-info">' +
+      '<div class="cmd-item-title">'+item.title+'</div>' +
+      '<div class="cmd-item-desc">'+item.desc+'</div>' +
+    '</div>' +
+    '<i class="fa-solid fa-arrow-right" style="color:var(--muted);font-size:10px"></i>' +
+  '</div>';
+}
+
+function updateCmdSelection() {
+  var items = document.querySelectorAll('#cmd-results .cmd-item');
+  items.forEach(function(el, i) {
+    if (i === cmdSelectedIndex) el.classList.add('selected');
+    else el.classList.remove('selected');
+  });
+  // Scroll into view
+  if (cmdSelectedIndex >= 0 && items[cmdSelectedIndex]) {
+    items[cmdSelectedIndex].scrollIntoView({block:'nearest'});
+  }
+}
+
+function onCmdKeydown(event) {
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    cmdSelectedIndex = Math.min(cmdSelectedIndex + 1, cmdResults.length - 1);
+    updateCmdSelection();
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    cmdSelectedIndex = Math.max(cmdSelectedIndex - 1, 0);
+    updateCmdSelection();
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (cmdSelectedIndex >= 0 && cmdResults[cmdSelectedIndex]) {
+      executeCmdResult(cmdSelectedIndex);
+    } else if (cmdResults.length > 0) {
+      executeCmdResult(0);
+    }
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    closeCommandPalette();
+  }
+}
+
+function executeCmdResult(index) {
+  if (cmdResults[index] && typeof cmdResults[index].action === 'function') {
+    cmdResults[index].action();
+  }
+  closeCommandPalette();
+}
+
+// Global keyboard shortcut for Ctrl+K / Cmd+K
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    if (document.getElementById('cmd-overlay').classList.contains('show')) {
+      closeCommandPalette();
+    } else {
+      openCommandPalette();
+    }
+  }
+  // ESC to close drawer
+  if (e.key === 'Escape') {
+    if (document.getElementById('user-drawer').classList.contains('show')) {
+      closeUserDrawer();
+    }
+    if (document.getElementById('notif-panel').classList.contains('show')) {
+      document.getElementById('notif-panel').classList.remove('show');
+    }
+    if (document.getElementById('confirm-modal').classList.contains('show')) {
+      closeConfirm();
+    }
+  }
+});
+
+// Click outside to close notification panel
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('notif-panel');
+  var bell = document.querySelector('.notif-bell');
+  if (panel.classList.contains('show') && !panel.contains(e.target) && !bell.contains(e.target)) {
+    panel.classList.remove('show');
+  }
+});
+
+// ================================================================
+//  Confirm Modal Helper
+// ================================================================
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-modal').classList.add('show');
+  var okBtn = document.getElementById('confirm-ok-btn');
+  var newBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newBtn, okBtn);
+  newBtn.addEventListener('click', function() {
+    closeConfirm();
+    callback();
+  });
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+
+// ================================================================
+//  Live Data & Auto-Refresh Engine v2.0
+// ================================================================
+var _liveEngine = {
+  lastUpdate: null,
+  refreshInterval: 30000,
+  notifInterval: 15000,
+  isPaused: false,
+  timer: null,
+  notifTimer: null,
+
+  start() {
+    this.refresh();
+    this.timer = setInterval(() => this.refresh(), this.refreshInterval);
+    this.notifTimer = setInterval(() => this.pollNotifications(), this.notifInterval);
+    this.updateTimestamp();
+  },
+
+  pause() { this.isPaused = true; },
+  resume() { this.isPaused = false; this.refresh(); },
+
+  async refresh() {
+    if (this.isPaused || document.hidden) return;
+    try {
+      if (currentPage === 'dashboard') {
+        await loadDashboard();
+      } else if (currentPage === 'system') {
+        await loadSystem();
+        renderSystemChart();
+      } else if (currentPage === 'api-health') {
+        await loadApiHealth();
+      } else if (currentPage === 'cache') {
+        await loadCache();
+      } else if (currentPage === 'logs') {
+        await loadLogs();
+      } else if (currentPage === 'users') {
+        await loadUsers();
+      } else if (currentPage === 'orders') {
+        await loadOrders();
+      } else if (currentPage === 'sectors') {
+        await loadSectors();
+      }
+      this.lastUpdate = new Date();
+      this.updateTimestamp();
+    } catch(e) {
+      console.warn('Auto-refresh failed:', e.message);
+    }
+  },
+
+  async pollNotifications() {
+    if (document.hidden) return;
+    try {
+      var resp = await fetch('/api/admin/notifications');
+      var json = await resp.json();
+      if (json.ok && json.data && ((Array.isArray(json.data) && json.data.length > 0) || (Array.isArray(json.data.items) && json.data.items.length > 0))) {
+        var notifications = Array.isArray(json.data) ? json.data : (json.data.items || []);
+        var unread = notifications.filter(function(n) { return !n.read; }).length;
+        var badge = document.getElementById('notif-badge');
+        if (badge) {
+          badge.textContent = unread;
+          badge.style.display = unread > 0 ? 'flex' : 'none';
+          if (unread > 0) badge.classList.add('new');
+        }
+      }
+    } catch(e) {}
+  },
+
+  updateTimestamp() {
+    var el = document.getElementById('live-timestamp');
+    if (el && this.lastUpdate) {
+      var s = Math.floor((Date.now() - this.lastUpdate.getTime()) / 1000);
+      var text = s < 5 ? '刚刚更新' : s < 60 ? s + '秒前' : s < 3600 ? Math.floor(s/60) + '分钟前' : Math.floor(s/3600) + '小时前';
+      el.textContent = '更新: ' + text;
+    }
+  }
+};
+
+setInterval(function() { _liveEngine.updateTimestamp(); }, 5000);
+
+// 系统页刷新统一由 _liveEngine 管理，避免重复请求。
+
+// Resize handler
+window.addEventListener('resize', function() {
+  [revenueChart, ordersPieChart, systemChart, throughputChart, resourcesPieChart, logsPieChart].forEach(function(c) {
+    if (c) c.resize();
+  });
+});
+
+// Init VanillaTilt for 3D Cards
+function initTilt() {
+  if (typeof VanillaTilt !== 'undefined') {
+    VanillaTilt.init(document.querySelectorAll(".stat-card"), {
+      max: 12,
+      speed: 400,
+      glare: true,
+      "max-glare": 0.2,
+      perspective: 1000,
+      scale: 1.02
+    });
+  }
+}
+
+// Observe content for new cards to re-init tilt
+var tiltObserver = new MutationObserver(function(mutations) {
+  var needsTilt = false;
+  mutations.forEach(function(m) {
+    if (m.addedNodes.length > 0) needsTilt = true;
+  });
+  if (needsTilt) setTimeout(initTilt, 100);
+});
+tiltObserver.observe(document.getElementById('content'), { childList: true, subtree: true });
+
+// ================================================================
+//  Init
+// ================================================================
+loadDashboard();
+setTimeout(initTilt, 500);
+setTimeout(function() { _liveEngine.start(); }, 1000);
+</script>
+<script src="js/admin-health.js?v=1"></script>
+<script src="js/admin-monitor.js"></script>
+</body>
+</html>

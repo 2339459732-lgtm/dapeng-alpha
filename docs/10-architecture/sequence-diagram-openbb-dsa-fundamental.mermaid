@@ -1,0 +1,75 @@
+%% 时序图一：财务指标从请求到渲染（含降级）
+%% 来源: openbb-dsa-integration-design.md §4.2
+sequenceDiagram
+    autonumber
+    participant U as 用户浏览器
+    participant FJ as fundamental.js
+    participant API as FastAPI /api/finance
+    participant C as TTLCache(cache.py)
+    participant FS as FundamentalService
+    participant REG as FetcherRegistry
+    participant SINA as FinancialAbstractFetcher
+    participant BAIDU as ValuationHistoryFetcher
+    participant CN as DividendFetcher
+    participant QH as QuoteHub
+    participant AK as akshare(新浪/百度/巨潮)
+
+    U->>FJ: 点击个股 -> switchKlineTab('fundamental')
+    FJ->>API: GET /api/finance?code=sh600519
+    API->>C: get_or_fetch_ex("finance:v2:sh600519", ttl=21600, stale_max=86400)
+    alt 缓存命中且未过期
+        C-->>API: (data, {age:12.3, degraded:false})
+        API-->>FJ: ok:true + 6 卡 + age
+        FJ->>FJ: Capability.attach(el, meta) -> 角标「收盘 2026-06-30」
+        FJ-->>U: 渲染 6 张指标卡 (<=5s)
+    else 缓存未命中
+        C->>FS: _do_fetch()
+        FS->>REG: get("akshare.sina.financial_abstract")
+        REG-->>FS: SINA
+        par 三源并行 asyncio.gather
+            FS->>SINA: fetch(code)
+            SINA->>AK: stock_financial_abstract(symbol=600519)
+            AK-->>SINA: DataFrame(80, 105)
+            SINA->>SINA: _wide_to_periods() -> 104 期
+            SINA-->>FS: SourceResult(80指标, as_of=20260630, degraded=false)
+        and
+            FS->>BAIDU: fetch(code, years=5)
+            BAIDU->>AK: stock_zh_valuation_baidu(市盈率(TTM))
+            AK-->>BAIDU: 914 行日频序列
+            BAIDU-->>FS: SourceResult(pe/pb 序列, degraded=false)
+        and
+            FS->>CN: fetch(code)
+            CN->>AK: stock_dividend_cninfo(symbol=600519)
+            AK-->>CN: 31 行分红记录
+            CN-->>FS: SourceResult(分红记录)
+        end
+        FS->>QH: snapshot(["sh600519"])
+        QH-->>FS: {price:1678.5, stale:false, age:1.2}
+        FS->>FS: _assemble_cards() -> 6 卡 + 分位
+        FS->>FS: _period_lag() -> is_latest_period
+        FS-->>C: (cards, meta)
+        C->>C: set(key, data, ttl=21600)
+        API-->>FJ: ok:true + 6 卡 + as_of + age=0
+        FJ->>FJ: Capability.attach() -> 六卡渲染
+        FJ-->>U: 渲染完成
+    end
+
+    alt 新浪源失败(超时/限流)
+        SINA-->>FS: SourceResult(degraded=true, reason="超时 8s")
+        FS->>C: get_entry("finance:v2:sh600519")
+        alt 有 <=24h 的旧缓存
+            C-->>FS: (old_cards, age=7200)
+            FS-->>API: ok:true, degraded=true, reason="新浪源超时, 使用 2h 前同一报告期缓存"
+            API-->>FJ: 角标「缓存 2h · 已降级」(黄)
+            FJ-->>U: 卡片数值照常显示 + 显式降级标注
+        else 无旧缓存
+            FS-->>API: ok:false, data=null, reason="新浪财务摘要接口超时, 已熔断 120s"
+            API-->>FJ: ok:false
+            FJ->>FJ: Capability.render -> 角标「不可用 · 原因」(红, 可点开)
+            FJ-->>U: 卡片位显示「不可用(新浪财务摘要接口超时)」, 绝不显示 0
+        end
+    end
+
+%% ================================================================
+%% 时序图 二：点击「板块某只股票」-> K线 + 信号 + 下单面板 (L4/L5 联动)
+%% ================================================================

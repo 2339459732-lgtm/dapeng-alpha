@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>访问验证 · DAPENG Alpha</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#020510; --panel:rgba(255,255,255,.032); --line:rgba(255,255,255,.075);
+    --text:#eef2f7; --text2:#8b9ec2; --muted:#3d5278;
+    --gold:#f59e0b; --red:#ff3d6a; --green:#00e96a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background-image:
+      radial-gradient(900px 520px at 50% -10%, rgba(245,158,11,.10), transparent 62%),
+      radial-gradient(700px 420px at 90% 110%, rgba(6,182,212,.07), transparent 60%),
+      linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size:auto,auto,44px 44px,44px 44px;
+  }
+  .wrap{width:100%; max-width:392px}
+  .brand{display:flex; align-items:baseline; gap:9px; justify-content:center; margin-bottom:6px}
+  .brand b{font-size:19px; letter-spacing:2.2px; font-weight:700}
+  .brand span{font-size:10px; letter-spacing:3px; color:var(--gold); font-weight:600}
+  .tagline{text-align:center; color:var(--muted); font-size:11.5px; letter-spacing:.6px; margin-bottom:22px}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:24px 22px 20px; backdrop-filter:blur(10px);
+    box-shadow:0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .card h1{margin:0 0 4px; font-size:15px; font-weight:600}
+  .card p.sub{margin:0 0 18px; color:var(--text2); font-size:12px; line-height:1.7}
+  label{display:block; font-size:11px; color:var(--muted); letter-spacing:.5px; margin-bottom:6px}
+  .field{position:relative}
+  input[type=password]{
+    width:100%; padding:12px 42px 12px 13px; border-radius:9px;
+    border:1px solid var(--line); background:rgba(0,0,0,.35); color:var(--text);
+    font-size:14px; letter-spacing:1px; outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input[type=password]::placeholder{color:var(--muted); letter-spacing:0}
+  input[type=password]:focus{border-color:rgba(245,158,11,.55); box-shadow:0 0 0 3px rgba(245,158,11,.10)}
+  .toggle{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    background:none; border:0; color:var(--muted); font-size:11px; cursor:pointer; padding:6px 8px;
+  }
+  .toggle:hover{color:var(--text2)}
+  button.submit{
+    width:100%; margin-top:14px; padding:11px 14px; border-radius:9px; border:0; cursor:pointer;
+    background:linear-gradient(180deg,#f7b23b,#e08a06); color:#20160a;
+    font-size:13.5px; font-weight:700; letter-spacing:1px;
+    transition:filter .15s, transform .05s;
+  }
+  button.submit:hover{filter:brightness(1.06)}
+  button.submit:active{transform:translateY(1px)}
+  button.submit[disabled]{filter:grayscale(.35) brightness(.8); cursor:wait}
+  .msg{margin-top:12px; font-size:12px; line-height:1.6; min-height:19px; color:var(--text2)}
+  .msg.err{color:var(--red)}
+  .msg.ok{color:var(--green)}
+  .foot{
+    margin-top:16px; padding-top:13px; border-top:1px dashed var(--line);
+    color:var(--muted); font-size:10.5px; line-height:1.8;
+  }
+  .foot code{color:var(--text2); background:rgba(255,255,255,.05); padding:1px 5px; border-radius:4px}
+  .shake{animation:shake .32s}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)}
+    50%{transform:translateX(5px)} 75%{transform:translateX(-3px)}
+  }
+  @media (prefers-reduced-motion:reduce){ .shake{animation:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><b>DAPENG</b><span>ALPHA</span></div>
+  <div class="tagline">A 股实时分析决策台 · 私有实例</div>
+
+  <form class="card" id="form" autocomplete="off">
+    <h1>访问验证</h1>
+    <p class="sub">这个实例只对持有访问密钥的人开放。代码是开源的，运行中的数据不是。</p>
+
+    <label for="key">访问密钥</label>
+    <div class="field">
+      <input id="key" name="key" type="password" placeholder="粘贴部署时设置的 ACCESS_KEY"
+             autocomplete="current-password" spellcheck="false" autofocus>
+      <button type="button" class="toggle" id="toggle" aria-label="显示或隐藏密钥">显示</button>
+    </div>
+
+    <button type="submit" class="submit" id="submit">进入</button>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+
+    <div class="foot">
+      密钥由部署者通过环境变量 <code>ACCESS_KEY</code> 设置；忘记可重启服务并查看启动日志。
+      登录状态保存在本机签名 Cookie 中，不会上传。
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var form = document.getElementById('form');
+  var input = document.getElementById('key');
+  var msg = document.getElementById('msg');
+  var btn = document.getElementById('submit');
+  var toggle = document.getElementById('toggle');
+
+  /** 只接受同源绝对路径，防止被构造成开放重定向。 */
+  function nextTarget() {
+    var raw = new URLSearchParams(location.search).get('next') || '';
+    if (raw.charAt(0) !== '/' || raw.charAt(1) === '/' || raw.charAt(1) === '\\') return '/dashboard.html';
+    if (raw.indexOf('/login') === 0) return '/dashboard.html';
+    return raw;
+  }
+
+  function say(text, kind) {
+    msg.textContent = text || '';
+    msg.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  // 已登录 / 未启用 → 直接进；避免用户看到多余的登录框
+  fetch('/api/auth/status', { headers: { Accept: 'application/json' } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok && (!d.enabled || d.authenticated)) location.replace(nextTarget());
+    })
+    .catch(function () { /* 状态接口不可用时仍允许手动尝试 */ });
+
+  toggle.addEventListener('click', function () {
+    var showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    toggle.textContent = showing ? '显示' : '隐藏';
+    input.focus();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var key = (input.value || '').trim();
+    if (!key) { say('请输入访问密钥', 'err'); input.focus(); return; }
+
+    btn.disabled = true;
+    say('正在验证…');
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ key: key })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.data && res.data.ok) {
+          say('验证通过，正在进入…', 'ok');
+          location.replace(nextTarget());
+          return;
+        }
+        var text = (res.data && res.data.message) || ('验证失败（HTTP ' + res.status + '）');
+        say(text, 'err');
+        form.classList.remove('shake');
+        void form.offsetWidth;
+        form.classList.add('shake');
+        input.select();
+      })
+      .catch(function () { say('网络异常，请确认服务正在运行', 'err'); })
+      .finally(function () { btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

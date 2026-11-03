@@ -1,0 +1,103 @@
+# 时序图 1：板块分析面板打开 → 周期切换 → 排序
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant HTML as dashboard.html
+    participant App as app.js
+    participant API as api.js
+    participant Backend as 后端 API
+
+    U->>HTML: 点击"📊 板块分析"按钮
+    HTML->>App: toggleSectorAnalysisPanel()
+    App->>App: panel.style.display = 'flex'
+    App->>App: appState.sectorCurrentPeriod = '5d'
+    App->>App: appState.sectorSortOrder = 'desc'
+
+    App->>API: loadSectorRankingData()
+    App->>API: fetchSectorRanking()
+    API->>Backend: GET /api/sector-ranking
+    Backend-->>API: 31 板块数据 [{名称, 5日%, 20日%, 60日%, 120日%, 250日%, ...}]
+    API-->>App: data
+    App->>App: appState.sectorRankingCache = data
+
+    App->>App: renderSectorRankingTable('5d')
+    Note over App: 从 cache 取 '5日%' 列<br/>按 desc 排序<br/>渲染 31 行到 #sa-ranking-tbody
+    App->>HTML: #sa-ranking-tbody.innerHTML = rows
+    HTML-->>U: 显示 5日周期排行表（降序）
+
+    U->>HTML: 点击"20日"周期 Tab
+    HTML->>App: switchSectorPeriod('20d')
+    App->>App: 更新 .period-tab active 状态
+    App->>App: appState.sectorCurrentPeriod = '20d'
+    App->>App: renderSectorRankingTable('20d')
+    Note over App: 从 cache 取 '20日%' 列<br/>按当前 sortOrder 排序<br/>重排渲染（无 API 请求）
+    App->>HTML: #sa-ranking-tbody.innerHTML = rows
+    HTML-->>U: 表格按 20日周期重排（<500ms）
+
+    U->>HTML: 点击"涨跌幅"列头
+    HTML->>App: toggleSectorSort()
+    App->>App: appState.sectorSortOrder = 'asc'（切换 desc→asc）
+    App->>App: 更新 #sort-arrow 箭头 ▼→▲
+    App->>App: renderSectorRankingTable(appState.sectorCurrentPeriod)
+    App->>HTML: #sa-ranking-tbody.innerHTML = rows
+    HTML-->>U: 表格按升序重排
+```
+
+# 时序图 2：板块选中 → 详情渲染 → 成分股弹层 → 切 K 线
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant HTML as dashboard.html
+    participant App as app.js
+    participant API as api.js
+    participant Backend as 后端 API
+
+    U->>HTML: 点击排行表某板块行
+    HTML->>App: selectSector(sectorKey, sectorName)
+    App->>App: 标记选中行高亮 (.selected)
+    App->>App: appState.sectorSelectedKey = sectorKey
+    App->>App: appState.sectorSelectedName = sectorName
+
+    App->>App: renderSectorDetail(sectorKey, period)
+    Note over App: 从 cache 取该板块当前周期涨跌幅<br/>计算均涨幅/涨停/跌停/上涨/下跌<br/>取龙头股 TOP5
+    App->>HTML: #sa-stats-bar / #sa-leaders 渲染完成
+
+    par 资金流加载（并行）
+        App->>API: loadSectorFundFlow(sectorKey)
+        API->>Backend: GET /api/fund-flow/sector?sector=KEY
+        Backend-->>API: 资金流数据（或 null）
+        alt API 有数据
+            API-->>App: {super_large, large, medium, small, main}
+            App->>App: renderSectorFundFlow(data)
+        else API 返回 null
+            App->>App: estimateSectorFundFlow(sectorData)
+            Note over App: 估算: baseFlow = totalAmount * (upCount/totalCount)<br/>超大单=baseFlow*0.3, 大单=baseFlow*0.2<br/>中单=-baseFlow*0.15, 小单=-baseFlow*0.1<br/>主力=超大单+大单, isEstimated=true
+            App->>App: renderSectorFundFlow(estimatedData)
+        end
+        App->>HTML: #sa-fundflow 渲染柱状图 + 数值列表
+    end
+
+    HTML-->>U: 选中板块详情区完整展示
+
+    U->>HTML: 点击"📋 查看成分股"按钮
+    HTML->>App: showSectorStocks()
+    App->>HTML: #sector-stocks-panel.style.display = 'flex'
+    App->>App: 显示 loading-shimmer
+    App->>API: fetchSectorStocks(sectorKey)
+    API->>Backend: GET /api/sector-stocks?sector=KEY
+    Backend-->>API: [{code, name, priority}, ...]
+    API-->>App: data
+    App->>App: 渲染成分股表格到 #sector-stocks-tbody
+    Note over App: 涨跌幅/换手率/市值/PE 缺失时显示 '--'
+    App->>HTML: #sector-stocks-title = "{板块名} 成分股 (N只)"
+    HTML-->>U: 成分股面板弹出
+
+    U->>HTML: 点击成分股表格某行
+    HTML->>App: selectStock(code, name); closeSectorStocksPanel()
+    App->>App: closeSectorStocksPanel(): #sector-stocks-panel.style.display = 'none'
+    App->>App: selectStock(): 切换 K 线 + 加载策略评分
+    App->>HTML: K 线区域更新为目标股票
+    HTML-->>U: 成分股面板关闭 + K 线切换完成
+```

@@ -1,0 +1,119 @@
+/* ════════════════════════════════════════════════════════════════════════
+   面板一致性层（panel consistency）v1
+   目的：让看板内所有全屏面板 / 卡片 / 表单跟随主题变量，边框、玻璃、焦点、
+        滚动条、数字排版统一；不改任何业务脚本。
+   依赖：dashboard.css 的主题变量（--glass/--border/--text/--gold/--blue…）
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 全屏面板：主题玻璃 + 发丝边 + 顶部极光 ───────────────────────────── */
+.full-overlay-panel {
+  background:
+    radial-gradient(120% 90% at 50% -18%, var(--aurora-1, rgba(59,130,246,.18)), transparent 62%),
+    radial-gradient(80% 60% at 100% 0%, var(--aurora-2, rgba(168,85,247,.12)), transparent 60%),
+    var(--glass2, rgba(8, 14, 32, .92)) !important;
+  border: 1px solid var(--border2, rgba(80,140,255,.22)) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+/* ── 头：下沿发丝线，标题紧字距，按钮区右对齐 ─────────────────────────── */
+.full-overlay-header {
+  background: linear-gradient(180deg, var(--glass3, rgba(8,14,32,.65)), transparent) !important;
+  border-bottom: 1px solid var(--border, rgba(80,140,255,.10)) !important;
+  padding: 12px 16px !important;
+  gap: 12px;
+}
+.full-overlay-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: .04em;
+  color: var(--text, #eef2f7) !important;
+}
+.full-overlay-tabs { gap: 6px !important; }
+.full-overlay-tab {
+  border-radius: 5px !important;
+  padding: 6px 13px !important;
+  font-size: 12.5px !important;
+  color: var(--text2, #8b9ec2) !important;
+  border: 1px solid transparent;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.full-overlay-tab:hover {
+  background: var(--glass3, rgba(255,255,255,.06)) !important;
+  color: var(--text, #eef2f7) !important;
+  border-color: var(--border, rgba(80,140,255,.10));
+}
+.full-overlay-tab.active {
+  background: var(--blue, #3b82f6) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px var(--glow-b, rgba(59,130,246,.35));
+}
+.full-overlay-close {
+  border-radius: 6px !important;
+  transition: background .16s ease, color .16s ease, transform .12s ease;
+}
+.full-overlay-close:active { transform: scale(.94); }
+
+/* ── 内容区：统一内边距 + 细滚动条 ─────────────────────────────────────── */
+.full-overlay-body,
+#automation-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2, rgba(80,140,255,.22)) transparent;
+}
+.full-overlay-body::-webkit-scrollbar { width: 6px; height: 6px; }
+.full-overlay-body::-webkit-scrollbar-thumb {
+  background: var(--border2, rgba(80,140,255,.22));
+  border-radius: 3px;
+}
+.full-overlay-body::-webkit-scrollbar-thumb:hover { background: var(--blue, #3b82f6); }
+.full-overlay-body::-webkit-scrollbar-track { background: transparent; }
+
+/* ── 卡片 / 表单：统一圆角、边框与焦点 ────────────────────────────────── */
+.auto-card {
+  border: 1px solid var(--border, rgba(255,255,255,.06)) !important;
+  background: var(--glass, rgba(6,12,28,.72)) !important;
+  border-radius: 10px !important;
+}
+.auto-card-title {
+  color: var(--text, #eef2f7) !important;
+  letter-spacing: .02em;
+}
+.auto-btn, .auto-param, .auto-filter-row input, .auto-filter-row select {
+  border-radius: 6px !important;
+  transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+.auto-btn {
+  border: 1px solid var(--border2, rgba(80,140,255,.22)) !important;
+  color: var(--text2, #8b9ec2) !important;
+}
+.auto-btn:hover {
+  color: var(--text, #eef2f7) !important;
+  border-color: var(--blue, #3b82f6) !important;
+  background: var(--glass3, rgba(255,255,255,.06)) !important;
+}
+.auto-param:focus, .auto-filter-row input:focus, .auto-filter-row select:focus {
+  outline: none !important;
+  border-color: var(--blue, #3b82f6) !important;
+  box-shadow: 0 0 0 3px var(--glow-b, rgba(59,130,246,.22)) !important;
+}
+
+/* ── 数字与徽标：等宽对齐，避免读数跳动 ───────────────────────────────── */
+.auto-sum-card strong, .auto-num, .auto-order-row td, .auto-pos-row td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 键盘可达 ─────────────────────────────────────────────────────────── */
+.full-overlay-panel :where(button, [role="button"], input, select, [tabindex]):focus-visible {
+  outline: 1px solid var(--gold, #f59e0b);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── 亮色主题下的细化（变量已切换，这里只补对比度） ────────────────────── */
+body.light-theme .full-overlay-panel {
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .18) !important;
+}
+body.light-theme .full-overlay-tab.active { color: #fff !important; }

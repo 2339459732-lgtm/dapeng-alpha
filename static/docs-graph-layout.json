@@ -1,0 +1,548 @@
+{
+ "version": 1,
+ "algo": "smacof-stress-majorization",
+ "generated_at": "2026-11-03T11:32:47+08:00",
+ "source_graph": "static/docs-graph.json",
+ "data_hash": "2b57605f8b618a48",
+ "canvas": {
+  "w": 1000.0,
+  "h": 660.0
+ },
+ "nodes": {
+  "CHANGELOG.md": [
+   419.85,
+   60.0
+  ],
+  "README.md": [
+   534.11,
+   248.49
+  ],
+  "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md": [
+   571.16,
+   179.6
+  ],
+  "docs/00-strategy/MASTER-PLAN-2026Q4.md": [
+   729.62,
+   190.76
+  ],
+  "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md": [
+   567.38,
+   255.88
+  ],
+  "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md": [
+   667.76,
+   119.15
+  ],
+  "docs/00-strategy/README.md": [
+   670.74,
+   212.72
+  ],
+  "docs/00-strategy/REFERENCE-AI1FOO.md": [
+   788.67,
+   281.25
+  ],
+  "docs/00-strategy/capability-evolution-plan-2026.md": [
+   603.78,
+   319.03
+  ],
+  "docs/00-strategy/product-roadmap-2026.md": [
+   667.08,
+   325.61
+  ],
+  "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md": [
+   708.32,
+   367.24
+  ],
+  "docs/10-architecture/ADR-001-contract-envelope.md": [
+   712.55,
+   235.54
+  ],
+  "docs/10-architecture/ADR-002-module-split-facade.md": [
+   674.36,
+   253.88
+  ],
+  "docs/10-architecture/ARMILLARY-DESIGN.md": [
+   635.51,
+   253.9
+  ],
+  "docs/10-architecture/AXON-GRAPH-DESIGN.md": [
+   693.03,
+   301.61
+  ],
+  "docs/10-architecture/DATA-PLATFORM.md": [
+   747.02,
+   244.9
+  ],
+  "docs/10-architecture/DECISION-HUB.md": [
+   627.22,
+   386.72
+  ],
+  "docs/10-architecture/DECISION-ROUTING.md": [
+   778.48,
+   252.04
+  ],
+  "docs/10-architecture/IMPECCABLE-INTEGRATION.md": [
+   776.38,
+   382.27
+  ],
+  "docs/10-architecture/LAYER-CROSSCHECK.md": [
+   765.14,
+   320.95
+  ],
+  "docs/10-architecture/LAYER-SYNC-CONTRACT.md": [
+   600.18,
+   281.67
+  ],
+  "docs/10-architecture/LHB-REVIEW.md": [
+   818.71,
+   287.21
+  ],
+  "docs/10-architecture/MARKET-SENTIMENT-MERGE.md": [
+   830.34,
+   322.17
+  ],
+  "docs/10-architecture/REPO-HYGIENE.md": [
+   572.96,
+   324.19
+  ],
+  "docs/10-architecture/SENTIMENT-REDESIGN.md": [
+   837.49,
+   361.86
+  ],
+  "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md": [
+   648.17,
+   448.32
+  ],
+  "docs/10-architecture/SYSTEM-OPTIMIZATION-2026Q4.md": [
+   568.14,
+   366.32
+  ],
+  "docs/10-architecture/SYSTEM-WORKFLOW.md": [
+   755.95,
+   439.35
+  ],
+  "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md": [
+   658.89,
+   409.28
+  ],
+  "docs/10-architecture/architecture-sidebar-tools.md": [
+   657.11,
+   496.74
+  ],
+  "docs/10-architecture/architecture-tab-admin.md": [
+   578.07,
+   417.9
+  ],
+  "docs/10-architecture/architecture-v54-sidebar-pro.md": [
+   829.54,
+   404.73
+  ],
+  "docs/10-architecture/architecture-westock-mcp.md": [
+   709.17,
+   508.21
+  ],
+  "docs/10-architecture/auto-trading-architecture.md": [
+   715.63,
+   454.38
+  ],
+  "docs/10-architecture/class-diagram-v54.mermaid": [
+   805.18,
+   449.05
+  ],
+  "docs/10-architecture/impl-checklist-openbb-dsa.md": [
+   879.04,
+   493.47
+  ],
+  "docs/10-architecture/openbb-dsa-integration-design.md": [
+   635.81,
+   315.64
+  ],
+  "docs/10-architecture/sequence-diagram-v54.mermaid": [
+   761.64,
+   490.84
+  ],
+  "docs/10-architecture/system_design.md": [
+   604.48,
+   463.1
+  ],
+  "docs/20-prd/auto-trading-prd.md": [
+   480.09,
+   435.62
+  ],
+  "docs/20-prd/incremental-prd-sidebar-tools.md": [
+   597.6,
+   375.79
+  ],
+  "docs/20-prd/incremental-prd-tab-admin.md": [
+   694.84,
+   479.37
+  ],
+  "docs/20-prd/incremental-prd-v54-sidebar-pro.md": [
+   495.49,
+   572.38
+  ],
+  "docs/20-prd/incremental-prd-westock-mcp.md": [
+   630.31,
+   600.0
+  ],
+  "docs/20-prd/openbb-dsa-integration-prd.md": [
+   581.91,
+   493.4
+  ],
+  "docs/30-data/DATA-DICTIONARY.md": [
+   313.65,
+   401.43
+  ],
+  "docs/30-data/GRAPH-DATA.md": [
+   433.38,
+   584.45
+  ],
+  "docs/40-ops/API-REFERENCE.md": [
+   217.39,
+   373.18
+  ],
+  "docs/40-ops/BOARD-REVIEW.md": [
+   353.63,
+   322.89
+  ],
+  "docs/40-ops/CHANGELOG-2026-10-22.md": [
+   263.78,
+   292.07
+  ],
+  "docs/40-ops/CLOUD-DEPLOYMENT.md": [
+   120.96,
+   270.47
+  ],
+  "docs/40-ops/DEBUG-AUDIT-2026-11-02.md": [
+   349.71,
+   437.71
+  ],
+  "docs/40-ops/DEPLOYMENT.md": [
+   302.4,
+   364.3
+  ],
+  "docs/40-ops/HARDENING-MOAT.md": [
+   205.16,
+   439.01
+  ],
+  "docs/40-ops/REMOTE-ACCESS.md": [
+   282.8,
+   469.64
+  ],
+  "docs/90-archive/HANDOFF-v5.4.md": [
+   185.65,
+   144.45
+  ],
+  "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md": [
+   385.39,
+   167.12
+  ],
+  "docs/90-archive/auto-trading-arch-v0-deprecated.md": [
+   232.94,
+   298.15
+  ]
+ },
+ "communities": [
+  {
+   "id": 0,
+   "group": "root",
+   "name": "根目录",
+   "size": 2,
+   "members": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "color_hint": "rgba(143,160,184,.10)"
+  },
+  {
+   "id": 1,
+   "group": "00-strategy",
+   "name": "战略与计划",
+   "size": 8,
+   "members": [
+    "docs/00-strategy/DECISION-CLOSED-LOOP-PLAN-2026Q4.md",
+    "docs/00-strategy/MASTER-PLAN-2026Q4.md",
+    "docs/00-strategy/OPEN_SOURCE_INTEGRATION_PLAN.md",
+    "docs/00-strategy/PRODUCT-STRATEGY-2026Q4.md",
+    "docs/00-strategy/README.md",
+    "docs/00-strategy/REFERENCE-AI1FOO.md",
+    "docs/00-strategy/capability-evolution-plan-2026.md",
+    "docs/00-strategy/product-roadmap-2026.md"
+   ],
+   "color_hint": "rgba(148,168,143,.10)"
+  },
+  {
+   "id": 2,
+   "group": "10-architecture",
+   "name": "架构与设计",
+   "size": 29,
+   "members": [
+    "docs/10-architecture/A-SHARE-REALTIME-DECISION-DESK.md",
+    "docs/10-architecture/ADR-001-contract-envelope.md",
+    "docs/10-architecture/ADR-002-module-split-facade.md",
+    "docs/10-architecture/ARMILLARY-DESIGN.md",
+    "docs/10-architecture/AXON-GRAPH-DESIGN.md",
+    "docs/10-architecture/DATA-PLATFORM.md",
+    "docs/10-architecture/DECISION-HUB.md",
+    "docs/10-architecture/DECISION-ROUTING.md",
+    "docs/10-architecture/IMPECCABLE-INTEGRATION.md",
+    "docs/10-architecture/LAYER-CROSSCHECK.md",
+    "docs/10-architecture/LAYER-SYNC-CONTRACT.md",
+    "docs/10-architecture/LHB-REVIEW.md",
+    "docs/10-architecture/MARKET-SENTIMENT-MERGE.md",
+    "docs/10-architecture/REPO-HYGIENE.md",
+    "docs/10-architecture/SENTIMENT-REDESIGN.md",
+    "docs/10-architecture/SENTIMENT-SURVEY-BRAIN.md",
+    "docs/10-architecture/SYSTEM-OPTIMIZATION-2026Q4.md",
+    "docs/10-architecture/SYSTEM-WORKFLOW.md",
+    "docs/10-architecture/UI-VISUALIZATION-ROADMAP.md",
+    "docs/10-architecture/architecture-sidebar-tools.md",
+    "docs/10-architecture/architecture-tab-admin.md",
+    "docs/10-architecture/architecture-v54-sidebar-pro.md",
+    "docs/10-architecture/architecture-westock-mcp.md",
+    "docs/10-architecture/auto-trading-architecture.md",
+    "docs/10-architecture/class-diagram-v54.mermaid",
+    "docs/10-architecture/impl-checklist-openbb-dsa.md",
+    "docs/10-architecture/openbb-dsa-integration-design.md",
+    "docs/10-architecture/sequence-diagram-v54.mermaid",
+    "docs/10-architecture/system_design.md"
+   ],
+   "color_hint": "rgba(185,156,126,.10)"
+  },
+  {
+   "id": 3,
+   "group": "20-prd",
+   "name": "产品需求",
+   "size": 6,
+   "members": [
+    "docs/20-prd/auto-trading-prd.md",
+    "docs/20-prd/incremental-prd-sidebar-tools.md",
+    "docs/20-prd/incremental-prd-tab-admin.md",
+    "docs/20-prd/incremental-prd-v54-sidebar-pro.md",
+    "docs/20-prd/incremental-prd-westock-mcp.md",
+    "docs/20-prd/openbb-dsa-integration-prd.md"
+   ],
+   "color_hint": "rgba(138,163,181,.10)"
+  },
+  {
+   "id": 4,
+   "group": "30-data",
+   "name": "数据字典",
+   "size": 2,
+   "members": [
+    "docs/30-data/DATA-DICTIONARY.md",
+    "docs/30-data/GRAPH-DATA.md"
+   ],
+   "color_hint": "rgba(168,144,152,.10)"
+  },
+  {
+   "id": 5,
+   "group": "40-ops",
+   "name": "运维与交付",
+   "size": 8,
+   "members": [
+    "docs/40-ops/API-REFERENCE.md",
+    "docs/40-ops/BOARD-REVIEW.md",
+    "docs/40-ops/CHANGELOG-2026-10-22.md",
+    "docs/40-ops/CLOUD-DEPLOYMENT.md",
+    "docs/40-ops/DEBUG-AUDIT-2026-11-02.md",
+    "docs/40-ops/DEPLOYMENT.md",
+    "docs/40-ops/HARDENING-MOAT.md",
+    "docs/40-ops/REMOTE-ACCESS.md"
+   ],
+   "color_hint": "rgba(127,160,143,.10)"
+  },
+  {
+   "id": 6,
+   "group": "90-archive",
+   "name": "归档",
+   "size": 3,
+   "members": [
+    "docs/90-archive/HANDOFF-v5.4.md",
+    "docs/90-archive/SYSTEM-OPTIMIZATION-v4.0.md",
+    "docs/90-archive/auto-trading-arch-v0-deprecated.md"
+   ],
+   "color_hint": "rgba(143,160,184,.10)"
+  }
+ ],
+ "hulls": [
+  {
+   "community": 1,
+   "points": [
+    [
+     567.4,
+     255.9
+    ],
+    [
+     571.2,
+     179.6
+    ],
+    [
+     667.8,
+     119.2
+    ],
+    [
+     729.6,
+     190.8
+    ],
+    [
+     788.7,
+     281.2
+    ],
+    [
+     667.1,
+     325.6
+    ],
+    [
+     603.8,
+     319.0
+    ]
+   ]
+  },
+  {
+   "community": 2,
+   "points": [
+    [
+     568.1,
+     366.3
+    ],
+    [
+     573.0,
+     324.2
+    ],
+    [
+     600.2,
+     281.7
+    ],
+    [
+     635.5,
+     253.9
+    ],
+    [
+     712.5,
+     235.5
+    ],
+    [
+     778.5,
+     252.0
+    ],
+    [
+     818.7,
+     287.2
+    ],
+    [
+     830.3,
+     322.2
+    ],
+    [
+     879.0,
+     493.5
+    ],
+    [
+     709.2,
+     508.2
+    ],
+    [
+     657.1,
+     496.7
+    ],
+    [
+     604.5,
+     463.1
+    ],
+    [
+     578.1,
+     417.9
+    ]
+   ]
+  },
+  {
+   "community": 3,
+   "points": [
+    [
+     480.1,
+     435.6
+    ],
+    [
+     597.6,
+     375.8
+    ],
+    [
+     694.8,
+     479.4
+    ],
+    [
+     630.3,
+     600.0
+    ],
+    [
+     495.5,
+     572.4
+    ]
+   ]
+  },
+  {
+   "community": 5,
+   "points": [
+    [
+     121.0,
+     270.5
+    ],
+    [
+     263.8,
+     292.1
+    ],
+    [
+     353.6,
+     322.9
+    ],
+    [
+     349.7,
+     437.7
+    ],
+    [
+     282.8,
+     469.6
+    ],
+    [
+     205.2,
+     439.0
+    ]
+   ]
+  },
+  {
+   "community": 6,
+   "points": [
+    [
+     185.7,
+     144.4
+    ],
+    [
+     385.4,
+     167.1
+    ],
+    [
+     232.9,
+     298.1
+    ]
+   ]
+  }
+ ],
+ "cross_edges": 71,
+ "meta": {
+  "per_group_stress": [
+   1.0,
+   6.276589,
+   66.259172,
+   0.899993,
+   1.0,
+   6.056309,
+   1.358399
+  ],
+  "iterations": 320,
+  "node_count": 58,
+  "link_count": 137,
+  "community_count": 7,
+  "cross_edge_ratio": 0.5182
+ }
+}

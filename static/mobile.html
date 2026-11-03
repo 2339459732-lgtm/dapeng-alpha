@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020510">
+<title>DAPENG 决策 · 手机版</title>
+<style>
+:root{--bg:#020510;--bg2:#081226;--border:rgba(80,140,255,.16);--text:#eef2f7;--text2:#8b9ec2;--muted:#3d5278;--red:#ff3d6a;--green:#00e96a;--gold:#f59e0b;--cyan:#06b6d4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{padding:12px 12px calc(24px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+.hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.hd h1{font-size:17px;letter-spacing:.5px}
+.hd .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.hd .meta{margin-left:auto;font-size:11px;color:var(--text2);text-align:right}
+.card{background:linear-gradient(160deg,rgba(10,18,40,.85),rgba(6,12,28,.7));border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:10px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(6,182,212,.45),transparent)}
+.card h2{font-size:12px;color:var(--text2);font-weight:600;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.card h2 em{font-style:normal;font-size:9px;color:var(--muted);letter-spacing:2px}
+.verdict{display:flex;align-items:center;gap:14px}
+.ring{width:74px;height:74px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;background:conic-gradient(var(--ring,#f59e0b) calc(var(--pct,50)*1%),rgba(255,255,255,.07) 0);position:relative}
+.ring::after{content:'';position:absolute;inset:7px;border-radius:50%;background:#060c1c}
+.ring b{position:relative;z-index:1;font-size:22px;line-height:1}
+.ring small{position:relative;z-index:1;display:block;font-size:9px;color:var(--text2);text-align:center}
+.stance{font-size:22px;font-weight:800;letter-spacing:1px}
+.stance.defend{color:var(--red)}.stance.attack{color:var(--green)}.stance.neutral{color:var(--gold)}
+.stance small{display:block;font-size:11px;color:var(--text2);font-weight:400;letter-spacing:0;margin-top:2px}
+.rows{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.row{display:flex;align-items:center;gap:8px;font-size:13px}
+.row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .vl{font-variant-numeric:tabular-nums;font-weight:650}
+.up{color:var(--red)}.down{color:var(--green)}.muted{color:var(--text2)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:8px 10px}
+.stat b{display:block;font-size:16px;font-weight:750}
+.stat span{display:block;font-size:10px;color:var(--text2);margin-top:2px}
+.bar{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;display:flex;margin:8px 0 2px}
+.bar i{height:100%}.bar .u{background:linear-gradient(90deg,#ff3d6a,#f87171)}.bar .f{background:rgba(255,255,255,.2)}.bar .d{background:linear-gradient(90deg,#10b981,#00e96a)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02)}
+.chip.hot{color:var(--gold);border-color:rgba(245,158,11,.35)}
+.note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px}
+.btns{display:flex;gap:8px;margin:14px 0 4px}
+.btn{flex:1;text-align:center;padding:11px;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);font-size:13px;cursor:pointer;text-decoration:none}
+.btn.primary{border-color:rgba(6,182,212,.4);background:rgba(6,182,212,.12);color:var(--cyan)}
+.empty{color:var(--text2);font-size:12px;padding:10px 0;text-align:center}
+.stale{font-size:10px;color:var(--gold);margin-top:6px}
+@media (max-width:360px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hd"><span class="dot"></span><h1>DAPENG 决策</h1><div class="meta"><div id="clock">--:--</div><div id="net">连接中…</div></div></div>
+<div id="app"><div class="card"><div class="empty">加载决策数据…</div></div></div>
+<div class="btns"><button class="btn primary" onclick="load(true)">刷新</button><a class="btn" href="/dashboard.html">完整版</a></div>
+<div class="note">数据来源：行情/复盘/题材接口；离线时显示最近一次缓存。不构成投资建议。</div>
+<script>
+'use strict';
+var CACHE_KEY='dapeng-mobile-v1';
+var store={};try{store=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+function num(v){var n=Number(v);return isFinite(n)?n:null}
+function fmt(v,d){var n=num(v);return n==null?'--':n.toFixed(d==null?2:d)}
+function pct(v){var n=num(v);return n==null?'--':(n>0?'+':'')+n.toFixed(2)+'%'}
+function amt(v){var n=num(v);if(n==null)return'--';if(Math.abs(n)>=1e12)return(n/1e12).toFixed(2)+'万亿';if(Math.abs(n)>=1e8)return(n/1e8).toFixed(1)+'亿';return(n/1e4).toFixed(1)+'万'}
+function cls(v){var n=num(v);return n==null?'':n>0?'up':n<0?'down':''}
+async function jget(u,ms){var c=new AbortController();var t=setTimeout(function(){c.abort()},ms||12000);try{var r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
+async function load(force){
+  document.getElementById('net').textContent='刷新中…';
+  var eps={market:'/api/market-dashboard',themes:'/api/themes/overview',intel:'/api/brain/intel',pos:'/api/automation/positions',review:'/api/review/summary'};
+  var keys=Object.keys(eps);var res=await Promise.allSettled(keys.map(function(k){return jget(eps[k])}));
+  var data={},offline=false;
+  res.forEach(function(r,i){var k=keys[i];if(r.status==='fulfilled'){data[k]=r.value;store[k]={t:Date.now(),v:r.value}}else{data[k]=store[k]?store[k].v:null;offline=true}});
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify(store))}catch(e){}
+  render(data,offline);
+  document.getElementById('net').textContent=offline?'离线缓存':'在线 '+new Date().toLocaleTimeString('zh-CN',{hour12:false}).slice(0,5);
+}
+function render(d,offline){
+  var md=d.market&&d.market.ok?d.market.data:null;
+  var th=d.themes&&d.themes.ok?d.themes:null;
+  var intel=d.intel&&d.intel.ok?d.intel.latest:null;
+  var pos=d.pos&&d.pos.ok?d.pos.data:null;
+  var rv=d.review&&d.review.ok?d.review.data:null;
+  var score=md&&md.judgment?num(md.judgment.score):null;
+  var b=md&&md.breadth?md.breadth:{};
+  var up=num(b.up)||0,down=num(b.down)||0,flat=num(b.flat)||0,total=up+down+flat;
+  var risk=score==null?null:Math.round(100-score);
+  var stance=risk==null?['--','neutral']:risk>=62?['防守','defend']:risk<=38?['进攻','attack']:['均衡','neutral'];
+  var ring=risk==null?'#3d5278':risk>=62?'#ff3d6a':risk<=38?'#00e96a':'#f59e0b';
+  var html='';
+  html+='<div class="card"><h2>今日结论 <em>VERDICT</em></h2><div class="verdict">'+
+    '<div class="ring" style="--pct:'+(risk==null?0:risk)+';--ring:'+ring+'"><b>'+(risk==null?'--':risk)+'</b><small>风险</small></div>'+
+    '<div><div class="stance '+stance[1]+'">'+stance[0]+'<small>'+esc(md&&md.judgment?md.judgment.regime:'数据加载中')+'</small></div>'+
+    '<div class="row"><span class="nm">市场评分</span><span class="vl">'+(score==null?'--':score+'/100')+'</span></div>'+
+    '<div class="row"><span class="nm">建议仓位上限</span><span class="vl">≤'+(risk==null?'--':risk>=62?30:risk<=38?70:50)+'%</span></div></div></div>'+
+    (md&&md.judgment&&md.judgment.text?'<div class="note">'+esc(md.judgment.text)+'</div>':'')+
+    (offline?'<div class="stale">当前为离线缓存，联网后自动更新</div>':'')+'</div>';
+  html+='<div class="card"><h2>市场温度 <em>BREADTH</em></h2>'+
+    '<div class="bar"><i class="u" style="width:'+(total?up/total*100:0)+'%"></i><i class="f" style="width:'+(total?flat/total*100:0)+'%"></i><i class="d" style="width:'+(total?down/total*100:0)+'%"></i></div>'+
+    '<div class="row"><span class="nm up">上涨 '+up+'</span><span class="nm muted">平 '+flat+'</span><span class="nm down">下跌 '+down+'</span></div>'+
+    '<div class="grid" style="margin-top:8px">'+
+    '<div class="stat"><b>'+amt(md&&md.turnover?md.turnover.amount:null)+'</b><span>成交额</span></div>'+
+    '<div class="stat"><b class="'+(num(b.median_chg)<0?'down':'up')+'">'+pct(b.median_chg)+'</b><span>中位涨跌</span></div>'+
+    '<div class="stat"><b>'+esc(b.limit_up==null?'--':b.limit_up+'/'+b.limit_down)+'</b><span>涨停/跌停</span></div>'+
+    '<div class="stat"><b>'+amt(pos?pos.total_equity:null)+'</b><span>账户权益</span></div></div></div>';
+  if(th){
+    html+='<div class="card"><h2>题材雷达 <em>THEME</em></h2><div class="chips">';
+    (th.zodiac||[]).slice(0,8).forEach(function(g){html+='<span class="chip '+(g.heat>=60?'hot':'')+'">'+esc(g.char)+' '+g.count+'只 '+pct(g.avg_chg)+'</span>'});
+    html+='</div>';
+    if((th.discovered||[]).length){html+='<div class="note">自主发现：'+(th.discovered||[]).slice(0,5).map(function(g){return esc(g.char)+'×'+fmt(g.lift,1)}).join(' · ')+'</div>'}
+    html+='</div>';
+    html+='<div class="card"><h2>板块趋势 <em>TREND</em></h2><div class="rows">';
+    (th.sectors||[]).slice(0,6).forEach(function(s){html+='<div class="row"><span class="nm">'+esc(s.name)+'</span><span class="muted" style="font-size:10px">'+esc(s.stage)+'</span><span class="vl '+cls(s.avg_chg)+'">'+pct(s.avg_chg)+'</span><span class="vl muted" style="font-size:10px">5日'+pct(s.d5)+'</span></div>'});
+    html+='</div><div class="note">板块历史截至 '+esc(th.board_snapshot_as_of||'-')+'</div></div>';
+  }
+  if(intel){
+    html+='<div class="card"><h2>事件情报 <em>INTEL</em></h2><div class="row"><span class="nm">情报风险</span><span class="vl">'+esc(intel.risk_level||'--')+' / '+(intel.risk_score==null?'--':intel.risk_score)+'</span></div>'+
+      (intel.brief?'<div class="note">'+esc(intel.brief)+'</div>':'')+
+      (intel.headlines||[]).slice(0,2).map(function(h){return '<div class="row"><span class="nm">'+esc(h)+'</span></div>'}).join('')+'</div>';
+  }
+  if(rv&&rv.equity){
+    html+='<div class="card"><h2>复盘摘要 <em>REVIEW</em></h2><div class="grid">'+
+      '<div class="stat"><b>'+amt(rv.equity.now)+'</b><span>账户权益</span></div>'+
+      '<div class="stat"><b class="'+cls(rv.equity.total_return_pct)+'">'+pct(rv.equity.total_return_pct)+'</b><span>区间收益</span></div>'+
+      '<div class="stat"><b class="'+cls(rv.excess_return_pct)+'">'+pct(rv.excess_return_pct)+'</b><span>超额收益</span></div>'+
+      '<div class="stat"><b>'+pct(-Math.abs(num(rv.risk&&rv.risk.maxdd_pct)||0))+'</b><span>最大回撤</span></div></div></div>';
+  }
+  if(!md&&!th&&!intel) html+='<div class="card"><div class="empty">暂无数据，请确认电脑端服务在线</div></div>';
+  document.getElementById('app').innerHTML=html;
+}
+setInterval(function(){var d=new Date();document.getElementById('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)},1000);
+load(false);
+setInterval(function(){if(!document.hidden)load(false)},60000);
+</script>
+</body>
+</html>

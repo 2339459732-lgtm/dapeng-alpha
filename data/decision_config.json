@@ -1,0 +1,87 @@
+{
+  "version": "2026Q4.1",
+  "updated_at": "2026-11-02",
+  "data_sources": {
+    "sina_market_center": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData",
+      "scope": "沪深北 A 股全市场报价 + PE/PB/市值/换手",
+      "ttl_sec": 300,
+      "page_size": 100
+    },
+    "eastmoney_fundamentals": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+      "report_name": "RPT_LICO_FN_CPD",
+      "scope": "最新季度营收/净利/ROE/EPS/毛利率/行业",
+      "ttl_sec": 21600,
+      "page_size": 500
+    },
+    "tencent_global": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "https://qt.gtimg.cn/q=",
+      "scope": "全球主要指数、国家代理 ETF、美股 11 个行业 ETF",
+      "ttl_sec": 60
+    },
+    "official_rates": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "urls": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv",
+        "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/2.json",
+        "https://markets.newyorkfed.org/api/rates/secured/sofr/last/2.json",
+        "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV"
+      ],
+      "scope": "美债 3M/2Y/10Y 收益率、EFFR、SOFR、欧央行存款便利利率",
+      "ttl_sec": 1800
+    },
+    "worldbank_macro": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "https://api.worldbank.org/v2/country/{countries}/indicator/{indicator}",
+      "scope": "美国/中国/日本/欧元区 CPI、GDP 实际增速、失业率（年度）",
+      "ttl_sec": 1800
+    },
+    "akshare_china_macro": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "/api/intelligent/ak/macro",
+      "scope": "中国 PMI、CPI、GDP（AkShare/东财）",
+      "ttl_sec": 600
+    },
+    "market_dashboard": {
+      "enabled": true,
+      "auth": "public_no_key",
+      "url": "/api/market-dashboard",
+      "scope": "核心指数与核心样本 60 秒级行情覆盖",
+      "ttl_sec": 60
+    }
+  },
+  "background": {
+    "startup_delay_sec": 8,
+    "trading_interval_sec": 120,
+    "offhours_interval_sec": 1800,
+    "trading_window": "09:00-15:30",
+    "weekdays_only_for_ashare": true
+  },
+  "quality": {
+    "full_confidence_pct": 85,
+    "min_actionable_pct": 70,
+    "min_universe_size": 3000,
+    "min_quote_coverage_pct": 80,
+    "min_financial_coverage_pct": 40
+  },
+  "retention": {
+    "sentiment_series": 2000,
+    "coverage_snapshot": "latest_only",
+    "expert_history": 20
+  },
+  "notes": [
+    "所有新增公开数据通道均无需密钥，不在仓库中保存任何访问凭证。",
+    "基本面为季度披露数据，不是实时值；PE/PB 随报价快照变化，基本面原始字段保留报告期。",
+    "国家与行业 ETF 为风险偏好代理，页面须显示 proxy_note，不冒充当地指数或行业。"
+  ]
+}

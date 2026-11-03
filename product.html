@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技术规格 | 大鹏水处理科技</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+<style>
+:root { --primary: #0a5c8a; --accent: #00b4d8; --bg-dark: #0a1628; --bg-card: #0f1f38; --text: #e0e8f0; --text-muted: #8a9bb5; --border: rgba(255,255,255,0.08); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg-dark); color: var(--text); line-height: 1.7; }
+nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(10,22,40,0.95); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); padding:0 2rem; }
+.nav-inner { max-width:1300px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:64px; }
+.logo { font-size:1.25rem; font-weight:700; color:#fff; text-decoration:none; }
+.logo span { color:var(--accent); }
+.nav-links { display:flex; gap:1.5rem; list-style:none; }
+.nav-links a { color:var(--text-muted); text-decoration:none; font-size:0.9rem; }
+.nav-links a:hover, .nav-links a.active { color:#fff; }
+section { padding:8rem 2rem 4rem; }
+.section-inner { max-width:1100px; margin:0 auto; }
+h1 { font-size:2.4rem; margin-bottom:1rem; }
+table { width:100%; border-collapse:collapse; margin:2rem 0; background:var(--bg-card); border-radius:12px; overflow:hidden; }
+th, td { padding:1rem; text-align:left; border-bottom:1px solid var(--border); }
+th { background:rgba(0,180,216,0.1); color:var(--accent); font-size:0.9rem; }
+td { font-size:0.9rem; }
+tr:last-child td { border-bottom:none; }
+.spec-note { color:var(--text-muted); font-size:0.85rem; margin-top:1rem; }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner"><a href="index.html" class="logo">DAPENG<span>科技</span></a><ul class="nav-links"><li><a href="index.html">首页</a></li><li><a href="pricing.html">系统集成方案</a></li><li><a href="product.html" class="active">技术规格</a></li><li><a href="about.html">品牌故事</a></li></ul></div></nav>
+<section><div class="section-inner">
+<h1>技术规格</h1>
+<p style="color:var(--text-muted);margin-bottom:3rem;">超纯水核心集成系统 (UPW-3000) — 详细技术参数</p>
+
+<h2 style="color:var(--accent);">产水水质</h2>
+<table>
+<tr><th>参数</th><th>规格</th><th>标准</th></tr>
+<tr><td>电阻率</td><td>≥ 18.25 MΩ·cm @25℃</td><td>SEMI G4 / ASTM D5127</td></tr>
+<tr><td>TOC</td><td>&lt; 1.0 ppb</td><td>在线监测</td></tr>
+<tr><td>溶解氧</td><td>&lt; 5 ppb</td><td>真空脱气可选</td></tr>
+<tr><td>颗粒物 (≥0.05μm)</td><td>0 counts/ml</td><td>ISO 14644</td></tr>
+<tr><td>细菌</td><td>&lt; 0.1 CFU/ml</td><td>UV杀菌 + 0.1μm终端</td></tr>
+<tr><td>硅 (SiO₂)</td><td>&lt; 0.5 ppb</td><td>ICP-MS 检测</td></tr>
+</table>
+
+<h2 style="color:var(--accent);">核心组件</h2>
+<table>
+<tr><th>工艺单元</th><th>品牌/型号</th><th>数量</th></tr>
+<tr><td>RO 膜元件</td><td>Dow Filmtec™ BW30-440i</td><td>按产水量配置</td></tr>
+<tr><td>EDI 模块</td><td>Evoqua Ionpure® LX</td><td>模块化并联</td></tr>
+<tr><td>精混床树脂</td><td>Dowex™ Monosphere™ 核级</td><td>不可再生式</td></tr>
+<tr><td>UV 杀菌</td><td>185/254nm 双波长</td><td>TOC降解 + 杀菌</td></tr>
+<tr><td>终端超滤</td><td>0.03μm PVDF 中空纤维</td><td>POU 循环</td></tr>
+<tr><td>在线仪表</td><td>Mettler Toledo / HACH</td><td>电阻率/TOC/pH/DO</td></tr>
+</table>
+
+<p class="spec-note">* 以上为 UPW-3000 标准配置。可根据客户制程节点（14nm/7nm/5nm）及产水量需求定制设备规格。</p>
+</div></section>
+</body>
+</html>
