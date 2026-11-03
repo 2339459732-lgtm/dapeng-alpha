@@ -3,6 +3,26 @@
 > 2026-10-22 三轮改造的结构化总账（含逐条根因与复现命令）见
 > [docs/40-ops/CHANGELOG-2026-10-22.md](docs/40-ops/CHANGELOG-2026-10-22.md)。
 
+## 2026-11-04（00:05）— 开源就绪 + 私钥维护（不改动现有口令）
+
+**原则**：口令仍为所有者指定的 12 位私钥，本轮不动它；只补"怎么存、怎么查、怎么防泄露"。
+
+- 新增 `scripts/ops/key_status.py`：指纹/长度/来源/是否泄露/历史/备份自检，**不回显明文**。
+- 新增 `scripts/ops/scan_secrets.py`：零依赖凭据扫描，含**项目私钥精确匹配**；
+  `install_hooks.py` 写入 pre-commit，提交前 1 秒拦截。
+- 新增 `scripts/ops/export_opensource.py`：只打包 HEAD，复检禁止文件（`.env`/数据库/日志/备份）
+  与包内凭据，输出 sha256；`dist/` 已忽略。
+- `.env` ACL 收紧为 所有者 / SYSTEM / Administrators；`.gitattributes` 统一换行。
+- `THIRD_PARTY_LICENSES.md`：ECharts/FontAwesome/Tailwind/vanilla-tilt 与 Python 依赖许可清单、
+  数据源使用边界；`docs/40-ops/KEY-MANAGEMENT.md`：存放、自检、轮换、泄露处置。
+- CI 增加 secret scan 与 key status；补 GitHub issue/PR 模板。
+- **安全修复**：密钥文档曾写入明文口令，已移除；仓库未推送，使用 `filter-branch`
+  重写历史并 `gc --prune=now` 清除旧对象，`git log -S` 已查不到。
+- 一键体检加入"私钥自检"，现为 5 步。
+
+**验证**：checkup **5/5**；529 passed；体检 39 项 FAIL 0；发布包 575 文件 / 21.42 MB，
+无 `.env`/数据库/日志，包内无私钥明文；线上私钥登录仍为 200。
+
 ## 2026-11-03（23:20）— 全市场广度统一 + 递进式研判链路 + 局域网访问
 
 **一、广度口径统一（不再静默降级）**

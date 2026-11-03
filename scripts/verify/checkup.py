@@ -35,8 +35,9 @@ def run(name: str, cmd: list[str], timeout: int = 900) -> tuple[str, bool, str]:
     except subprocess.TimeoutExpired:
         return name, False, f"超时（>{timeout}s）"
     elapsed = time.time() - started
-    tail = (proc.stdout or proc.stderr or "").strip().splitlines()
-    detail = tail[-1] if tail else ""
+    lines = [ln.strip() for ln in (proc.stdout or proc.stderr or "").splitlines()]
+    lines = [ln for ln in lines if ln and set(ln) != {"="} and set(ln) != {"-"}]
+    detail = lines[-1] if lines else ""
     return name, proc.returncode == 0, f"{elapsed:.1f}s · {detail}"
 
 
