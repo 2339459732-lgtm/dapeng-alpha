@@ -28,6 +28,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Secret scan (tracked files)
+        run: python scripts/ops/scan_secrets.py
+
+      - name: Key status (no plaintext)
+        run: python scripts/ops/key_status.py --json --allow-missing
+
       - name: Unit tests
         run: python -m pytest tests/ -q
 

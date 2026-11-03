@@ -64,6 +64,20 @@ python -m uvicorn server.main:app --host 127.0.0.1 --port 8900
 威胁模型与部署清单见 [`SECURITY.md`](SECURITY.md)；实现取舍见
 [`docs/10-architecture/AUTH.md`](docs/10-architecture/AUTH.md)。
 
+### 维护私钥（不改口令）
+
+```bash
+python scripts/ops/key_status.py          # 指纹/长度/是否泄露，不显示明文
+python scripts/ops/scan_secrets.py        # 扫描已跟踪文件中的凭据
+python scripts/ops/install_hooks.py       # 装 pre-commit，提交前自动拦截
+python scripts/ops/export_opensource.py   # 生成只含 HEAD 的发布包并复检
+```
+
+规则：私钥只存在于 `.env`（或 `ACCESS_KEY_FILE` 指定的 secret 文件），
+任何进入仓库的文件都不得包含真实私钥。详见
+[`docs/40-ops/KEY-MANAGEMENT.md`](docs/40-ops/KEY-MANAGEMENT.md)；
+第三方许可证见 [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)。
+
 ### 自检
 
 ```bash

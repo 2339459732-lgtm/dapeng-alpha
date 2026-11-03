@@ -63,3 +63,7 @@ nul
 # 本机自启脚本（含个人路径，不随仓库分发）
 start-dapeng.vbs
 start_autorun.vbs
+
+# 开源导出包（由 scripts/ops/export_opensource.py 生成）
+dist/
+*.tar.gz

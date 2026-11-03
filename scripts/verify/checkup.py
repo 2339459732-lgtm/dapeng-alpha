@@ -47,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
 
     py = sys.executable
     steps = [
+        ("私钥自检", [py, "scripts/ops/key_status.py", "--allow-missing"]),
         ("单元与契约测试", [py, "-m", "pytest", "tests/", "-q"]),
         ("架构守卫", [py, "scripts/ci_guard.py"]),
     ]

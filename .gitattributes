@@ -1,0 +1,33 @@
+# 统一换行：源码入库用 LF，Windows 脚本保持 CRLF（否则 cmd 解析异常）
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.vbs text eol=crlf
+
+# 二进制/生成物：不做 diff、不参与文本转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.gz binary
+*.pdf binary
+*.db binary
+
+# 压缩前端库：语言统计里排除，避免把仓库说成"JS 项目"
+*.min.js linguist-generated=true -diff
+*.min.css linguist-generated=true -diff
+static/vendor/** linguist-vendored=true
+
+# 文档与配置
+*.md text
+*.json text
+*.yml text
+*.yaml text
