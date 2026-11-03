@@ -31,6 +31,8 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+from _auth import auth_headers
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BASE = "http://127.0.0.1:8900"
 _UA = {"User-Agent": "DapengAudit/1.0", "Accept": "application/json"}
@@ -38,12 +40,16 @@ _UA = {"User-Agent": "DapengAudit/1.0", "Accept": "application/json"}
 RESULTS: List[Dict[str, Any]] = []
 
 
+#: 登录态 Cookie：开启 ACCESS_KEY 的实例上，审计接口同样需要鉴权
+_AUTH: Dict[str, str] = {}
+
+
 def record(area: str, item: str, status: str, detail: str) -> None:
     RESULTS.append({"area": area, "item": item, "status": status, "detail": detail})
 
 
 def _get(path: str, timeout: float = 20.0, headers: Optional[Dict[str, str]] = None) -> Tuple[int, bytes, Dict[str, str]]:
-    req = urllib.request.Request(BASE + path, headers={**_UA, **(headers or {})})
+    req = urllib.request.Request(BASE + path, headers={**_UA, **_AUTH, **(headers or {})})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.status, resp.read(), dict(resp.headers)
@@ -412,6 +418,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--gate", action="store_true", help="有 FAIL 则退出码 1")
     parser.add_argument("--json", help="把明细写入文件")
     args = parser.parse_args(argv)
+
+    # 先登录（未配置密钥时返回空，行为不变）
+    _AUTH.update(auth_headers(BASE))
 
     check_services()
     check_configs()

@@ -113,3 +113,35 @@ ACCESS_KEY=<key> AUTH_BASE=http://127.0.0.1:8911 node scripts/verify/_verify_aut
 
 浏览器验收覆盖：未登录重定向 → 错误密钥就地报错 → 正确密钥进入 → 刷新保持 →
 退出后重新要求登录 → 无 JS 运行时错误。
+
+## 八、开了鉴权之后，自检工具怎么跑
+
+这是上线后最容易踩的坑：鉴权一开，审计与性能脚本全被 401 挡在门外，于是「体检报告
+一片红」被误读成系统坏了。现在所有验证脚本都会**自动登录**：
+
+| 脚本 | 方式 |
+|---|---|
+| `scripts/verify/system_audit.py` | `_auth.auth_headers()` 读 `ACCESS_KEY`（环境变量或 `.env`），登录后带 Cookie |
+| `scripts/verify/perf_budget.py` | 同上 |
+| `scripts/verify/_verify_*.mjs` / `_shot_*.mjs` | `_login.loginContext()` 用 `context.request` 登录，Cookie 自动共享给页面 |
+| `scripts/verify/_verify_auth.mjs` | 本身就在验登录流程，直接用 `ACCESS_KEY` |
+
+未配置密钥的实例，助手返回空，脚本行为与以前完全一致。
+
+一键体检（推荐每次改完都跑）：
+
+```bash
+python scripts/verify/checkup.py            # pytest + 架构守卫 + 运行态体检 + 性能预算
+python scripts/verify/checkup.py --offline  # 只跑前两项（服务没起时）
+```
+
+## 九、维护手册
+
+| 场景 | 操作 |
+|---|---|
+| 换密钥 | 改 `.env` → 重启；会话全失效，需重新登录 |
+| 有人离职/设备丢失 | 同上；若设了 `SESSION_SECRET`，先删掉再轮换 |
+| 查谁在登 | `tail -f logs/auth.log`（JSONL：时间/IP/动作） |
+| 疑似爆破 | 日志出现大量 `login_failed` / `rate_limited`；换密钥并把反代限流也打开 |
+| 忘了密钥 | 读服务器 `.env`；实在丢失就换新密钥重启 |
+| 想回到无鉴权本机模式 | 清空 `ACCESS_KEY` 且 `HOST=127.0.0.1` |

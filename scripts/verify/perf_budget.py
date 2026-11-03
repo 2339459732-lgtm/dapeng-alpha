@@ -32,6 +32,8 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, List, Tuple
 
+from _auth import auth_headers
+
 BASE = "http://127.0.0.1:8900"
 
 #: (路径, 标签, p95 预算毫秒, 说明)
@@ -54,10 +56,14 @@ ENDPOINTS: List[Tuple[str, str, float, str]] = [
 ]
 
 
+#: 登录态 Cookie（未配置 ACCESS_KEY 时为空字典）
+_AUTH: Dict[str, str] = {}
+
+
 def _get(path: str, timeout: float = 30.0) -> Tuple[float, int, int]:
     """返回 (毫秒, 状态码, 响应字节数)。"""
     started = time.perf_counter()
-    req = urllib.request.Request(BASE + path, headers={"Accept": "application/json"})
+    req = urllib.request.Request(BASE + path, headers={"Accept": "application/json", **_AUTH})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = resp.read()
@@ -204,6 +210,8 @@ def main(argv: List[str] | None = None) -> int:
                         help="附带并发压测的并发数（0 表示不压测）")
     parser.add_argument("--rounds", type=int, default=6, help="并发压测每线程轮数（默认 6）")
     args = parser.parse_args(argv)
+
+    _AUTH.update(auth_headers(BASE))
 
     if _get("/api/health")[1] != 200:
         print(f"服务未就绪：{BASE}/api/health 不可用")

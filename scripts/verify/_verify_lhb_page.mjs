@@ -3,6 +3,7 @@
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loginContext } from './_login.mjs';
 
 const BASE = 'http://127.0.0.1:8900';
 const URL = BASE + '/lhb-review.html';
@@ -10,7 +11,8 @@ const SHOT_DIR = resolve(process.cwd(), 'shots');
 const SHOT = resolve(SHOT_DIR, 'lhb-review-page.png');
 
 const browser = await chromium.launch({ channel: 'chrome' });
-const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+const ctx = await loginContext(browser, BASE, { viewport: { width: 1600, height: 1000 } });
+const page = await ctx.newPage();
 
 const errors = [];
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));

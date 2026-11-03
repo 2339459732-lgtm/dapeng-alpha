@@ -57,6 +57,15 @@ python -m uvicorn server.main:app --host 127.0.0.1 --port 8900
 安全边界、部署清单与已知限制见 [`SECURITY.md`](SECURITY.md)；
 设计取舍见 [`docs/10-architecture/AUTH.md`](docs/10-architecture/AUTH.md)。
 
+### 自检
+
+```bash
+python scripts/verify/checkup.py            # 测试 + 架构守卫 + 运行态体检 + 性能预算
+python scripts/verify/checkup.py --offline  # 服务未启动时只跑前两项
+```
+
+> 开启鉴权后，审计与性能脚本会自动读取 `ACCESS_KEY` 登录，不需要手工改脚本。
+
 ### 数据与隐私
 
 `data/` 是**运行期目录**：行情快照、复盘结果、交易库、用户表都由程序生成，默认全部不入库

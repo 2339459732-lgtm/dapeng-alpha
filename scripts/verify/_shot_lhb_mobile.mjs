@@ -1,6 +1,10 @@
 import { chromium } from 'playwright';
+import { loginContext } from './_login.mjs';
 const browser = await chromium.launch({ channel: 'chrome' });
-const page = await browser.newPage({ viewport: { width: 430, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const ctx = await loginContext(browser, 'http://127.0.0.1:8900', {
+  contextOptions: { viewport: { width: 430, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+});
+const page = await ctx.newPage();
 const errs = [];
 page.on('pageerror', e => errs.push('pageerror: ' + e.message));
 page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 160)); });

@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
+import { loginContext } from './_login.mjs';
 const browser = await chromium.launch({ channel: 'chrome' });
-const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+const ctx = await loginContext(browser, 'http://127.0.0.1:8900', { viewport: { width: 1600, height: 1000 } });
+const page = await ctx.newPage();
 await page.goto('http://127.0.0.1:8900/dashboard.html', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(2200);
 // 两步：先切到决策工作区（display），再切到决策层 hub（面板互斥）

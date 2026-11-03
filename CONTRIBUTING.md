@@ -18,6 +18,13 @@ python -m uvicorn server.main:app --reload --port 8900
 ## 提交前必须跑
 
 ```bash
+python scripts/verify/checkup.py    # 一键：pytest + 架构守卫 + 运行态体检 + 性能预算
+python scripts/verify/checkup.py --offline   # 服务没起时只跑前两项
+```
+
+单独跑也可以：
+
+```bash
 python -m pytest tests/ -q          # 全量测试
 python scripts/ci_guard.py          # 架构测绘 + 拆分计划 + 全量测试
 ```
