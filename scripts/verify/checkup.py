@@ -52,8 +52,8 @@ def main(argv: list[str] | None = None) -> int:
     ]
     if not args.offline:
         steps += [
-            ("运行态体检", [py, "scripts/verify/system_audit.py"]),
-            ("性能预算", [py, "scripts/verify/perf_budget.py"]),
+            ("运行态体检", [py, "scripts/verify/system_audit.py", "--gate"]),
+            ("性能预算", [py, "scripts/verify/perf_budget.py", "--gate"]),
         ]
 
     print("=" * 62)

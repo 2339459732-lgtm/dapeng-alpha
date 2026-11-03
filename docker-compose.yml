@@ -1,0 +1,27 @@
+services:
+  dapeng:
+    build: .
+    image: dapeng-alpha:latest
+    container_name: dapeng-alpha
+    env_file:
+      - .env
+    environment:
+      # 容器内必须监听 0.0.0.0；未配置 ACCESS_KEY 会拒绝启动（启动护栏）
+      HOST: 0.0.0.0
+      PORT: "8900"
+    ports:
+      # 默认只绑定本机回环，公网部署请在前面加 HTTPS 反代，不要直接改成 0.0.0.0
+      - "127.0.0.1:8900:8900"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # 密钥也可改用 Docker secret：
+    # secrets: [dapeng_key]
+    # environment: { ACCESS_KEY_FILE: /run/secrets/dapeng_key }
+# secrets:
+#   dapeng_key:
+#     file: ./secrets/access_key.txt

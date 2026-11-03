@@ -450,13 +450,14 @@ app.add_middleware(_moat_factory, settings=get_settings())
 # 开源后最容易出的事故是「把 HOST 改成 0.0.0.0 忘了配 key」。这里直接拒绝启动，
 # 比在日志里写一行警告可靠得多。确有特殊场景（内网沙箱）可显式设 ALLOW_INSECURE_BIND=1。
 _boot_settings = get_settings()
+# 统一护栏：要求强密钥时，缺失/过弱直接拒绝启动（REQUIRE_ACCESS_KEY=1）。
+auth_module.startup_guard()
 if not _boot_settings.bind_local_only and not auth_module.auth_enabled():
     if os.getenv("ALLOW_INSECURE_BIND", "").strip() != "1":
         raise RuntimeError(
-            "拒绝启动：HOST 监听非回环地址但未设置 ACCESS_KEY。\n"
-            "  设置方法：在 .env 中加入 ACCESS_KEY=<至少 32 位随机串>\n"
-            "  生成命令：python -c \"import secrets;print(secrets.token_urlsafe(32))\"\n"
-            "  如确需无鉴权暴露（不建议），设 ALLOW_INSECURE_BIND=1。"
+            "拒绝启动：HOST 监听非回环地址但鉴权未开启。\n"
+            "  请在 .env 配置 ACCESS_KEY（≥32 位随机串），或移除 AUTH_DISABLED=1。\n"
+            "  生成命令：python -c \"import secrets;print(secrets.token_urlsafe(48))\""
         )
 if auth_module.auth_enabled():
     _weak = auth_module.key_strength_issue()

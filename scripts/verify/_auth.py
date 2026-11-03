@@ -24,7 +24,7 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, Optional
 
-COOKIE_NAME = "dapeng_session"
+COOKIE_NAME = "dapeng_sid"
 _ROOT = Path(__file__).resolve().parents[2]
 
 

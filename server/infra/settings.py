@@ -120,8 +120,13 @@ def _validate(s: Settings) -> tuple[tuple[str, ...], tuple[str, ...]]:
     if not s.bind_local_only and not (os.getenv("ACCESS_KEY") or os.getenv("DAPENG_ACCESS_KEY")):
         issues.append("监听非回环地址但未设置 ACCESS_KEY，任何能访问该地址的人都可以直接使用本系统")
     _key = (os.getenv("ACCESS_KEY") or os.getenv("DAPENG_ACCESS_KEY") or "").strip()
-    if _key and len(_key) < 16:
-        warnings.append(f"ACCESS_KEY 仅 {len(_key)} 字符，抗爆破能力有限；仅在可信网络中使用，并建议尽快换成长随机串")
+    _require = (os.getenv("REQUIRE_ACCESS_KEY") or "").strip().lower() in ("1", "true", "yes", "on")
+    if _require and len(_key) < 32:
+        issues.append("REQUIRE_ACCESS_KEY=1 但 ACCESS_KEY 缺失或短于 32 位")
+    elif _key and len(_key) < 16:
+        warnings.append(f"ACCESS_KEY 仅 {len(_key)} 字符，抗爆破能力有限；建议换成长随机串")
+    if (os.getenv("AUTH_DISABLED") or "").strip().lower() in ("1", "true", "yes", "on") and not s.bind_local_only:
+        issues.append("AUTH_DISABLED=1 且监听非回环地址：任何人都能无密钥进入")
     if s.rate_limit_per_min < 60:
         issues.append("MOAT_RATE_LIMIT 低于 60，正常面板轮询会被限流")
     if s.backup_keep < 1:

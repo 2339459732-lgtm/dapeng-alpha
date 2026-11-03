@@ -37,7 +37,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 #: 登录尝试限流：每个 IP 每分钟 10 次。失败与成功都计数——
 #: 只计失败会让「成功后再爆破」绕过限制。
-_LOGIN_LIMITER = RateLimiter(limit_per_min=10)
+_LOGIN_LIMITER = RateLimiter(limit_per_min=20)
 
 #: 全局失败闸门：10 分钟内累计 60 次失败 → 全体暂停登录 10 分钟。
 #: 单 IP 限流挡不住分布式爆破，这一层是对「很多 IP 各试几次」的兜底。
@@ -119,13 +119,16 @@ def _record_ip_failure(ip: str, now: float | None = None) -> None:
 async def status(request: Request) -> Dict[str, Any]:
     """公开状态：前端据此决定「直接进」还是「去登录」。"""
     enabled = auth.auth_enabled()
-    authenticated = (not enabled) or auth.verify_session(request.cookies.get(auth.COOKIE_NAME))
+    rec = auth.get_session(request.cookies.get(auth.COOKIE_NAME)) if enabled else None
     return {
         "ok": True,
         "version": auth.VERSION,
         "enabled": enabled,
-        "authenticated": bool(authenticated),
-        "ttl_hours": round(auth.ttl_seconds() / 3600, 2),
+        "authenticated": bool((not enabled) or rec),
+        "idle_minutes": round(auth.idle_seconds() / 60, 1),
+        "absolute_hours": round(auth.absolute_seconds() / 3600, 2),
+        "remaining_seconds": auth.session_remaining(request.cookies.get(auth.COOKIE_NAME)) if rec else 0,
+        "page_close_logout": auth.page_close_logout(),
     }
 
 
@@ -177,35 +180,51 @@ async def login(payload: LoginRequest, request: Request):
         return JSONResponse(status_code=401, content={"ok": False, "message": "密钥不正确"})
 
     _IP_FAILS.pop(ip, None)  # 成功即清零该 IP 的失败计数
-    value, ttl = auth.issue_session()
-    resp = JSONResponse(content={"ok": True, "message": "ok", "expires_in": ttl})
-    auth.set_session_cookie(resp, value, ttl, auth.cookie_secure(request))
+    sid = auth.create_session(ip, request.headers.get("user-agent") or "")
+    resp = JSONResponse(content={"ok": True, "message": "ok",
+                                 "idle_seconds": auth.idle_seconds(),
+                                 "absolute_seconds": auth.absolute_seconds()})
+    auth.set_session_cookie(resp, sid, auth.cookie_secure(request))
     resp.headers["Cache-Control"] = "no-store"
-    logger.info("auth login ok ip=%s ttl=%ss", ip, ttl)
-    _audit(ip, "login_ok", f"ttl={ttl}s")
+    logger.info("auth login ok ip=%s sessions=%s", ip, auth.session_count())
+    _audit(ip, "login_ok", f"idle={auth.idle_seconds()}s")
     return resp
 
 
 @router.post("/logout")
 async def logout(request: Request) -> Any:
-    resp = JSONResponse(content={"ok": True, "message": "已退出"})
+    sid = request.cookies.get(auth.COOKIE_NAME)
+    revoked = auth.revoke_session(sid)
+    resp = JSONResponse(content={"ok": True, "message": "已退出", "revoked": revoked})
     auth.clear_session_cookie(resp)
     resp.headers["Cache-Control"] = "no-store"
-    _audit(auth.client_ip(request), "logout")
+    _audit(auth.client_ip(request), "logout", "revoked" if revoked else "no-session")
+    return resp
+
+
+@router.post("/revoke-all")
+async def revoke_all(request: Request) -> Any:
+    """一键下线所有设备：换机/怀疑泄露时用。"""
+    count = auth.revoke_all()
+    resp = JSONResponse(content={"ok": True, "revoked": count})
+    auth.clear_session_cookie(resp)
+    resp.headers["Cache-Control"] = "no-store"
+    _audit(auth.client_ip(request), "revoke_all", f"count={count}")
     return resp
 
 
 @router.get("/whoami")
 async def whoami(request: Request) -> Dict[str, Any]:
-    """已登录时返回会话到期时间，未登录 401（前端做「会话剩余」提示用）。"""
-    token = request.cookies.get(auth.COOKIE_NAME)
-    if not auth.verify_session(token):
+    """已登录时返回会话剩余时间，未登录 401（前端做「会话剩余」提示用）。"""
+    sid = request.cookies.get(auth.COOKIE_NAME)
+    rec = auth.get_session(sid)
+    if not rec:
         return JSONResponse(status_code=401, content={"ok": False, "message": "未登录"})
-    try:
-        exp = int(str(token).split(".")[1])
-    except (IndexError, ValueError):
-        exp = None
-    return {"ok": True, "expires_at": exp, "ttl_hours": round(auth.ttl_seconds() / 3600, 2)}
+    return {"ok": True,
+            "remaining_seconds": auth.session_remaining(sid),
+            "idle_minutes": round(auth.idle_seconds() / 60, 1),
+            "absolute_hours": round(auth.absolute_seconds() / 3600, 2),
+            "session_created": int(rec.get("created") or 0)}
 
 
 # 登录页：不挂在 /api 下，单独一条路由（StaticFiles 里也有 login.html，

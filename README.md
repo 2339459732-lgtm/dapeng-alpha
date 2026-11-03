@@ -27,35 +27,42 @@ start.bat
 ## 开源与访问密钥
 
 本项目以 **Apache-2.0** 开源。原则是：**代码公开，运行实例不公开**。
-设置 `ACCESS_KEY` 后，所有页面与 API 都必须先登录；未设置时鉴权整层关闭（只适合本机自用）。
+访问采用**私钥 + 服务端会话**：私钥登录后下发会话级 Cookie（关浏览器即失效），
+登出/撤销/重启都会让会话立即作废。
 
 ```bash
-# 1) 生成足够长的密钥（32 字节 ≈ 43 字符）
-python -c "import secrets; print(secrets.token_urlsafe(32))"
+# 1) 生成私钥（≥32 位随机串，推荐 48 字节）
+python -c "import secrets;print(secrets.token_urlsafe(48))"
 
 # 2) 配置环境
 cp .env.example .env
 #   ACCESS_KEY=<上一步输出>
-#   HOST=0.0.0.0          # 只在本机用则保持 127.0.0.1
+#   REQUIRE_ACCESS_KEY=1        # 缺失或过弱直接拒绝启动
+#   HOST=0.0.0.0                # 只在本机用则保持 127.0.0.1
 #   MOAT_ADMIN_TOKEN=<另一个随机串>
 
-# 3) 启动；访问任意页面会被重定向到 /login
+# 3) 启动
 python -m uvicorn server.main:app --host 127.0.0.1 --port 8900
+#    或：docker compose up -d --build
 ```
 
 | 变量 | 作用 | 默认 |
 |---|---|---|
-| `ACCESS_KEY` | 访问密钥；为空则关闭鉴权（仅建议本机） | 空 |
-| `SESSION_TTL_HOURS` | 登录会话有效期（1–720 小时） | 72 |
-| `SESSION_SECRET` | 会话签名密钥；不填由 `ACCESS_KEY` 派生（换 key = 全员下线） | 派生 |
-| `COOKIE_SECURE` | HTTPS 部署置 `1`，给 Cookie 加 `Secure` | `0` |
-| `MOAT_ADMIN_TOKEN` | 系统端点令牌（备份等敏感操作） | 空 |
+| `ACCESS_KEY` / `ACCESS_KEY_FILE` | 访问私钥（环境变量或文件） | 空 |
+| `REQUIRE_ACCESS_KEY` | 1 = 缺失/弱私钥拒绝启动（生产必开） | 0 |
+| `SESSION_IDLE_MINUTES` | 空闲超时（无请求即失效） | 30 |
+| `SESSION_TTL_HOURS` | 会话绝对上限 | 8 |
+| `PAGE_CLOSE_LOGOUT` | 1 = 关闭标签页也登出 | 0 |
+| `ACCESS_IP_ALLOWLIST` | IP 白名单（CIDR），配置后登录页也不对外 | 空 |
+| `COOKIE_SECURE` | HTTPS 部署置 1 | 0 |
 
-会话是 **HMAC 签名 Cookie**（HttpOnly / SameSite=Lax），服务端不存 session：
-重启不掉线、无状态；代价是无法单独踢人——**轮换 `ACCESS_KEY` 即可让所有旧会话立即失效**。
+**生效范围**：所有页面与 `/api/*` 都需要私钥；只有 `/login`、`/api/auth/{login,logout,status}`、
+`/api/health` 公开。没有「本机免登录」「内网白名单免登录」之类的旁路。
 
-安全边界、部署清单与已知限制见 [`SECURITY.md`](SECURITY.md)；
-设计取舍见 [`docs/10-architecture/AUTH.md`](docs/10-architecture/AUTH.md)。
+完整说明（初始化、实时链路、持久化、目录结构、启动方式、验证命令）见
+[`docs/40-ops/OPEN-SOURCE-DEPLOY.md`](docs/40-ops/OPEN-SOURCE-DEPLOY.md)；
+威胁模型与部署清单见 [`SECURITY.md`](SECURITY.md)；实现取舍见
+[`docs/10-architecture/AUTH.md`](docs/10-architecture/AUTH.md)。
 
 ### 自检
 

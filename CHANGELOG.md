@@ -3,6 +3,37 @@
 > 2026-10-22 三轮改造的结构化总账（含逐条根因与复现命令）见
 > [docs/40-ops/CHANGELOG-2026-10-22.md](docs/40-ops/CHANGELOG-2026-10-22.md)。
 
+## 2026-11-03（22:55）— 访问控制 v2：私钥 + 服务端会话（关浏览器即失效）
+
+**背景**：v1 的签名 Cookie 带 `Max-Age`，关掉浏览器仍能进；6 位口令 + 72 小时会话
+等于给穷举留后门。按要求改为「关闭网页会话后必须重新认证、禁止弱口令、无旁路」。
+
+**鉴权（`server/infra/auth.py` / access-key.v2）**
+- **服务端会话**：Cookie 只放随机 `sid`，记录在内存；登出即删、可单条撤销、可全部撤销。
+- **会话级 Cookie**：不写 `Max-Age`/`Expires` → 浏览器关闭即清除。
+- **双重超时**：空闲 30 分钟（`SESSION_IDLE_MINUTES`）+ 绝对 8 小时（`SESSION_TTL_HOURS`）。
+- **强私钥强制**：`REQUIRE_ACCESS_KEY=1` 时，缺失 / <32 位 / 低熵（字符种类少）直接拒绝启动。
+- **私钥可放文件**：`ACCESS_KEY_FILE`（Docker/K8s secret 挂载），不必写进 `.env`。
+- **无旁路**：`AUTH_DISABLED=1` 仅测试用；非回环监听时体检判为故障。
+- 新增 `POST /api/auth/revoke-all` 一键下线全部设备；`/api/auth/status` 返回会话策略。
+
+**前端**
+- 新增 `static/js/session-guard.js`：API 401 自动回登录页，不再停在「加载失败」；
+  可选 `PAGE_CLOSE_LOGOUT=1` 时，关闭标签页也调用登出。
+
+**可复现部署**
+- 新增 `docs/40-ops/OPEN-SOURCE-DEPLOY.md`：初始化配置、实时链路与持久化、
+  目录结构、三种启动方式、访问控制生效范围与验证命令、部署清单、已知边界。
+- 新增 `Dockerfile` / `docker-compose.yml` / `.dockerignore`：一条命令起服务，
+  `data/`、`logs/` 挂载持久化，端口默认只绑 `127.0.0.1`。
+- `README`、`SECURITY.md`、`.env.example`、`AUTH.md` 同步 v2 口径。
+
+**验证**
+- `pytest` **517 passed**（鉴权 28 项：强度/文件读取/启动护栏/空闲与绝对超时/撤销/重放）。
+- 浏览器 `_verify_session.mjs` **11/11**：新会话被挡、弱口令被拒、私钥登录、
+  Cookie 无过期、刷新保持、**关闭浏览器会话后重新认证**、退出失效、旧 sid 重放 401。
+- 启动护栏实测：`071215` 与空私钥均被拒绝启动，并给出生成命令。
+
 ## 2026-11-03（21:55）— 数据口径修复 + 8 分制候选池 + 分层面板 + 口令边界
 
 **背景**：接入《交易策略配置文件》的 8 分制规则时，发现决策台存在

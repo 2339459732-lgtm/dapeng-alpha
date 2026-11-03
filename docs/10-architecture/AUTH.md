@@ -1,45 +1,37 @@
-# 访问密钥鉴权（access-key.v1）
+# 访问密钥鉴权（access-key.v2）
 
-> 代码：`server/infra/auth.py`（签名/校验/中间件）、`server/routers/auth.py`（登录接口与审计）、
-> `static/login.html`（登录页）。测试：`tests/test_auth.py`（29 项）、
-> `scripts/verify/_verify_auth.mjs`（真实浏览器 8 项）。
+> 代码：`server/infra/auth.py`（会话与中间件）、`server/routers/auth.py`（登录接口与审计）、
+> `static/login.html`（登录页）、`static/js/session-guard.js`（401 回登录页）。
+> 测试：`tests/test_auth.py`（28 项）；浏览器验收：`scripts/verify/_verify_session.mjs`（11 项）。
 
-## 一、为什么是「单口令 + 签名 Cookie」
+## 一、为什么是「私钥 + 服务端会话」
 
-这套系统的定位是「个人研究工具 + 少数朋友共用」，不是 SaaS。
+定位是「个人研究工具 + 少数朋友共用」，不是 SaaS。v1 用过 HMAC 签名 Cookie，
+但留下两个缺口：会话关不掉、弱口令挡不住。v2 改为**服务端会话**，直接解决这两点。
 
 | 方案 | 结论 | 原因 |
 |---|---|---|
-| 单口令 + 签名 Cookie | ✅ 采用 | 零依赖、零数据库、约 250 行；重启不掉线 |
-| 多密钥可撤销 | 备选 | 要维护密钥表与吊销逻辑，收益是「能单独踢人」 |
-| 账号密码 + 邀请码 | ❌ | 找回密码、防爆破、会话管理都是长期负担 |
-| 网关 Basic Auth | 备选 | 应用零改动，但应用内没有登录页，脚本调用要带 header |
+| 私钥 + 服务端会话 | ✅ 采用 | 可撤销、会话级 Cookie、关浏览器即失效 |
+| 无状态签名 Cookie（v1） | ❌ 已废弃 | 关浏览器不失效，踢人只能换 key |
+| 账号密码 + 邀请码 | ❌ | 找回密码、防爆破、多用户管理都是长期负担 |
+| 网关 Basic Auth | 备选 | 应用零改动，但无登录页、脚本需带 header |
 
-**核心取舍**：牺牲「按人撤销」换「零状态」。要踢人就换 `ACCESS_KEY`——所有旧会话
-因签名密钥变化立即失效，这正是单租户场景想要的行为。
+**核心取舍**：牺牲「重启不掉线」换「可撤销 + 强制重登」。会话存进程内存，
+重启即全员下线——对单租户工具这是可接受、甚至更安全的默认。
 
 ## 二、会话格式与校验
 
 ```
-Cookie: dapeng_session = v1.<exp_unix>.<hmac_sha256_hex>
+Cookie: dapeng_sid = <32 字节随机串>
+服务端: _SESSIONS[sid] = {created, last_seen, ip, ua_hash}
 ```
 
-签名密钥：
+- Cookie **不写 `Max-Age`/`Expires`** → 会话级，浏览器关闭即清除；
+- 校验：会话存在 + 未超空闲窗口（默认 30 分钟）+ 未超绝对上限（默认 8 小时）；
+- 每次请求刷新 `last_seen`；超过 `MAX_SESSIONS=32` 淘汰最久未活动的一条；
+- 登出删除单条；`revoke-all` 清空全部；**重启清空全部**。
 
-```
-SESSION_SECRET 存在 → 直接用
-否则               → sha256("dapeng-session|" + ACCESS_KEY)
-```
-
-校验顺序（任一失败即拒绝）：
-1. 三段式且版本前缀为 `v1`；
-2. `exp` 可解析且 > 当前时间；
-3. 重算 HMAC 与第三段 `hmac.compare_digest` 相等。
-
-因为密钥由 `ACCESS_KEY` 派生，**轮换口令 = 全部会话作废**，不需要额外的黑名单。
-
-Cookie 属性：`HttpOnly`、`SameSite=Lax`、`Path=/`、`Max-Age=SESSION_TTL_HOURS`；
-HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
+Cookie 属性：`HttpOnly`、`SameSite=Lax`、`Path=/`；HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
 
 ## 三、请求处理顺序
 
@@ -49,8 +41,9 @@ HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
  ├─ MoatMiddleware（最外层）      路径卫生 / 请求体上限 / 全局限流 / 安全响应头
  │
  ├─ AccessKeyMiddleware
+ │    ├─ IP 白名单校验 → 不在名单 403
  │    ├─ 写操作来源校验（Origin vs Host）→ 不通过 403
- │    ├─ 未配置 ACCESS_KEY → 直接放行（本地开发）
+ │    ├─ 鉴权未开启（AUTH_DISABLED=1）→ 放行（仅测试）
  │    ├─ 公开路径 → 放行
  │    ├─ 会话有效 → 放行
  │    ├─ /api/* → 401 JSON（带 WWW-Authenticate: AccessKey）
@@ -62,93 +55,90 @@ HTTPS 或 `COOKIE_SECURE=1` 时加 `Secure`。
 公开路径只有：`/login`、`/login.html`、`/api/auth/{login,logout,status}`、
 `/api/health`、`/favicon.ico`。健康检查只回缓存计数，不含路径与配置。
 
-## 四、防护墙的五层
+## 四、防护墙的六层
 
 | 层 | 机制 | 防什么 |
 |---|---|---|
-| 1 | **IP 白名单** `ACCESS_IP_ALLOWLIST`（支持 CIDR） | 扫描器/陌生 IP——口令再短也进不来 |
-| 2 | `hmac.compare_digest` 常量时间比较 | 时序侧信道猜口令 |
-| 3 | 登录 10 次/分钟/IP + **单 IP 15 分钟错 5 次锁 15 分钟** | 快打 + 慢速穷举（6 位口令只有 100 万组合） |
-| 4 | 全局失败闸门 60 次/10 分钟 | 分布式爆破兜底（换 IP 也暂停） |
-| 5 | Origin 校验 + SameSite=Lax | CSRF（跨站表单与跨站 fetch） |
-| 6 | 非回环监听 + 无密钥 → 拒绝启动 | 「改了 HOST 忘了配 key」的致命误配 |
+| 1 | **IP 白名单** `ACCESS_IP_ALLOWLIST`（支持 CIDR） | 扫描器/陌生 IP |
+| 2 | `hmac.compare_digest` 常量时间比较 | 时序侧信道猜私钥 |
+| 3 | 登录 10 次/分钟/IP + **单 IP 15 分钟错 5 次锁 15 分钟** | 快打 + 慢速穷举 |
+| 4 | 全局失败闸门 60 次/10 分钟 | 分布式爆破兜底 |
+| 5 | Origin 校验 + SameSite=Lax | CSRF |
+| 6 | **强私钥强制**：`REQUIRE_ACCESS_KEY=1` 时缺失/短于 32 位/低熵 → 拒绝启动 | 弱口令与「忘了配 key」 |
 
-弱口令（< 12 字符）自动把会话上限压到 **8 小时**：口令好记是刚需，
-但泄露后的暴露窗口不能是 72 小时。
-
-辅助措施：
-- `TRUST_PROXY` / `TRUSTED_PROXIES` 控制是否采信 `X-Forwarded-For`（默认不采信，防伪造限流键）；
-- 口令 < 16 字符时启动告警，`/api/health` 的 `checks.config.issues` 也会列出；
-- `logs/auth.log` 审计登录成功/失败/限流（JSONL，5MB 轮转，**不记录密钥**）。
+辅助：
+- `TRUST_PROXY` / `TRUSTED_PROXIES` 控制是否采信 `X-Forwarded-For`（默认不采信）；
+- `logs/auth.log` 审计登录成功/失败/限流/锁定（JSONL，5MB 轮转，**不记录私钥**）；
+- 前端 `session-guard.js` 遇到 401 自动回登录页，不让用户停留在「加载失败」。
 
 ## 五、配置项
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `ACCESS_KEY` | 空 | 为空则关闭鉴权；非回环监听时强制要求 |
-| `SESSION_TTL_HOURS` | 72 | 1–720，超出自动夹紧 |
-| `SESSION_SECRET` | 派生 | 设置后轮换 `ACCESS_KEY` 不作废旧会话 |
+| `ACCESS_KEY` | 空 | 访问私钥，≥32 位随机串 |
+| `ACCESS_KEY_FILE` | 空 | 从文件读取私钥（Docker/K8s secret 挂载），优先级低于 `ACCESS_KEY` |
+| `REQUIRE_ACCESS_KEY` | 0 | 1 = 缺失/过弱直接拒绝启动（生产必开） |
+| `AUTH_DISABLED` | 0 | 1 = 关闭鉴权，仅测试；非回环监听时体检判故障 |
+| `SESSION_IDLE_MINUTES` | 30 | 空闲超时（5–240） |
+| `SESSION_TTL_HOURS` | 8 | 绝对上限（1–24） |
+| `PAGE_CLOSE_LOGOUT` | 0 | 1 = 关闭标签页也登出（刷新可能触发重登） |
 | `COOKIE_SECURE` | 0 | HTTPS 部署置 1 |
 | `TRUST_PROXY` | 0 | 反代后置 1 才采信 XFF |
 | `TRUSTED_PROXIES` | 空 | 逗号分隔；对端在此列表时采信 XFF |
-| `ALLOWED_ORIGINS` | 空 | 额外允许的写请求来源（如独立前端域名） |
-| `ACCESS_IP_ALLOWLIST` | 空 | IP 白名单，逗号分隔、支持 CIDR；配置后连登录页都不对外 |
-| `ALLOW_INSECURE_BIND` | 0 | 置 1 可跳过「非回环必须有密钥」的启动拦截（不建议） |
+| `ALLOWED_ORIGINS` | 空 | 额外允许的写请求来源 |
+| `ACCESS_IP_ALLOWLIST` | 空 | IP 白名单，支持 CIDR；配置后连登录页都不对外 |
+| `ALLOW_INSECURE_BIND` | 0 | 跳过「非回环必须有密钥」的启动拦截（不建议） |
 
 ## 六、失败模式与排查
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| 登录成功但立刻又回登录页 | HTTPS 下设了 `COOKIE_SECURE=0`（Cookie 无 Secure 仍可用）或反代丢失 Cookie | 检查反代是否透传 `Set-Cookie`；确认 `Host` 未被改写 |
+| 每次开浏览器都要重登 | 会话 Cookie（设计如此） | 正常；想少登几次可调大 `SESSION_IDLE_MINUTES` |
+| 刷新页面就掉线 | `PAGE_CLOSE_LOGOUT=1` 且 pagehide 触发 | 关掉该开关，或接受此行为 |
+| 登录成功但立刻又回登录页 | 反代未透传 `Set-Cookie`，或 HTTPS 下设了 `COOKIE_SECURE=0` | 检查反代与 `Host` |
 | 所有人共用一个限流额度 | 反代后未设 `TRUST_PROXY` | 设 `TRUST_PROXY=1` 或 `TRUSTED_PROXIES` |
-| 重启后全部掉线 | 未设 `SESSION_SECRET` 且 `ACCESS_KEY` 变了 | 属预期；固定 `SESSION_SECRET` 可避免 |
-| 启动直接报错退出 | `HOST` 非回环且无 `ACCESS_KEY` | 配密钥，或设 `ALLOW_INSECURE_BIND=1` |
-| 登录页 404 | `static/login.html` 缺失 | 检查部署包是否包含 static |
-| 突然全部 403「不在白名单」 | 配置了 `ACCESS_IP_ALLOWLIST` 但本机 IP 不在名单 | 把出口 IP 加进去，或临时清空该变量重启 |
-| 错 5 次后一直 429 | 单 IP 锁定 15 分钟 | 等待解锁，或重启服务清空计数 |
+| 重启后全部掉线 | 会话存内存 | 预期行为 |
+| 启动直接报错退出 | 未配私钥 / 私钥 <32 位 / `HOST` 非回环 | 按报错提示生成并写入 `.env` |
+| 登录页 404 | `static/login.html` 缺失 | 检查部署包 |
+| 突然全部 403「不在白名单」 | `ACCESS_IP_ALLOWLIST` 不含本机 IP | 加入出口 IP，或清空变量重启 |
+| 错 5 次后一直 429 | 单 IP 锁定 15 分钟 | 等待解锁，或重启清空计数 |
 
 ## 七、验收
 
 ```bash
-# 单测（含签名伪造、过期、轮换、限流、来源校验、审计脱敏）
+# 单测：强度、会话过期/撤销、Cookie 无 Max-Age、限流、来源校验、审计脱敏
 python -m pytest tests/test_auth.py -q
 
-# 端到端（需先起一个带密钥的实例）
-ACCESS_KEY=<key> PORT=8911 python -m uvicorn server.main:app --port 8911
-ACCESS_KEY=<key> AUTH_BASE=http://127.0.0.1:8911 node scripts/verify/_verify_auth.mjs
+# 浏览器端到端（真实关闭会话，11 项）
+ACCESS_KEY=<key> node scripts/verify/_verify_session.mjs
 ```
 
-浏览器验收覆盖：未登录重定向 → 错误密钥就地报错 → 正确密钥进入 → 刷新保持 →
-退出后重新要求登录 → 无 JS 运行时错误。
+浏览器验收覆盖：新会话被挡 → 弱口令被拒 → 私钥登录 → Cookie 无过期 →
+刷新保持 → **关闭浏览器会话后重新认证** → 退出失效 → 旧 sid 重放 401。
 
 ## 八、开了鉴权之后，自检工具怎么跑
 
-这是上线后最容易踩的坑：鉴权一开，审计与性能脚本全被 401 挡在门外，于是「体检报告
-一片红」被误读成系统坏了。现在所有验证脚本都会**自动登录**：
+鉴权一开，审计与性能脚本会被 401 挡住，于是「体检一片红」被误读成系统坏了。
+所有验证脚本都会**自动登录**：
 
 | 脚本 | 方式 |
 |---|---|
-| `scripts/verify/system_audit.py` | `_auth.auth_headers()` 读 `ACCESS_KEY`（环境变量或 `.env`），登录后带 Cookie |
+| `scripts/verify/system_audit.py` | `_auth.auth_headers()` 读私钥（环境变量或 `.env`），登录后带 Cookie |
 | `scripts/verify/perf_budget.py` | 同上 |
 | `scripts/verify/_verify_*.mjs` / `_shot_*.mjs` | `_login.loginContext()` 用 `context.request` 登录，Cookie 自动共享给页面 |
-| `scripts/verify/_verify_auth.mjs` | 本身就在验登录流程，直接用 `ACCESS_KEY` |
-
-未配置密钥的实例，助手返回空，脚本行为与以前完全一致。
-
-一键体检（推荐每次改完都跑）：
 
 ```bash
-python scripts/verify/checkup.py            # pytest + 架构守卫 + 运行态体检 + 性能预算
-python scripts/verify/checkup.py --offline  # 只跑前两项（服务没起时）
+python scripts/verify/checkup.py            # pytest + 架构守卫 + 体检 + 性能
+python scripts/verify/checkup.py --offline  # 服务未起时只跑前两项
 ```
 
 ## 九、维护手册
 
 | 场景 | 操作 |
 |---|---|
-| 换密钥 | 改 `.env` → 重启；会话全失效，需重新登录 |
-| 有人离职/设备丢失 | 同上；若设了 `SESSION_SECRET`，先删掉再轮换 |
+| 换私钥 | 改 `.env`/secret 文件 → 重启；全部会话立即失效 |
+| 设备丢失 | `POST /api/auth/revoke-all`，再换私钥 |
 | 查谁在登 | `tail -f logs/auth.log`（JSONL：时间/IP/动作） |
-| 疑似爆破 | 日志出现大量 `login_failed` / `rate_limited`；换密钥并把反代限流也打开 |
-| 忘了密钥 | 读服务器 `.env`；实在丢失就换新密钥重启 |
-| 想回到无鉴权本机模式 | 清空 `ACCESS_KEY` 且 `HOST=127.0.0.1` |
+| 疑似爆破 | 大量 `login_failed` / `ip_locked`；换私钥并收紧 `ACCESS_IP_ALLOWLIST` |
+| 忘了私钥 | 读服务器 `.env` 或 secret 文件；丢失则生成新私钥重启 |
+| 本地调试不想登录 | `AUTH_DISABLED=1` + `HOST=127.0.0.1`，**不要**用于部署 |

@@ -1,50 +1,56 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""访问密钥鉴权（access-key.v1）：开源版「有钥匙才能进」。
+"""访问密钥鉴权（access-key.v2）：服务端会话 + 会话级 Cookie + 强密钥强制。
 
-为什么要这一层
---------------
-代码开源之后，**代码是公开的，跑起来的实例不是**。这套系统里没有任何用户体系
-（只有限流 + 管理端 token），一旦把 `HOST` 改成 `0.0.0.0` 暴露到公网，任何拿到
-地址的人都能直接看行情、调接口、改配置。所以需要一个与应用解耦的入口闸门。
+为什么从 v1 改成 v2
+-------------------
+v1 用「HMAC 签名 Cookie」：无状态、重启不掉线，但有两个无法接受的缺口——
 
-设计取舍
---------
-1. **单口令，不做账号体系**。目标使用者是「自己 + 几个朋友」，账号、找回密码、
-   邀请注册都是负资产；一个足够长的 `ACCESS_KEY` 已经能挡住扫描器。
-2. **会话用 HMAC 签名 Cookie，不用服务端 session 表**。无状态、重启不掉线、
-   零存储；代价是无法单独踢人——要踢就换 key（所有会话立即失效，这正是预期）。
-3. **签名密钥由 ACCESS_KEY 派生**（可用 `SESSION_SECRET` 覆盖）。这样轮换 key
-   会自动作废全部旧会话，不需要额外的吊销逻辑。
-4. **未配置 ACCESS_KEY 时整层关闭**。本地开发、pytest、CI 都不受影响；
-   只有显式配置后才启用，避免「装上就进不去」。
-5. **失败信息统一**：key 错误只回「密钥不正确」，不区分「没配 / 配了但错」，
-   比较用 `hmac.compare_digest` 防时序侧信道；登录接口单独限流，防爆破。
+1. **会话关不掉**：Cookie 带 `Max-Age`，关掉浏览器再打开仍然有效；
+   要踢人只能换 key，把所有人一起踢下线。
+2. **弱口令挡不住**：6 位数字口令配 72 小时会话，等于给穷举者留了长期后门。
 
-边界
-----
-* 这是**单租户闸门**，不是多用户鉴权：登录后所有请求共享同一身份；
-* Cookie 默认 `HttpOnly` + `SameSite=Lax`；HTTPS 下自动加 `Secure`；
-* 不做 CSRF token：所有写操作都是同源 JSON 请求，且 `SameSite=Lax` 已挡掉
-  跨站表单提交；若将来加第三方嵌入，需要补 CSRF。
+v2 的规则：
+
+* **服务端会话**：Cookie 只放随机 `sid`（32 字节），会话记录在内存；
+  登出即删除、可单条撤销、可全部撤销。
+* **会话级 Cookie**：不写 `Max-Age`/`Expires`，浏览器关闭即清除；
+  再次访问必须重新输入密钥。
+* **双重超时**：空闲 30 分钟自动失效（可调），绝对上限 8 小时（可调）。
+* **强密钥强制**：`REQUIRE_ACCESS_KEY=1` 时，未配置或长度 < 32 直接拒绝启动；
+  支持 `ACCESS_KEY_FILE` 从挂载的文件读取，密钥不必写进 `.env`。
+* **无密钥不得进入**：鉴权层默认开启；只有显式 `AUTH_DISABLED=1`（仅测试）才关闭，
+  且该开关会在启动日志里高亮告警。
+
+边界（如实说明）
+----------------
+* 会话存在进程内存，**重启即全员下线**——这是有意的：宁可重登，不留长期票据。
+* 浏览器「关闭标签页但进程还在」时，会话 Cookie 仍可能保留；要连标签页关闭都退出，
+  设 `PAGE_CLOSE_LOGOUT=1`（前端 pagehide 时调用登出），代价是刷新页面也可能触发重登。
+* 这是单租户闸门，不是多用户鉴权：登录后所有请求共享同一身份。
 """
 from __future__ import annotations
 
 import hashlib
 import hmac
 import os
+import secrets
+import threading
 import time
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, Response
 
-VERSION = "access-key.v1"
-COOKIE_NAME = "dapeng_session"
-SESSION_VERSION = "v1"
-DEFAULT_TTL_HOURS = 72
+VERSION = "access-key.v2"
+COOKIE_NAME = "dapeng_sid"
+DEFAULT_IDLE_MINUTES = 30
+DEFAULT_ABS_HOURS = 8
+MIN_KEY_LEN = 32
+MAX_SESSIONS = 32
 
 #: 无需登录即可访问的路径。只放登录本身与健康检查——健康检查要给监控/看门狗用，
 #: 但它不回任何业务数据，泄露面为零。
@@ -58,39 +64,230 @@ PUBLIC_PATHS = {
     "/favicon.ico",
 }
 
+#: sid → {created, last_seen, ip, ua_hash}
+_SESSIONS: Dict[str, Dict[str, Any]] = {}
+_LOCK = threading.Lock()
+
+
+# ---------------------------------------------------------------------------
+# 密钥读取与强度
+# ---------------------------------------------------------------------------
+def _truthy(name: str) -> bool:
+    return (os.getenv(name) or "").strip().lower() in ("1", "true", "yes", "on")
+
 
 def access_key() -> Optional[str]:
-    """读取访问密钥；空字符串视为未配置。"""
+    """读取访问密钥：优先环境变量，其次 `ACCESS_KEY_FILE` 指向的文件。"""
     value = (os.getenv("ACCESS_KEY") or os.getenv("DAPENG_ACCESS_KEY") or "").strip()
-    return value or None
+    if value:
+        return value
+    path = (os.getenv("ACCESS_KEY_FILE") or "").strip()
+    if path:
+        try:
+            text = Path(path).read_text(encoding="utf-8").strip()
+            return text or None
+        except OSError:
+            return None
+    return None
 
 
 def auth_enabled() -> bool:
+    """鉴权是否生效。默认开启；只有显式 AUTH_DISABLED=1 才关闭（仅测试）。"""
+    if _truthy("AUTH_DISABLED"):
+        return False
     return access_key() is not None
 
 
-def ttl_seconds() -> int:
-    raw = (os.getenv("SESSION_TTL_HOURS") or "").strip()
+def page_close_logout() -> bool:
+    """关闭标签页时是否调用登出（PAGE_CLOSE_LOGOUT=1）。"""
+    return _truthy("PAGE_CLOSE_LOGOUT")
+
+
+def require_key() -> bool:
+    """部署要求：必须配置强密钥。由 REQUIRE_ACCESS_KEY=1 开启。"""
+    return _truthy("REQUIRE_ACCESS_KEY")
+
+
+def key_strength_issue(key: Optional[str] = None) -> Optional[str]:
+    """密钥强度检查。返回问题描述；None 表示合格。"""
+    value = access_key() if key is None else key
+    if not value:
+        return "未配置 ACCESS_KEY（或 ACCESS_KEY_FILE 指向的文件为空）"
+    if len(value) < MIN_KEY_LEN:
+        return (f"ACCESS_KEY 仅 {len(value)} 字符，低于 {MIN_KEY_LEN} 位下限；"
+                "请用 python -c \"import secrets;print(secrets.token_urlsafe(48))\" 生成")
+    # 低熵启发式：字符种类太少（如全数字、全同一字符）直接判不合格
+    classes = sum([any(c.islower() for c in value), any(c.isupper() for c in value),
+                   any(c.isdigit() for c in value), any(not c.isalnum() for c in value)])
+    if classes < 2 or len(set(value)) < 12:
+        return "ACCESS_KEY 字符种类过少，疑似弱口令；请使用随机串"
+    return None
+
+
+def startup_guard() -> None:
+    """启动护栏：要求强密钥时，缺失/过弱直接拒绝启动。"""
+    if _truthy("AUTH_DISABLED"):
+        return
+    if not require_key():
+        return
+    issue = key_strength_issue()
+    if issue:
+        raise RuntimeError(
+            "拒绝启动：" + issue + "\n"
+            "  生成：python -c \"import secrets;print(secrets.token_urlsafe(48))\"\n"
+            "  写入：.env 的 ACCESS_KEY=...，或 ACCESS_KEY_FILE=/run/secrets/dapeng_key\n"
+            "  如确需关闭鉴权（仅限本地测试），设 AUTH_DISABLED=1。"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 会话
+# ---------------------------------------------------------------------------
+def _env_int(name: str, default: int, low: int, high: int) -> int:
+    raw = (os.getenv(name) or "").strip()
     try:
-        hours = float(raw) if raw else DEFAULT_TTL_HOURS
+        value = int(float(raw)) if raw else default
     except ValueError:
-        hours = DEFAULT_TTL_HOURS
-    # 下限 1 小时、上限 30 天：太短会频繁重登，太长等于永不掉线
-    ttl = int(min(max(hours, 1.0), 720.0) * 3600)
-    # 弱口令自动缩短会话：6 位数字这类口令一旦泄露，长会话等于长期后门。
-    # 不强改用户的 key（好记是刚需），但把暴露窗口从 72 小时压到 8 小时。
-    key = access_key() or ""
-    if key and len(key) < 12:
-        ttl = min(ttl, 8 * 3600)
-    return ttl
+        value = default
+    return max(low, min(high, value))
 
 
-def allowed_ips() -> list:
-    """IP 白名单（`ACCESS_IP_ALLOWLIST`，逗号分隔，支持 CIDR）。
+def idle_seconds() -> int:
+    """空闲超时（秒）：多久没有请求就失效。"""
+    return _env_int("SESSION_IDLE_MINUTES", DEFAULT_IDLE_MINUTES, 5, 240) * 60
 
-    为空表示不限制；一旦配置，**所有请求**（含登录页）都必须在名单内——
-    这是弱口令最有效的一道外包围墙：口令再短，扫描器也进不来。
-    """
+
+def absolute_seconds() -> int:
+    """绝对超时（秒）：从登录起算，无论是否活跃都失效。"""
+    return _env_int("SESSION_TTL_HOURS", DEFAULT_ABS_HOURS, 1, 24) * 3600
+
+
+def _ua_hash(ua: str) -> str:
+    return hashlib.sha256((ua or "").encode("utf-8", "ignore")).hexdigest()[:16]
+
+
+def create_session(ip: str, user_agent: str = "") -> str:
+    """创建会话，返回 sid。超过上限时淘汰最久未活动的会话。"""
+    sid = secrets.token_urlsafe(32)
+    now = time.time()
+    with _LOCK:
+        if len(_SESSIONS) >= MAX_SESSIONS:
+            oldest = min(_SESSIONS.items(), key=lambda kv: kv[1].get("last_seen") or 0)
+            _SESSIONS.pop(oldest[0], None)
+        _SESSIONS[sid] = {"created": now, "last_seen": now,
+                          "ip": ip, "ua_hash": _ua_hash(user_agent)}
+    return sid
+
+
+def get_session(sid: Optional[str]) -> Optional[Dict[str, Any]]:
+    """校验会话并刷新 last_seen；过期/不存在返回 None。"""
+    if not sid:
+        return None
+    now = time.time()
+    with _LOCK:
+        rec = _SESSIONS.get(sid)
+        if not rec:
+            return None
+        if now - float(rec.get("last_seen") or 0) > idle_seconds():
+            _SESSIONS.pop(sid, None)
+            return None
+        if now - float(rec.get("created") or 0) > absolute_seconds():
+            _SESSIONS.pop(sid, None)
+            return None
+        rec["last_seen"] = now
+        return dict(rec)
+
+
+def revoke_session(sid: Optional[str]) -> bool:
+    if not sid:
+        return False
+    with _LOCK:
+        return _SESSIONS.pop(sid, None) is not None
+
+
+def revoke_all() -> int:
+    with _LOCK:
+        count = len(_SESSIONS)
+        _SESSIONS.clear()
+        return count
+
+
+def session_count() -> int:
+    with _LOCK:
+        return len(_SESSIONS)
+
+
+def session_remaining(sid: Optional[str]) -> int:
+    """距离空闲超时的剩余秒数（0 = 无效）。"""
+    rec = get_session(sid)
+    if not rec:
+        return 0
+    return max(0, int(idle_seconds() - (time.time() - float(rec.get("last_seen") or 0))))
+
+
+# ---------------------------------------------------------------------------
+# 密钥比较与 Cookie
+# ---------------------------------------------------------------------------
+def check_key(candidate: Optional[str]) -> bool:
+    """常量时间比较口令。未配置密钥时一律拒绝。"""
+    expected = access_key()
+    if not expected or not candidate:
+        return False
+    return hmac.compare_digest(str(candidate), expected)
+
+
+def cookie_secure(request: Request) -> bool:
+    if _truthy("COOKIE_SECURE"):
+        return True
+    return request.url.scheme == "https"
+
+
+def set_session_cookie(response: Response, sid: str, secure: bool) -> None:
+    """写入**会话 Cookie**：不设 Max-Age/Expires，浏览器关闭即清除。"""
+    response.set_cookie(COOKIE_NAME, sid, httponly=True, samesite="lax",
+                        secure=secure, path="/")
+
+
+def clear_session_cookie(response: Response) -> None:
+    response.delete_cookie(COOKIE_NAME, path="/")
+
+
+# ---------------------------------------------------------------------------
+# 部署面加固：真实 IP、来源校验、IP 白名单
+# ---------------------------------------------------------------------------
+def client_ip(request: Request) -> str:
+    """解析客户端 IP：默认取 TCP 对端，只有可信代理才采信 X-Forwarded-For。"""
+    peer = (request.client.host if request.client else "") or "unknown"
+    trusted = _truthy("TRUST_PROXY")
+    if not trusted:
+        allowed = {x.strip() for x in (os.getenv("TRUSTED_PROXIES") or "").split(",") if x.strip()}
+        trusted = peer in allowed
+    if trusted:
+        chain = (request.headers.get("x-forwarded-for") or "").split(",")
+        first = chain[0].strip() if chain else ""
+        if first:
+            return first
+    return peer
+
+
+def origin_allowed(request: Request) -> bool:
+    """写操作来源校验：带 Origin 且与本站不同源 → 拒绝；不带 Origin 放行。"""
+    if request.method.upper() in ("GET", "HEAD", "OPTIONS"):
+        return True
+    origin = (request.headers.get("origin") or "").strip()
+    if not origin:
+        return True
+    allowed = {o.strip().rstrip("/") for o in (os.getenv("ALLOWED_ORIGINS") or "").split(",") if o.strip()}
+    if origin.rstrip("/") in allowed:
+        return True
+    host = (request.headers.get("host") or "").strip()
+    if not host:
+        return False
+    return origin.rstrip("/") in {f"http://{host}", f"https://{host}"}
+
+
+def allowed_ips() -> List[Any]:
+    """IP 白名单（`ACCESS_IP_ALLOWLIST`，逗号分隔，支持 CIDR）。空 = 不限制。"""
     raw = (os.getenv("ACCESS_IP_ALLOWLIST") or "").strip()
     if not raw:
         return []
@@ -121,130 +318,10 @@ def ip_allowed(ip: str) -> bool:
     return any(addr in net for net in nets)
 
 
-def _secret() -> bytes:
-    """签名密钥：优先 SESSION_SECRET，否则由 ACCESS_KEY 派生。
-
-    派生而不是直接用 key：Cookie 里不会出现与口令同源的原始字节，
-    且轮换 ACCESS_KEY 会同时作废所有旧会话。
-    """
-    explicit = (os.getenv("SESSION_SECRET") or "").strip()
-    if explicit:
-        return explicit.encode("utf-8")
-    key = access_key() or ""
-    return hashlib.sha256(("dapeng-session|" + key).encode("utf-8")).digest()
-
-
-def _sign(payload: str) -> str:
-    return hmac.new(_secret(), payload.encode("utf-8"), hashlib.sha256).hexdigest()
-
-
-def sign_session(exp: int) -> str:
-    """生成 `v1.<过期时间戳>.<签名>`。"""
-    payload = f"{SESSION_VERSION}.{int(exp)}"
-    return f"{payload}.{_sign(payload)}"
-
-
-def verify_session(token: Optional[str], now: Optional[float] = None) -> bool:
-    """校验会话：签名必须匹配、必须未过期。任何异常一律视为无效。"""
-    if not token:
-        return False
-    parts = str(token).split(".")
-    if len(parts) != 3 or parts[0] != SESSION_VERSION:
-        return False
-    try:
-        exp = int(parts[1])
-    except (TypeError, ValueError):
-        return False
-    if exp <= int(now if now is not None else time.time()):
-        return False
-    expected = _sign(f"{SESSION_VERSION}.{exp}")
-    return hmac.compare_digest(expected, parts[2])
-
-
-def check_key(candidate: Optional[str]) -> bool:
-    """常量时间比较口令。未配置密钥时一律拒绝（中间件此时本来就不会拦）。"""
-    expected = access_key()
-    if not expected or not candidate:
-        return False
-    return hmac.compare_digest(str(candidate), expected)
-
-
-def issue_session() -> Tuple[str, int]:
-    """签发会话，返回 (cookie 值, 有效秒数)。"""
-    ttl = ttl_seconds()
-    return sign_session(int(time.time()) + ttl), ttl
-
-
-def cookie_secure(request: Request) -> bool:
-    """HTTPS 或显式要求时给 Cookie 加 Secure。"""
-    if (os.getenv("COOKIE_SECURE") or "").strip().lower() in ("1", "true", "yes"):
-        return True
-    return request.url.scheme == "https"
-
-
-# ---------------------------------------------------------------------------
-# 部署面加固：真实 IP、来源校验、口令强度
-# ---------------------------------------------------------------------------
-def _truthy(name: str) -> bool:
-    return (os.getenv(name) or "").strip().lower() in ("1", "true", "yes", "on")
-
-
-def client_ip(request: Request) -> str:
-    """解析客户端 IP：默认取 TCP 对端，只有可信代理才采信 X-Forwarded-For。
-
-    为什么不能无条件读 XFF：那是客户端可伪造的请求头，拿它做限流键等于让攻击者
-    每次换一个「IP」，10 次/分钟的登录限制立刻失效。只有当我们确实部署在反向代理
-    后面（`TRUST_PROXY=1`，或对端 IP 在 `TRUSTED_PROXIES` 里）才采信。
-    """
-    peer = (request.client.host if request.client else "") or "unknown"
-    trusted = _truthy("TRUST_PROXY")
-    if not trusted:
-        allowed = {x.strip() for x in (os.getenv("TRUSTED_PROXIES") or "").split(",") if x.strip()}
-        trusted = peer in allowed
-    if trusted:
-        chain = (request.headers.get("x-forwarded-for") or "").split(",")
-        first = chain[0].strip() if chain else ""
-        if first:
-            return first
-    return peer
-
-
-def origin_allowed(request: Request) -> bool:
-    """写操作的来源校验（CSRF 纵深防御）。
-
-    规则：**带 Origin 且与本站不同源 → 拒绝**；不带 Origin 的放行（curl、服务端
-    回调、微信/支付宝异步通知都不带 Origin，不能误伤）。
-    与 SameSite=Lax 叠加：一个挡跨站表单，一个挡跨站 XHR/fetch。
-    """
-    if request.method.upper() in ("GET", "HEAD", "OPTIONS"):
-        return True
-    origin = (request.headers.get("origin") or "").strip()
-    if not origin:
-        return True
-    allowed = {o.strip().rstrip("/") for o in (os.getenv("ALLOWED_ORIGINS") or "").split(",") if o.strip()}
-    if origin.rstrip("/") in allowed:
-        return True
-    host = (request.headers.get("host") or "").strip()
-    if not host:
-        return False
-    return origin.rstrip("/") in {f"http://{host}", f"https://{host}"}
-
-
-def key_strength_issue(key: Optional[str] = None) -> Optional[str]:
-    """口令强度检查：太短直接提示（不阻止启动，避免把已有部署锁死）。"""
-    value = access_key() if key is None else key
-    if not value:
-        return None
-    if len(value) < 16:
-        return f"ACCESS_KEY 仅 {len(value)} 字符，建议 ≥32（python -c \"import secrets;print(secrets.token_urlsafe(32))\"）"
-    return None
-
-
 class AccessKeyMiddleware(BaseHTTPMiddleware):
     """未登录：API 回 401，页面 302 到 /login；写操作额外校验来源。"""
 
     async def dispatch(self, request: Request, call_next):
-        # 0) IP 白名单：配置后连登录页都不对名单外开放
         if not ip_allowed(client_ip(request)):
             return JSONResponse(status_code=403, content={
                 "ok": False, "message": "当前 IP 不在访问白名单内", "version": VERSION})
@@ -261,7 +338,7 @@ class AccessKeyMiddleware(BaseHTTPMiddleware):
         if path in PUBLIC_PATHS or path.startswith("/api/auth/"):
             return await call_next(request)
 
-        if verify_session(request.cookies.get(COOKIE_NAME)):
+        if get_session(request.cookies.get(COOKIE_NAME)):
             return await call_next(request)
 
         if path.startswith("/api/"):
@@ -276,19 +353,10 @@ class AccessKeyMiddleware(BaseHTTPMiddleware):
         return RedirectResponse(url="/login?next=" + quote(nxt, safe=""), status_code=302)
 
 
-def set_session_cookie(response: Response, value: str, ttl: int, secure: bool) -> None:
-    response.set_cookie(
-        COOKIE_NAME, value,
-        max_age=ttl, httponly=True, samesite="lax", secure=secure, path="/",
-    )
-
-
-def clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(COOKIE_NAME, path="/")
-
-
-__all__ = ["VERSION", "COOKIE_NAME", "auth_enabled", "access_key", "check_key",
-           "issue_session", "verify_session", "sign_session", "ttl_seconds",
+__all__ = ["VERSION", "COOKIE_NAME", "auth_enabled", "require_key", "access_key",
+           "check_key", "key_strength_issue", "startup_guard",
+           "create_session", "get_session", "revoke_session", "revoke_all",
+           "session_count", "session_remaining", "idle_seconds", "absolute_seconds",
            "cookie_secure", "set_session_cookie", "clear_session_cookie",
-           "client_ip", "origin_allowed", "key_strength_issue",
-           "allowed_ips", "ip_allowed", "AccessKeyMiddleware", "PUBLIC_PATHS"]
+           "client_ip", "origin_allowed", "allowed_ips", "ip_allowed", "page_close_logout",
+           "AccessKeyMiddleware", "PUBLIC_PATHS"]
