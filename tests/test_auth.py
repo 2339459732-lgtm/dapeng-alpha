@@ -304,3 +304,26 @@ def test_audit_log_never_contains_key(client, monkeypatch, tmp_path):
     assert "super-secret-attempt" not in text
     assert KEY not in text
     assert "login_ok" in text and "login_failed" in text
+
+
+# ---------------------------------------------------------------------------
+# 长度下限可配置：部署方自定下限时，仍需挡住低熵口令
+# ---------------------------------------------------------------------------
+def test_min_len_configurable_accepts_12_char_mixed(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY_MIN_LEN", "12")
+    monkeypatch.setenv("ACCESS_KEY", "test-key-0712-abcd")
+    assert auth.min_key_len() == 12
+    assert auth.key_strength_issue() is None
+
+
+def test_min_len_configurable_still_rejects_sequential_digits(monkeypatch):
+    monkeypatch.setenv("ACCESS_KEY_MIN_LEN", "12")
+    monkeypatch.setenv("ACCESS_KEY", "123456789012")  # 12 位但只有数字且分布单一
+    assert auth.key_strength_issue() is not None
+
+
+def test_min_len_default_is_32(monkeypatch):
+    monkeypatch.delenv("ACCESS_KEY_MIN_LEN", raising=False)
+    assert auth.min_key_len() == 32
+    monkeypatch.setenv("ACCESS_KEY", "test-key-0712-abcd")
+    assert auth.key_strength_issue() is not None

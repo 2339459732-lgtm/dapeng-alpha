@@ -77,7 +77,8 @@ Cookie 属性：`HttpOnly`、`SameSite=Lax`、`Path=/`；HTTPS 或 `COOKIE_SECUR
 |---|---|---|
 | `ACCESS_KEY` | 空 | 访问私钥，≥32 位随机串 |
 | `ACCESS_KEY_FILE` | 空 | 从文件读取私钥（Docker/K8s secret 挂载），优先级低于 `ACCESS_KEY` |
-| `REQUIRE_ACCESS_KEY` | 0 | 1 = 缺失/过弱直接拒绝启动（生产必开） |
+| `REQUIRE_ACCESS_KEY` | 0 | 1 = 低于长度下限直接拒绝启动（生产必开） |
+| `ACCESS_KEY_MIN_LEN` | 32 | 私钥长度下限；下调即自担强度责任（≥12 且至少两类字符） |
 | `AUTH_DISABLED` | 0 | 1 = 关闭鉴权，仅测试；非回环监听时体检判故障 |
 | `SESSION_IDLE_MINUTES` | 30 | 空闲超时（5–240） |
 | `SESSION_TTL_HOURS` | 8 | 绝对上限（1–24） |

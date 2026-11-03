@@ -288,7 +288,7 @@ ACCESS_KEY=... node scripts/verify/_verify_session.mjs
 
 - [ ] Python 3.11 / Docker 24+
 - [ ] `cp .env.example .env`，填 `ACCESS_KEY`（≥32 位随机）与 `MOAT_ADMIN_TOKEN`
-- [ ] `REQUIRE_ACCESS_KEY=1`（生产必开）
+- [ ] `REQUIRE_ACCESS_KEY=1`（生产必开）；如用短私钥，同时设 `ACCESS_KEY_MIN_LEN=12` 及以上
 - [ ] 公网：`HOST=0.0.0.0`、HTTPS 反代、`COOKIE_SECURE=1`、`TRUST_PROXY=1`
 - [ ] `ACCESS_IP_ALLOWLIST` 按需收紧（支持 CIDR）
 - [ ] 挂载 `data/`、`logs/` 到持久卷；定期备份 `trading.db`

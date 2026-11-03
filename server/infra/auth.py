@@ -49,7 +49,7 @@ VERSION = "access-key.v2"
 COOKIE_NAME = "dapeng_sid"
 DEFAULT_IDLE_MINUTES = 30
 DEFAULT_ABS_HOURS = 8
-MIN_KEY_LEN = 32
+MIN_KEY_LEN = 32  # 默认下限；可由 ACCESS_KEY_MIN_LEN 覆盖（部署方自担强度责任）
 MAX_SESSIONS = 32
 
 #: 无需登录即可访问的路径。只放登录本身与健康检查——健康检查要给监控/看门狗用，
@@ -108,19 +108,30 @@ def require_key() -> bool:
     return _truthy("REQUIRE_ACCESS_KEY")
 
 
+def min_key_len() -> int:
+    """私钥长度下限。默认 32；部署方可用 ACCESS_KEY_MIN_LEN 下调（自担强度责任）。"""
+    return _env_int("ACCESS_KEY_MIN_LEN", MIN_KEY_LEN, 8, 128)
+
+
 def key_strength_issue(key: Optional[str] = None) -> Optional[str]:
-    """密钥强度检查。返回问题描述；None 表示合格。"""
+    """密钥强度检查。返回问题描述；None 表示合格。
+
+    两条判定：
+    1. **长度**不低于 `min_key_len()`（默认 32）；
+    2. **多样性**：至少 2 类字符，且不同字符数不少于长度的一半（下限 6）。
+       第 2 条用来挡住 `123456789012` 这类「够长但只是顺序数字」的口令。
+    """
     value = access_key() if key is None else key
     if not value:
         return "未配置 ACCESS_KEY（或 ACCESS_KEY_FILE 指向的文件为空）"
-    if len(value) < MIN_KEY_LEN:
-        return (f"ACCESS_KEY 仅 {len(value)} 字符，低于 {MIN_KEY_LEN} 位下限；"
+    floor = min_key_len()
+    if len(value) < floor:
+        return (f"ACCESS_KEY 仅 {len(value)} 字符，低于 {floor} 位下限；"
                 "请用 python -c \"import secrets;print(secrets.token_urlsafe(48))\" 生成")
-    # 低熵启发式：字符种类太少（如全数字、全同一字符）直接判不合格
     classes = sum([any(c.islower() for c in value), any(c.isupper() for c in value),
                    any(c.isdigit() for c in value), any(not c.isalnum() for c in value)])
-    if classes < 2 or len(set(value)) < 12:
-        return "ACCESS_KEY 字符种类过少，疑似弱口令；请使用随机串"
+    if classes < 2 or len(set(value)) < max(6, int(len(value) * 0.5)):
+        return "ACCESS_KEY 字符种类或分布过于单一，疑似弱口令；请使用随机串或长口令"
     return None
 
 

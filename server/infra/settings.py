@@ -121,8 +121,12 @@ def _validate(s: Settings) -> tuple[tuple[str, ...], tuple[str, ...]]:
         issues.append("监听非回环地址但未设置 ACCESS_KEY，任何能访问该地址的人都可以直接使用本系统")
     _key = (os.getenv("ACCESS_KEY") or os.getenv("DAPENG_ACCESS_KEY") or "").strip()
     _require = (os.getenv("REQUIRE_ACCESS_KEY") or "").strip().lower() in ("1", "true", "yes", "on")
-    if _require and len(_key) < 32:
-        issues.append("REQUIRE_ACCESS_KEY=1 但 ACCESS_KEY 缺失或短于 32 位")
+    try:
+        _floor = int((os.getenv("ACCESS_KEY_MIN_LEN") or "32").strip() or 32)
+    except ValueError:
+        _floor = 32
+    if _require and len(_key) < _floor:
+        issues.append(f"REQUIRE_ACCESS_KEY=1 但 ACCESS_KEY 缺失或短于 {_floor} 位")
     elif _key and len(_key) < 16:
         warnings.append(f"ACCESS_KEY 仅 {len(_key)} 字符，抗爆破能力有限；建议换成长随机串")
     if (os.getenv("AUTH_DISABLED") or "").strip().lower() in ("1", "true", "yes", "on") and not s.bind_local_only:
