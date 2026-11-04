@@ -370,6 +370,10 @@ class AccessKeyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         if get_session(request.cookies.get(COOKIE_NAME)):
+            # 已登录访问根路径：直接落决策台。营销首页在鉴权模式下只有已登录用户
+            # 能看到，停在首页等于白白多点一次；营销页仍可通过 /index.html 访问。
+            if path == "/" and request.method == "GET":
+                return RedirectResponse(url="/dashboard.html", status_code=302)
             return await call_next(request)
 
         if path.startswith("/api/"):

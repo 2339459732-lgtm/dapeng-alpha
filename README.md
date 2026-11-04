@@ -96,6 +96,61 @@ python scripts/verify/checkup.py --offline  # 服务未启动时只跑前两项
 （`.gitignore` 采用白名单，只放行 4 个纯配置文件）。因此 clone 后首次启动会自动重建，
 不会带上任何人的真实持仓或账户信息。
 
+## 运行与运维
+
+### 一条命令看清系统状态
+
+```bash
+python scripts/ops/health_report.py              # 本地 + 公网 + 鉴权 + 日志 + 磁盘 + 计划任务
+python scripts/ops/health_report.py --no-public  # 离线环境，跳过公网探测
+python scripts/ops/health_report.py --json       # 机器可读，接入巡检/告警
+```
+
+输出人读表格，同时写 `logs/ops_report.json`。退出码：`0` 全绿 / `1` 有告警 / `2` 有故障，
+可直接用于 Cron 或计划任务的成败判定。
+
+| 检查项 | 判定依据 |
+|---|---|
+| 本地服务 | `/api/health` 返回 200 且 `ok=true`，并给出耗时（正常 < 100ms） |
+| 看门狗 | 守卫端口 8899 被占用（bind 试探，不建立连接） |
+| 公网入口 | 带 `sharecode` 进站 → 再探 `/api/health`，给出冷启动耗时 |
+| 鉴权闸门 | `/api/auth/status` 的 `required=true`；为假直接判 FAIL |
+| 日志 / 磁盘 | 单文件 > 20MB 告警（轮转失效），磁盘 < 5GB 告警 |
+| 计划任务 | `DAPENG-Alpha-Service`（开机自启）、`DAPENG-Alpha-Backup`（每日备份） |
+
+### 看门狗：不止「进程挂了才重启」
+
+`scripts/server_watchdog.py` 除了监听子进程退出（递增退避 5s→10s→30s→60s），
+还会**每 60s 请求一次 `/api/health`**。连续 3 次失败就判定「进程活着但服务卡死」
+（死锁、连接池耗尽、GIL 长时间占用都会这样），直接杀掉子进程交给主循环重启。
+
+| 变量 | 作用 | 默认 |
+|---|---|---|
+| `HEALTH_INTERVAL` | 心跳间隔（秒） | 60 |
+| `HEALTH_TIMEOUT` | 单次探测超时（秒） | 10 |
+| `HEALTH_FAIL_THRESHOLD` | 连续失败几次才重启 | 3 |
+| `HEALTH_GRACE` | 冷启动宽限（秒），期间不判失败 | 180 |
+
+日志：`logs/watchdog.log`（2MB×3 轮转）、`logs/server.log`（5MB 单备份，重启时轮转）。
+磁盘占用因此有上界，不会无限膨胀。
+
+### 网址与访问链路
+
+```
+https://<域名>/?sharecode=XXXX
+      │  ① 托管平台校验分享码，种下平台 Cookie
+      ▼
+   /login?next=%2F         ② 未登录 → 登录页（私钥输入）
+      │  ③ 校验通过，下发会话 Cookie（HttpOnly，无 Max-Age）
+      ▼
+   /dashboard.html         ④ 决策台
+```
+
+- **已登录**访问 `/` 直接 302 到 `/dashboard.html`，不再停在营销首页；
+  营销页仍在 `/index.html`（显式访问）。
+- 分享码只需首次带一次，之后靠平台 Cookie；`next` 参数会被保留，登录后回到原目标页。
+- 冷启动（容器休眠后首次访问）通常 10–60s，前端有 3 次自动重试，不要重复刷新。
+
 ---
 
 ## 目录导航

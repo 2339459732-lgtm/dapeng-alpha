@@ -7,7 +7,10 @@
    子进程稳定运行超过 STABLE_SECONDS 后退避重置；
 3. 单实例保护：启动时原子独占守卫端口 127.0.0.1:8899，失败即干净退出
    （业务端口 8900 的探测仅作辅助日志，不据此退出）；
-4. 优雅退出：收到 SIGTERM / SIGINT(CTRL_C) 时先终止子进程再退出。
+4. 心跳自愈：后台线程每 HEALTH_INTERVAL 秒请求 /api/health，连续
+   HEALTH_FAIL_THRESHOLD 次失败即判定「进程活着但服务卡死」，杀掉子进程
+   交给主循环重启（仅有进程退出检测时，卡死会一直挂着没人管）；
+5. 优雅退出：收到 SIGTERM / SIGINT(CTRL_C) 时先终止子进程再退出。
 
 日志：
 - logs/watchdog.log  看门狗自身日志（含重启计数与原因）
@@ -18,6 +21,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import signal
@@ -26,6 +30,8 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
+import urllib.request
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
@@ -101,6 +107,16 @@ STOP_TIMEOUT: float = 15.0
 # 子进程存活轮询间隔
 POLL_INTERVAL: float = 0.5
 
+# ── 心跳自愈 ──
+# 探测间隔（秒）：60s 一次，对服务压力可忽略
+HEALTH_INTERVAL: float = float((os.getenv("HEALTH_INTERVAL") or "60").strip() or 60)
+# 单次探测超时（秒）：健康检查本身很快，超过说明服务已无响应
+HEALTH_TIMEOUT: float = float((os.getenv("HEALTH_TIMEOUT") or "10").strip() or 10)
+# 连续失败阈值：3 次 × 60s ≈ 3 分钟无响应才动手，避免扫描高峰误杀
+HEALTH_FAIL_THRESHOLD: int = int((os.getenv("HEALTH_FAIL_THRESHOLD") or "3").strip() or 3)
+# 启动宽限期（秒）：冷启动要加载行情与覆盖数据，期间不判失败
+HEALTH_GRACE: float = float((os.getenv("HEALTH_GRACE") or "180").strip() or 180)
+
 # ---------------------------------------------------------------------------
 # 全局状态
 # ---------------------------------------------------------------------------
@@ -108,6 +124,8 @@ POLL_INTERVAL: float = 0.5
 _stop_event = threading.Event()
 _child: Optional[subprocess.Popen] = None
 _child_lock = threading.Lock()
+# 子进程启动时刻：心跳线程据此跳过冷启动宽限期
+_child_started_at: float = 0.0
 
 
 def _setup_logger() -> logging.Logger:
@@ -249,7 +267,9 @@ def _acquire_instance_lock(logger: logging.Logger) -> Optional[socket.socket]:
     guard = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         guard.bind((GUARD_HOST, GUARD_PORT))
-        guard.listen(1)
+        # backlog 给足：守卫 socket 不 accept，任何 connect 探测都会排在队列里，
+        # backlog=1 时第二次探测就会被拒，外部监控会误判「看门狗已死」。
+        guard.listen(16)
         logger.info("已获取单实例守卫锁 %s:%d", HOST, GUARD_PORT)
         return guard
     except OSError as exc:
@@ -295,6 +315,84 @@ def _open_server_log():
     return open(SERVER_LOG, "ab")  # noqa: SIM115 - 生命周期跟随子进程
 
 
+def _probe_health(timeout: float = HEALTH_TIMEOUT) -> tuple[bool, str]:
+    """请求本机 /api/health，返回 (是否健康, 说明)。
+
+    只认 HTTP 200 且 body 里 ok 为真；连接被拒、超时、5xx、返回 HTML
+    （典型是卡在中间件或反代异常页）都算不健康。
+    """
+    url = f"http://127.0.0.1:{PORT}/api/health"
+    req = urllib.request.Request(url, headers={"User-Agent": "dapeng-watchdog/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status != 200:
+                return False, f"HTTP {resp.status}"
+            raw = resp.read(4096)
+    except urllib.error.HTTPError as exc:
+        return False, f"HTTP {exc.code}"
+    except Exception as exc:  # URLError / 超时 / 连接重置
+        return False, f"{type(exc).__name__}: {exc}"
+    try:
+        payload = json.loads(raw.decode("utf-8", "ignore"))
+    except ValueError:
+        return False, "响应非 JSON（可能命中了异常页）"
+    if not isinstance(payload, dict) or not payload.get("ok"):
+        return False, "ok=false"
+    return True, "ok"
+
+
+def _heartbeat_loop(logger: logging.Logger) -> None:
+    """后台心跳：连续失败达阈值就杀掉子进程，让主循环重新拉起。
+
+    设计取舍：
+    - 只在子进程存在且已过宽限期时探测，避免冷启动阶段自己把自己判死；
+    - 用「连续 N 次失败」而非单次失败，避开全市场扫描时的瞬时卡顿；
+    - 探测失败但进程已退出时不重复 kill，交给主循环处理。
+    """
+    fails = 0
+    while not _stop_event.wait(HEALTH_INTERVAL):
+        with _child_lock:
+            proc = _child
+        if proc is None or proc.poll() is not None:
+            fails = 0
+            continue
+        if time.time() - _child_started_at < HEALTH_GRACE:
+            continue
+
+        ok, detail = _probe_health()
+        if ok:
+            if fails:
+                logger.info("心跳恢复正常（此前连续失败 %d 次）", fails)
+            fails = 0
+            continue
+
+        fails += 1
+        logger.warning(
+            "心跳失败 %d/%d：%s", fails, HEALTH_FAIL_THRESHOLD, detail
+        )
+        if fails < HEALTH_FAIL_THRESHOLD:
+            continue
+
+        logger.error(
+            "连续 %d 次心跳失败，判定服务卡死（pid=%d 仍在运行），强制重启",
+            fails,
+            proc.pid,
+        )
+        fails = 0
+        try:
+            proc.kill()
+        except OSError:
+            pass
+
+
+def _start_heartbeat(logger: logging.Logger) -> threading.Thread:
+    thread = threading.Thread(
+        target=_heartbeat_loop, args=(logger,), name="dapeng-heartbeat", daemon=True
+    )
+    thread.start()
+    return thread
+
+
 def _start_child(logger: logging.Logger, python: Path) -> subprocess.Popen:
     """启动 uvicorn 子进程，stdout/stderr 追加写入 logs/server.log。"""
     server_log = _open_server_log()
@@ -319,8 +417,9 @@ def _start_child(logger: logging.Logger, python: Path) -> subprocess.Popen:
         raise
 
     with _child_lock:
-        global _child
+        global _child, _child_started_at
         _child = proc
+        _child_started_at = time.time()
 
     logger.info("uvicorn 已启动 pid=%d，日志 -> %s", proc.pid, SERVER_LOG)
     return proc
@@ -392,6 +491,14 @@ def main() -> int:
         return 1
 
     _install_signal_handlers(logger)
+    _start_heartbeat(logger)
+    logger.info(
+        "心跳自愈已启用：每 %.0fs 探测 %s，连续 %d 次失败重启（冷启动宽限 %.0fs）",
+        HEALTH_INTERVAL,
+        f"127.0.0.1:{PORT}/api/health",
+        HEALTH_FAIL_THRESHOLD,
+        HEALTH_GRACE,
+    )
 
     restart_count = 0
     backoff_idx = 0

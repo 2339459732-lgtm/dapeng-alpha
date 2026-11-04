@@ -190,6 +190,29 @@ def test_page_without_session_redirects(client):
     assert r.headers["location"].startswith("/login?next=")
 
 
+def test_root_redirects_to_dashboard_when_logged_in(client):
+    """已登录访问根路径应直达决策台，而不是停在营销首页。"""
+    r = client.post("/api/auth/login", json={"key": KEY})
+    sid = r.cookies.get(auth.COOKIE_NAME)
+    root = client.get("/", cookies={auth.COOKIE_NAME: sid})
+    assert root.status_code == 302
+    assert root.headers["location"] == "/dashboard.html"
+
+
+def test_marketing_home_stays_reachable(client):
+    """营销首页不能被根路径重定向规则误伤。"""
+    r = client.post("/api/auth/login", json={"key": KEY})
+    sid = r.cookies.get(auth.COOKIE_NAME)
+    home = client.get("/index.html", cookies={auth.COOKIE_NAME: sid})
+    assert home.status_code != 302 or home.headers["location"] != "/dashboard.html"
+
+
+def test_root_without_session_goes_to_login(client):
+    r = client.get("/")
+    assert r.status_code == 302
+    assert r.headers["location"].startswith("/login?next=")
+
+
 def test_login_sets_session_cookie_without_max_age(client):
     """关键断言：不能带 Max-Age/Expires，否则关掉浏览器仍能进。"""
     r = client.post("/api/auth/login", json={"key": KEY})
