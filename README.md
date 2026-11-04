@@ -116,7 +116,7 @@ python scripts/ops/health_report.py --json       # 机器可读，接入巡检/�
 | 公网入口 | 带 `sharecode` 进站 → 再探 `/api/health`，给出冷启动耗时 |
 | 鉴权闸门 | `/api/auth/status` 的 `required=true`；为假直接判 FAIL |
 | 日志 / 磁盘 | 单文件 > 20MB 告警（轮转失效），磁盘 < 5GB 告警 |
-| 计划任务 | `DAPENG-Alpha-Service`（开机自启）、`DAPENG-Alpha-Backup`（每日备份） |
+| 计划任务 | `DAPENG-Alpha-Service`（开机自启）、`DAPENG-Alpha-Backup`（每日备份）、`DAPENG-Alpha-OpsCheck`（每日 08:30 体检） |
 
 ### 看门狗：不止「进程挂了才重启」
 

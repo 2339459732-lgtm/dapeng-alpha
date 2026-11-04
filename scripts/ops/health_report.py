@@ -314,14 +314,24 @@ def run(port: int, include_public: bool, public_url: str, sharecode: str) -> dic
     }
 
 
+def _emit(text: str) -> None:
+    """安全输出：pythonw.exe 下 sys.stdout 为 None，计划任务里不能因此崩掉。"""
+    if sys.stdout is None:
+        return
+    try:
+        print(text)
+    except Exception:
+        pass
+
+
 def _print_human(report: dict) -> None:
     icons = {"ok": "[ OK ]", "warn": "[WARN]", "fail": "[FAIL]"}
-    print(f"\nDAPENG Alpha 运维体检  {report['generated_at']}  总体：{report['overall'].upper()}\n")
-    print("-" * 72)
+    _emit(f"\nDAPENG Alpha 运维体检  {report['generated_at']}  总体：{report['overall'].upper()}\n")
+    _emit("-" * 72)
     for item in report["checks"]:
-        print(f"{icons[item['status']]} {item['name']:<6} {item['detail']}")
-    print("-" * 72)
-    print(f"报告已写入 {REPORT_PATH}")
+        _emit(f"{icons[item['status']]} {item['name']:<6} {item['detail']}")
+    _emit("-" * 72)
+    _emit(f"报告已写入 {REPORT_PATH}")
 
 
 def main() -> int:
@@ -340,7 +350,7 @@ def main() -> int:
     REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
     if args.json:
-        print(json.dumps(report, ensure_ascii=False, indent=2))
+        _emit(json.dumps(report, ensure_ascii=False, indent=2))
     else:
         _print_human(report)
     return STATUS_ORDER[report["overall"]]
